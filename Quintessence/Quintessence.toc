@@ -1,0 +1,22 @@
+## Interface: 16001, 110207, 120000, 120001, 120005, 120007, 120100, 120105, 120200
+## Title: Quintessence
+## Notes: Conteneur des addons de la guilde Quintessence : synchro de guilde commune et fenêtre à onglets (/quinte).
+## Author: Quintessence
+## X-Quinte-Edition: curseforge
+## Version: 1.18.0
+## SavedVariables: QuintessenceDB
+## IconTexture: Interface\Icons\INV_Misc_Head_Dragon_01
+## AddonCompartmentFunc: Quintessence_Toggle
+Libs/Compat.lua
+Libs/LibStub/LibStub.lua
+Libs/ChatThrottleLib/ChatThrottleLib.lua
+Libs/LibSerialize/LibSerialize.lua
+Libs/LibDeflate/LibDeflate.lua
+Libs/LibQuinteSync-1.0/DeflateGuard.lua
+Libs/LibQuinteSync-1.0/LibQuinteSync-1.0.lua
+Core.lua
+Sync.lua
+Style.lua
+UI.lua
+Minimap.lua
+Versions.lua

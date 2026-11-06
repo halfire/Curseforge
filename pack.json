@@ -1,0 +1,29 @@
+{
+ "version": "1.18.0",
+ "addons": [
+  [
+   "Quintessence",
+   "1.18.0"
+  ],
+  [
+   "quinte-craft",
+   "0.10.0"
+  ],
+  [
+   "quinte-caract",
+   "0.10.0"
+  ],
+  [
+   "quinte-bis",
+   "0.4.0"
+  ],
+  [
+   "quinte-group",
+   "0.7.2"
+  ],
+  [
+   "quinte-map",
+   "0.5.0"
+  ]
+ ]
+}

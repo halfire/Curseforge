@@ -1,0 +1,15 @@
+## Interface: 16001, 110207, 120000, 120001, 120005, 120007, 120100, 120105, 120200
+## Title: quinte-craft
+## Notes: Module Quintessence - Recettes et composants de toute la guilde (onglet Craft, /qcraft). Nécessite l'addon Quintessence.
+## Author: Quintessence
+## Version: 0.10.0
+## SavedVariables: QuinteCraftDB
+## Dependencies: Quintessence
+Core.lua
+Professions.lua
+Sync.lua
+Search.lua
+Recipes.lua
+Orders.lua
+Tooltip.lua
+UI.lua

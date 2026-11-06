@@ -1,0 +1,27 @@
+# Envoie les addons de ce dépôt sur CurseForge quand pack.json change sur main.
+# Réglages du dépôt GitHub : secret CF_API_KEY et variable CF_PROJECT_ID ; sans eux, rien n'est envoyé.
+name: Pack CurseForge
+on:
+  push:
+    branches: [main]
+    paths: ['pack.json']
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: curseforge
+  cancel-in-progress: false
+jobs:
+  upload:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Envoyer le pack
+        env:
+          CF_API_KEY: ${{ secrets.CF_API_KEY }}
+          CF_PROJECT_ID: ${{ vars.CF_PROJECT_ID }}
+          CF_GAME_VERSIONS: ${{ vars.CF_GAME_VERSIONS }}
+        run: python3 .github/scripts/curseforge_upload.py .

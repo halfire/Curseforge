@@ -1,0 +1,14 @@
+## Interface: 16001, 110207, 120000, 120001, 120005, 120007, 120100, 120105, 120200
+## Title: Quinte-group
+## Notes: Module Quintessence - Compagnon de leveling, quêtes partagées, préférences de donjons et Codex secret de WoW Forever (/qgroup).
+## Author: Quintessence
+## Version: 0.7.2
+## SavedVariables: QuinteGroupDB
+## Dependencies: Quintessence
+Core.lua
+Leveling.lua
+Dungeons.lua
+DungeonQuests.lua
+Party.lua
+Codex.lua
+UI.lua

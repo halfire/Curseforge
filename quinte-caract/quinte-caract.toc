@@ -1,0 +1,16 @@
+## Interface: 16001, 110207, 120000, 120001, 120005, 120007, 120100, 120105, 120200
+## Title: quinte-caract
+## Notes: Module Quintessence - Fiches personnage de la guilde : stuff, stats, PvP (onglet Fiches, /qcaract). Nécessite l'addon Quintessence.
+## Author: Quintessence
+## Version: 0.10.0
+## SavedVariables: QuinteCaractDB
+## Dependencies: Quintessence
+Core.lua
+Attunements.lua
+Character.lua
+Equipment.lua
+Sync.lua
+Commands.lua
+TrainingData.lua
+Training.lua
+UI.lua
