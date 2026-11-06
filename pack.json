@@ -1,9 +1,9 @@
 {
- "version": "1.19.0",
+ "version": "1.20.0",
  "addons": [
   [
    "Quintessence",
-   "1.19.0"
+   "1.20.0"
   ],
   [
    "quinte-craft",
@@ -19,7 +19,7 @@
   ],
   [
    "quinte-group",
-   "0.8.0"
+   "0.9.0"
   ],
   [
    "quinte-map",

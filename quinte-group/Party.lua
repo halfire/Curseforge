@@ -152,8 +152,33 @@ function Q.AnnounceMissingQuests(code)
     return sent
 end
 
+-- Masques de classes du jeu (DungeonQuestInfo.lua)
+local CLASS_MASK = { WARRIOR = 1, PALADIN = 2, HUNTER = 4, ROGUE = 8, PRIEST = 16, DEATHKNIGHT = 32, SHAMAN = 64, MAGE = 128,
+    WARLOCK = 256, MONK = 512, DRUID = 1024 }
+local CLASS_NAME = { { 1, 'Guerrier' }, { 2, 'Paladin' }, { 4, 'Chasseur' }, { 8, 'Voleur' }, { 16, 'Prêtre' }, { 64, 'Chaman' },
+    { 128, 'Mage' }, { 256, 'Démoniste' }, { 1024, 'Druide' } }
+local function hasClass(mask, class)
+    local bit = CLASS_MASK[class]
+    if not (mask and bit) then return true end -- pas de condition, ou classe inconnue : on ne cache rien
+    return math.floor(mask / bit) % 2 == 1
+end
+--- Classes d'une quête réservée, en toutes lettres : « Guerrier, Paladin ».
+local function classNames(mask)
+    local names = {}
+    for _, c in ipairs(CLASS_NAME) do if math.floor(mask / c[1]) % 2 == 1 then names[#names + 1] = c[2] end end
+    return table.concat(names, ', ')
+end
+local function myClass()
+    if not UnitClass then return nil end
+    local _, class = UnitClass('player')
+    return not isSecret(class) and class or nil
+end
+
 --- Quêtes du donjon : { id, logId, level, title, state = 'log' | 'done' | 'todo', complete, shareable,
---- holders = { inscrits ou membres du groupe qui l'ont }, groupHas, groupMissing = { membres du groupe qui l'ont, qui ne l'ont pas } }.
+--- holders = { inscrits ou membres du groupe qui l'ont }, groupHas, groupMissing = { membres du groupe qui l'ont, qui ne l'ont pas },
+--- known (conditions connues), classes (réservée à), minLevel, prev, prevTitle, prevState ('log' | 'done' | 'todo'), start }.
+--- Une quête réservée à une autre classe n'est pas listée, sauf si elle est dans mon journal.
+--- state vaut aussi 'locked' (quête précédente pas faite) ou 'low' (niveau trop bas) : le jeu ne la proposerait pas.
 --- Une quête est « en cours » si son numéro est dans le journal, même zone repliée, ou si une quête du journal porte le même titre.
 function Q.DungeonQuests(code)
     local list = Q.DUNGEON_QUESTS and Q.DUNGEON_QUESTS[Q.NormalizeDungeonCode and Q.NormalizeDungeonCode(code) or code]
@@ -171,6 +196,9 @@ function Q.DungeonQuests(code)
     local needs = Q.GetDungeonNeeds and Q.GetDungeonNeeds(code)
     for _, m in ipairs(needs and needs.members or {}) do if not m.isPlayer then signed[Quintessence.CanonicalKey(m.name)] = m.name end end
     local logs, now = {}, Q.Now()
+    local class = myClass()
+    local level = UnitLevel and UnitLevel('player')
+    if isSecret(level) or type(level) ~= 'number' then level = nil end
     for key, info in pairs(QuinteGroupDB.memberQuests or {}) do
         if type(info) == 'table' and type(info.quests) == 'table' then
             local inGroup = Q.InMyGroup(info.name) and now - (tonumber(info.updated) or 0) <= GROUP_LOG_TTL
@@ -184,7 +212,7 @@ function Q.DungeonQuests(code)
                         if t then titles[t] = true end
                     end
                 end
-                logs[#logs + 1] = { name = name, ids = ids, titles = titles, inGroup = inGroup }
+                logs[#logs + 1] = { name = name, ids = ids, titles = titles, inGroup = inGroup, class = info.class }
             end
         end
     end
@@ -195,22 +223,36 @@ function Q.DungeonQuests(code)
         local title = questTitle(id, q[3])
         local key = sameTitle(title)
         local logId = (mine[id] or Q.IsOnQuest(id)) and id or (key and mineTitles[key]) or nil
+        local info = Q.DUNGEON_QUEST_INFO and Q.DUNGEON_QUEST_INFO[id]
         local holders, groupHas, groupMissing = {}, {}, {}
         for _, l in ipairs(logs) do
             local has = l.ids[id] or (key and l.titles[key])
             if has then holders[#holders + 1] = l.name end
             if l.inGroup then
-                if has then groupHas[#groupHas + 1] = l.name else groupMissing[#groupMissing + 1] = l.name end
+                if has then groupHas[#groupHas + 1] = l.name
+                elseif hasClass(info and info.class, l.class) then groupMissing[#groupMissing + 1] = l.name end
             end
         end
-        out[#out + 1] = { id = id, logId = logId, level = q[2], title = title,
-            state = logId and 'log' or (done(id) and 'done' or 'todo'),
-            complete = logId and complete(logId) or false,
-            shareable = logId and Q.CanShareQuest(logId) or false,
-            holders = holders, groupHas = groupHas, groupMissing = groupMissing }
+        if logId or hasClass(info and info.class, class) then
+            local state = logId and 'log' or (done(id) and 'done' or 'todo')
+            local prevState
+            if info and info.prev then
+                prevState = (Q.IsOnQuest(info.prev) and 'log') or (done(info.prev) and 'done') or 'todo'
+                if state == 'todo' and prevState ~= 'done' then state = 'locked' end
+            end
+            if state == 'todo' and info and info.level and level and level < info.level then state = 'low' end
+            out[#out + 1] = { id = id, logId = logId, level = q[2], title = title, state = state,
+                complete = logId and complete(logId) or false,
+                shareable = logId and Q.CanShareQuest(logId) or false,
+                holders = holders, groupHas = groupHas, groupMissing = groupMissing,
+                known = info ~= nil, classes = info and info.class and classNames(info.class) or nil,
+                minLevel = info and info.level, start = info and info.start,
+                prev = info and info.prev, prevState = prevState,
+                prevTitle = info and info.prev and questTitle(info.prev, info.prevTitle) or nil }
+        end
     end
     -- Ce que je peux faire d'abord : mes quêtes, puis celles à prendre, puis celles déjà faites.
-    local RANK = { log = 1, todo = 2, done = 3 }
+    local RANK = { log = 1, todo = 2, locked = 3, low = 4, done = 5 }
     table.sort(out, function(a, b)
         if a.state ~= b.state then return RANK[a.state] < RANK[b.state] end
         if a.level ~= b.level then return a.level < b.level end

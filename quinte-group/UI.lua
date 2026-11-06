@@ -52,6 +52,14 @@ local function showQuestTooltip(owner, q)
     GameTooltip:SetOwner(owner, 'ANCHOR_RIGHT')
     Q.Call(GameTooltip.SetHyperlink, GameTooltip, 'quest:' .. q.id)
     if GameTooltip.NumLines and GameTooltip:NumLines() == 0 then GameTooltip:AddLine(Q.Safe(q.title)) end
+    if q.classes then GameTooltip:AddLine('Réservée à : ' .. q.classes, 1, 0.82, 0) end
+    if q.minLevel then GameTooltip:AddLine('Niveau requis : ' .. q.minLevel, 1, 1, 1) end
+    if q.prev then
+        local where = q.prevState == 'done' and 'faite' or (q.prevState == 'log' and 'en cours' or 'pas faite')
+        GameTooltip:AddLine('Suite de : ' .. Q.Safe(q.prevTitle or ('quête ' .. q.prev)) .. ' (' .. where .. ')', 1, 1, 1, true)
+    end
+    if q.start then GameTooltip:AddLine('Donneur : ' .. Q.Safe(q.start), 1, 1, 1, true) end
+    if not q.known then GameTooltip:AddLine('Quête de Forever : classe et suite non vérifiées', 0.6, 0.6, 0.6, true) end
     if q.state == 'log' then
         GameTooltip:AddLine(q.shareable and 'Partageable avec le groupe' or 'Ne peut pas être partagée', 1, 0.82, 0)
     end
@@ -741,12 +749,19 @@ function UI.RefreshDungeons()
                     r.action:SetScript('OnClick', function() Q.ShareQuest(q.logId, q.title) end)
                 elseif q.state == 'todo' then
                     text = '|c' .. S.hex.gold .. 'à prendre|r'
+                    if q.prev then text = text .. ' · suite' end
                     if #q.groupHas > 0 then text = text .. ' · ' .. Q.Safe(table.concat(q.groupHas, ', ')) .. ' l\'a'
                     elseif #q.holders > 0 then text = text .. ' · ' .. Q.Safe(table.concat(q.holders, ', ')) end
                     r.action:SetLabel('Demander')
                     r.action:SetShown(#q.groupHas > 0)
                     r.action:SetEnabled(true)
                     r.action:SetScript('OnClick', function() Q.AskQuest(q.title, q.groupHas, q.id) end)
+                elseif q.state == 'locked' then
+                    text = '|c' .. S.hex.muted .. 'après : ' .. Q.Safe(q.prevTitle or 'quête précédente') .. '|r'
+                    r.action:Hide()
+                elseif q.state == 'low' then
+                    text = '|c' .. S.hex.muted .. 'niveau ' .. q.minLevel .. ' requis|r'
+                    r.action:Hide()
                 else
                     text = '|c' .. S.hex.muted .. 'faite|r'
                     r.action:Hide()
