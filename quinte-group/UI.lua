@@ -363,10 +363,10 @@ local function createDungeonsPanel(parent)
     end)
     panel.btnSavePref = btnSavePref
 
-    -- 2. Colonne de gauche : Liste des donjons (276 × 352)
+    -- 2. Colonne de gauche : Liste des donjons, noms courts (190 × 352)
     local leftBox = S.Box(panel, S.colors.panel, S.colors.line)
     leftBox:SetPoint('TOPLEFT', 0, -48)
-    leftBox:SetSize(276, 352)
+    leftBox:SetSize(190, 352)
     leftBox:EnableMouseWheel(true)
     leftBox:SetScript('OnMouseWheel', function(_, delta)
         dungeonState.dungeonOffset = math.max(0, dungeonState.dungeonOffset - delta * 2)
@@ -375,7 +375,7 @@ local function createDungeonsPanel(parent)
 
     local dungeonRows = {}
     for i = 1, D_ROWS do
-        local row = S.Row(leftBox, 260, 36)
+        local row = S.Row(leftBox, 174, 36)
         row:SetPoint('TOPLEFT', 1, -6 - (i - 1) * 38)
 
         row.icon = row:CreateTexture(nil, 'ARTWORK')
@@ -384,14 +384,14 @@ local function createDungeonsPanel(parent)
 
         row.name = S.Text(row, 12, S.colors.text)
         row.name:SetPoint('TOPLEFT', 38, -4)
-        row.name:SetWidth(174)
+        row.name:SetWidth(92)
 
         row.count = S.Text(row, 11, S.colors.mint, 'RIGHT')
         row.count:SetPoint('TOPRIGHT', -8, -4)
 
         row.sub = S.Text(row, 10, S.colors.muted)
         row.sub:SetPoint('TOPLEFT', 38, -20)
-        row.sub:SetWidth(214)
+        row.sub:SetWidth(130)
 
         row:SetScript('OnClick', function()
             if row.dungeonCode then
@@ -412,12 +412,12 @@ local function createDungeonsPanel(parent)
             UI.RefreshDungeons()
         end
     end)
-    panel.dungeonScroll:SetPoint('TOPLEFT', 264, -6)
+    panel.dungeonScroll:SetPoint('TOPLEFT', 178, -6)
 
-    -- 3. Colonne de droite : Détails du donjon, membres et matrice de butin (472 × 352)
+    -- 3. Colonne de droite : Détails du donjon, membres et matrice de butin (558 × 352)
     local rightBox = S.Box(panel, S.colors.panel, S.colors.line)
-    rightBox:SetPoint('TOPLEFT', 288, -48)
-    rightBox:SetSize(472, 352)
+    rightBox:SetPoint('TOPLEFT', 202, -48)
+    rightBox:SetSize(558, 352)
     panel.rightBox = rightBox
 
     local dIcon = rightBox:CreateTexture(nil, 'ARTWORK')
@@ -427,12 +427,12 @@ local function createDungeonsPanel(parent)
 
     local dTitle = S.Text(rightBox, 15, S.colors.text)
     dTitle:SetPoint('TOPLEFT', 50, -11)
-    dTitle:SetWidth(210)
+    dTitle:SetWidth(255)
     panel.dTitle = dTitle
 
     local dSub = S.Text(rightBox, 11, S.colors.muted)
     dSub:SetPoint('TOPLEFT', 50, -29)
-    dSub:SetWidth(230)
+    dSub:SetWidth(255)
     panel.dSub = dSub
 
     local btnInviteComp = S.Button(rightBox, 'Groupe sans conflit', 142, 24, 'primary')
@@ -460,7 +460,7 @@ local function createDungeonsPanel(parent)
     -- Bandeau d'état des conflits de butin
     local banner = S.Box(rightBox, S.colors.bg, S.colors.line)
     banner:SetPoint('TOPLEFT', 14, -48)
-    banner:SetSize(444, 24)
+    banner:SetSize(530, 24)
     panel.banner = banner
 
     local bannerDot = S.Fill(banner, 'ARTWORK', S.colors.mint)
@@ -469,13 +469,20 @@ local function createDungeonsPanel(parent)
 
     local bannerText = S.Text(banner, 11, S.colors.text)
     bannerText:SetPoint('LEFT', 24, 0)
-    bannerText:SetWidth(308)
+    bannerText:SetWidth(270)
     panel.bannerText = bannerText
 
     -- Repère, flèche et carte ouverte sur l'entrée du donjon affiché
     panel.btnEntrance = S.Button(banner, 'Afficher l\'entrée', 108, 20, 'ghost')
     panel.btnEntrance:SetPoint('RIGHT', -2, 0)
     panel.btnEntrance:SetScript('OnClick', function() Q.Run('entrée', Q.ShowDungeonEntrance, dungeonState.selectedDungeon) end)
+    -- Où prendre les quêtes : ouvre leur liste (bouton « Carte » sur chaque ligne) et écrit les lieux dans le chat
+    panel.btnQuestPlaces = S.Button(banner, 'Lieux des quêtes', 112, 20, 'ghost')
+    panel.btnQuestPlaces:SetPoint('RIGHT', panel.btnEntrance, 'LEFT', -6, 0)
+    panel.btnQuestPlaces:SetScript('OnClick', function()
+        dungeonState.showQuests = true; dungeonState.lootOffset = 0; UI.RefreshDungeons()
+        Q.Run('lieux des quêtes', Q.PrintDungeonQuestPlaces, dungeonState.selectedDungeon)
+    end)
 
     -- Section 1 : Membres disponibles & rôles
     local mHeading = S.Heading(rightBox, 'Membres intéressés · clic pour chuchoter')
@@ -484,7 +491,7 @@ local function createDungeonsPanel(parent)
 
     local memberBox = S.Box(rightBox, S.colors.bg, S.colors.line)
     memberBox:SetPoint('TOPLEFT', 14, -96)
-    memberBox:SetSize(444, M_ROWS * 26 + 4)
+    memberBox:SetSize(530, M_ROWS * 26 + 4)
     memberBox:EnableMouseWheel(true)
     memberBox:SetScript('OnMouseWheel', function(_, delta)
         dungeonState.memberOffset = math.max(0, dungeonState.memberOffset - delta)
@@ -493,7 +500,7 @@ local function createDungeonsPanel(parent)
 
     local memberRows = {}
     for i = 1, M_ROWS do
-        local r = S.Row(memberBox, 442, 25)
+        local r = S.Row(memberBox, 528, 25)
         r:SetPoint('TOPLEFT', 1, -2 - (i - 1) * 26)
 
         local dot = S.Fill(r, 'ARTWORK', S.colors.mint)
@@ -506,7 +513,7 @@ local function createDungeonsPanel(parent)
         nameText:SetPoint('LEFT', 70, 0); nameText:SetWidth(155)
 
         local lootSummary = S.Text(r, 11, S.colors.muted)
-        lootSummary:SetPoint('LEFT', 230, 0); lootSummary:SetWidth(135)
+        lootSummary:SetPoint('LEFT', 230, 0); lootSummary:SetWidth(221)
 
         local invBtn = S.Button(r, 'Inviter', 64, 20, 'ghost')
         invBtn:SetPoint('RIGHT', -6, 0)
@@ -553,7 +560,7 @@ local function createDungeonsPanel(parent)
 
     local lootBox = S.Box(rightBox, S.colors.bg, S.colors.line)
     lootBox:SetPoint('TOPLEFT', 14, -228)
-    lootBox:SetSize(444, L_ROWS * 27 + 4)
+    lootBox:SetSize(530, L_ROWS * 27 + 4)
     lootBox:EnableMouseWheel(true)
     lootBox:SetScript('OnMouseWheel', function(_, delta)
         dungeonState.lootOffset = math.max(0, dungeonState.lootOffset - delta)
@@ -562,7 +569,7 @@ local function createDungeonsPanel(parent)
 
     local lootRows = {}
     for i = 1, L_ROWS do
-        local r = S.Row(lootBox, 442, 26)
+        local r = S.Row(lootBox, 528, 26)
         r:SetPoint('TOPLEFT', 1, -2 - (i - 1) * 27)
 
         local icon = r:CreateTexture(nil, 'ARTWORK')
@@ -570,14 +577,19 @@ local function createDungeonsPanel(parent)
         icon:SetTexCoord(0.08, 0.92, 0.08, 0.92)
 
         local itemName = S.Text(r, 12, S.colors.text)
-        itemName:SetPoint('LEFT', 32, 0); itemName:SetWidth(190)
+        itemName:SetPoint('LEFT', 32, 0); itemName:SetWidth(210)
 
         local membersList = S.Text(r, 11, S.colors.muted, 'RIGHT')
-        membersList:SetPoint('RIGHT', -10, 0); membersList:SetWidth(210)
+        membersList:SetPoint('RIGHT', -10, 0); membersList:SetWidth(270)
 
         local action = S.Button(r, 'Partager', 64, 20, 'ghost')
         action:SetPoint('RIGHT', -6, 0)
         action:Hide()
+
+        -- Repère sur le donneur de la quête
+        local place = S.Button(r, 'Carte', 46, 20, 'ghost')
+        place:SetPoint('RIGHT', -74, 0)
+        place:Hide()
 
         r:SetScript('OnEnter', function(self)
             if self.quest then showQuestTooltip(self, self.quest) else showItemTooltip(self, self.itemID) end
@@ -590,7 +602,8 @@ local function createDungeonsPanel(parent)
             icon = icon,
             itemName = itemName,
             membersList = membersList,
-            action = action
+            action = action,
+            place = place
         }
     end
     panel.lootRows = lootRows
@@ -635,7 +648,7 @@ function UI.RefreshDungeons()
             r.dungeonCode = d.code
             r:SetSelected(d.code == dungeonState.selectedDungeon)
             r.icon:SetTexture('Interface\\Icons\\' .. (d.icon or 'INV_Misc_QuestionMark'))
-            r.name:SetText(Q.Safe(d.name))
+            r.name:SetText(Q.Safe(d.short or d.name))
 
             if d.totalMembers > 0 then
                 r.count:SetText(d.totalMembers .. ' mbr')
@@ -645,12 +658,14 @@ function UI.RefreshDungeons()
                 r.count:SetTextColor(unpack(S.colors.muted))
             end
 
+            -- Colonne étroite : l'état du butin passe avant la mention Forever (reprise à droite)
             local lvlText = string.format('niv. %d-%d', d.minLvl or 13, d.maxLvl or 60)
-            if d.new then lvlText = lvlText .. ' · |c' .. S.hex.gold .. 'Forever|r' end
             if d.hasConflicts then
                 lvlText = lvlText .. ' · |c' .. S.hex.red .. d.conflictCount .. ' conflit(s)|r'
             elseif d.totalMembers > 1 and d.totalLoots > 0 then
                 lvlText = lvlText .. ' · |c' .. S.hex.mint .. 'Sans conflit|r'
+            elseif d.new then
+                lvlText = lvlText .. ' · |c' .. S.hex.gold .. 'Forever|r'
             end
             r.sub:SetText(lvlText)
         else
@@ -667,8 +682,9 @@ function UI.RefreshDungeons()
 
     p.dIcon:SetTexture('Interface\\Icons\\' .. (selectedNeeds.icon or 'INV_Misc_QuestionMark'))
     p.dTitle:SetText(Q.Safe(selectedNeeds.name))
-    p.dSub:SetText(string.format('Niveau %d-%d · %d membre(s) · %d butin(s)',
-        selectedNeeds.minLvl or 13, selectedNeeds.maxLvl or 60, selectedNeeds.totalMembers, selectedNeeds.totalLoots))
+    p.dSub:SetText(string.format('Niveau %d-%d · %d membre(s) · %d butin(s)%s',
+        selectedNeeds.minLvl or 13, selectedNeeds.maxLvl or 60, selectedNeeds.totalMembers, selectedNeeds.totalLoots,
+        selectedNeeds.new and (' · |c' .. S.hex.gold .. 'Forever|r') or ''))
 
     if selectedNeeds.hasConflicts then
         p.bannerDot:SetColorTexture(unpack(S.colors.red))
@@ -743,7 +759,9 @@ function UI.RefreshDungeons()
                 r.frame:Show(); r.frame.itemID = nil; r.frame.quest = q
                 r.icon:SetTexture('Interface\\Icons\\INV_Misc_Note_01')
                 r.itemName:SetText(string.format('|c%s[%d]|r %s', S.hex.gold, q.level, Q.Safe(q.title)))
-                r.membersList:SetPoint('RIGHT', -74, 0); r.membersList:SetWidth(140)
+                r.membersList:SetPoint('RIGHT', -124, 0); r.membersList:SetWidth(160)
+                r.place:SetShown(q.state ~= 'done' and Q.HasDungeonQuestPlace(q.id))
+                r.place:SetScript('OnClick', function() Q.Run('lieu de quête', Q.ShowDungeonQuestPlace, q.id, q.title, selectedNeeds.code) end)
                 local text
                 if q.state == 'log' then
                     text = q.complete and ('|c' .. S.hex.gold .. 'à rendre|r') or ('|c' .. S.hex.mint .. 'en cours|r')
@@ -793,7 +811,8 @@ function UI.RefreshDungeons()
             r.frame.itemID = lt.id
             r.frame.quest = nil
             r.action:Hide()
-            r.membersList:SetPoint('RIGHT', -10, 0); r.membersList:SetWidth(210)
+            r.place:Hide()
+            r.membersList:SetPoint('RIGHT', -10, 0); r.membersList:SetWidth(270)
             r.icon:SetTexture(lt.icon or 'Interface\\Icons\\INV_Misc_QuestionMark')
             local qHex = QUALITY_HEX[lt.quality or 3] or 'ffffffff'
             r.itemName:SetText('|c' .. qHex .. Q.Safe(lt.name) .. '|r')

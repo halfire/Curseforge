@@ -90,18 +90,21 @@ local function buildIndex()
         end
     end
 end
+local function findMap(fr, en, id)
+    if not mapIndex then buildIndex() end
+    local found = (fr and mapIndex[plain(fr)]) or (en and mapIndex[plain(en)])
+    if found then return found end
+    if id and C_Map and C_Map.GetMapInfo then
+        local ok, info = pcall(C_Map.GetMapInfo, id)
+        if ok and info then return id end
+    end
+    return nil
+end
 --- Numéro de carte d'une zone d'entrée, nil si le jeu ne la connaît pas.
 function Q.EntranceMap(zoneKey)
     local zone = ZONES[zoneKey]
     if not zone then return nil end
-    if not mapIndex then buildIndex() end
-    local id = mapIndex[plain(zone.fr)] or mapIndex[plain(zone.en)]
-    if id then return id end
-    if zone.id and C_Map and C_Map.GetMapInfo then
-        local ok, info = pcall(C_Map.GetMapInfo, zone.id)
-        if ok and info then return zone.id end
-    end
-    return nil
+    return findMap(zone.fr, zone.en, zone.id)
 end
 local function placeWaypoint(mapID, x, y)
     if not (C_Map and C_Map.SetUserWaypoint and UiMapPoint and UiMapPoint.CreateFromCoordinates) then return false end
@@ -128,4 +131,70 @@ function Q.ShowDungeonEntrance(code)
     if mapID and C_Map and C_Map.OpenWorldMap then pcall(C_Map.OpenWorldMap, mapID) end
     Q.Print(text .. (placed and '' or ' Repère impossible sur cette carte.'))
     return placed and true or false
+end
+
+-- Nom français des zones où l'on prend les quêtes (les lieux sont notés en anglais) ; Riverglades n'a pas de nom français connu
+local ZONE_FR = {
+    ['Alterac Mountains'] = 'Montagnes d\'Alterac', ['Arathi Highlands'] = 'Hautes-terres d\'Arathi', ['Ashenvale'] = 'Orneval',
+    ['Azshara'] = 'Azshara', ['Badlands'] = 'Terres ingrates', ['Blasted Lands'] = 'Terres foudroyées',
+    ['Burning Steppes'] = 'Steppes ardentes', ['Darkshore'] = 'Sombrivage', ['Darnassus'] = 'Darnassus',
+    ['Deadwind Pass'] = 'Défilé de Deuillevent', ['Desolace'] = 'Désolace', ['Dun Morogh'] = 'Dun Morogh',
+    ['Durotar'] = 'Durotar', ['Duskwood'] = 'Bois de la Pénombre', ['Dustwallow Marsh'] = 'Marécage d\'Âprefange',
+    ['Eastern Plaguelands'] = 'Maleterres de l\'est', ['Elwynn Forest'] = 'Forêt d\'Elwynn', ['Felwood'] = 'Gangrebois',
+    ['Feralas'] = 'Féralas', ['Hillsbrad Foothills'] = 'Contreforts de Hautebrande', ['Ironforge'] = 'Forgefer',
+    ['Loch Modan'] = 'Loch Modan', ['Moonglade'] = 'Reflet-de-Lune', ['Mulgore'] = 'Mulgore', ['Orgrimmar'] = 'Orgrimmar',
+    ['Redridge Mountains'] = 'Les Carmines', ['Searing Gorge'] = 'Gorge des Vents brûlants', ['Silithus'] = 'Silithus',
+    ['Silverpine Forest'] = 'Forêt des Pins-Argentés', ['Stonetalon Mountains'] = 'Les Serres-Rocheuses',
+    ['Stormwind City'] = 'Hurlevent', ['Stranglethorn Vale'] = 'Vallée de Strangleronce',
+    ['Swamp of Sorrows'] = 'Marais des Chagrins', ['Tanaris'] = 'Tanaris', ['Teldrassil'] = 'Teldrassil',
+    ['The Barrens'] = 'Les Tarides', ['The Hinterlands'] = 'Les Hinterlands', ['Thousand Needles'] = 'Mille pointes',
+    ['Thunder Bluff'] = 'Les Pitons-du-Tonnerre', ['Tirisfal Glades'] = 'Clairières de Tirisfal', ['Undercity'] = 'Fossoyeuse',
+    ['Un\'Goro Crater'] = 'Cratère d\'Un\'Goro', ['Western Plaguelands'] = 'Maleterres de l\'ouest', ['Westfall'] = 'Marche de l\'Ouest',
+    ['Wetlands'] = 'Les Paluns', ['Winterspring'] = 'Berceau-de-l\'Hiver',
+}
+
+--- La quête a-t-elle un lieu connu (donneur placé, ou dans le donjon) ?
+function Q.HasDungeonQuestPlace(questId)
+    local p = Q.DUNGEON_QUEST_PLACES and Q.DUNGEON_QUEST_PLACES[questId]
+    return (p and p.start) ~= nil
+end
+--- Phrase décrivant où prendre une quête, nil si le lieu est inconnu.
+local function placeText(p)
+    if not (p and p.start) then return nil end
+    local who = Q.Safe(p.start)
+    local text
+    if p.at == 'inside' then text = who .. (p.item and ' (objet trouvé)' or '') .. ', dans le donjon'
+    elseif p.x then text = string.format('%s, %s (%s, %s)', who, ZONE_FR[p.zone] or p.zone or '?', p.x, p.y)
+    else text = who end
+    if p.note then text = text .. ' · ' .. p.note end
+    return text
+end
+--- Un clic sur « Carte » : repère et carte sur le donneur ; quête prise dans le donjon, repère sur son entrée.
+function Q.ShowDungeonQuestPlace(questId, title, code)
+    local p = Q.DUNGEON_QUEST_PLACES and Q.DUNGEON_QUEST_PLACES[questId]
+    local name = Q.Safe(title or ('quête ' .. tostring(questId)))
+    if not (p and p.start) then Q.Print('Lieu inconnu pour ' .. name .. '.'); return false end
+    Q.Print(name .. ' : ' .. placeText(p) .. '.')
+    if p.at then return code ~= nil and Q.ShowDungeonEntrance(code) end
+    if not p.x then return false end
+    local mapID = findMap(ZONE_FR[p.zone], p.zone, p.map)
+    local placed = mapID and placeWaypoint(mapID, p.x, p.y)
+    if mapID and C_Map and C_Map.OpenWorldMap then pcall(C_Map.OpenWorldMap, mapID) end
+    if not placed then Q.Print('Repère impossible sur cette carte.') end
+    return placed and true or false
+end
+--- Écrit dans le chat où prendre les quêtes encore à faire du donjon (une carte ne porte qu'un seul repère).
+function Q.PrintDungeonQuestPlaces(code)
+    local d = Q.DUNGEON_BY_CODE and Q.DUNGEON_BY_CODE[code]
+    local shown = 0
+    for _, q in ipairs(Q.DungeonQuests and Q.DungeonQuests(code) or {}) do
+        if q.state ~= 'done' then
+            local text = placeText(Q.DUNGEON_QUEST_PLACES and Q.DUNGEON_QUEST_PLACES[q.id])
+            if shown == 0 then Q.Print('Lieux des quêtes : ' .. Q.Safe(d and d.name or tostring(code))) end
+            Q.Print(string.format('[%d] %s : %s', q.level or 0, Q.Safe(q.title), text or 'lieu inconnu'))
+            shown = shown + 1
+        end
+    end
+    if shown == 0 then Q.Print('Aucune quête à prendre pour ce donjon.') end
+    return shown
 end

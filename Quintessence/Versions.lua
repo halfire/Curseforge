@@ -8,7 +8,7 @@ local _, Core = ...
     celui qui est en retard est prévenu dans le chat (« nouvelle version disponible… ») et sur l'accueil.
   - /quinte versions (ou le bouton « Vérifier maintenant » de l'onglet Versions) : ping de guilde ; chaque membre
     répond avec ses versions (réponse 'O' de la synchro, champ i.t = table des modules), résumé dans le chat.
-  - Onglet « Versions » : chaque membre connu (30 jours), sa version du conteneur, ses modules en retard ou absents.
+  - Onglet « Versions » de la section Officiers : chaque membre connu (30 jours), sa version du conteneur, ses modules en retard ou absents.
   - Mémoire : QuintessenceDB.versions[clé normalisée] = { name, v, m = { id = version }, at }.
   Rien n'est envoyé hors de la guilde Quintessence (la synchro le bloque) ; aucune donnée lue par le site.
 ]]
@@ -21,11 +21,14 @@ local ANNOUNCE_DELAY = 40      -- annonce 40 s après la connexion (la liste de 
 local REPLY_GAP = 3600         -- au plus une réponse privée par membre et par heure
 local CHECK_WAIT = 15          -- attente des réponses du ping
 V.PACK_URL = 'quintessence-community.fr/addons/pack'
--- Édition CurseForge : seuls ces modules existent, ceux des autres membres ne sont ni comptés ni nommés
+-- Édition CurseForge ou pack du site : seuls ces modules existent, ceux des autres membres ne sont ni comptés ni nommés
 local CURSEFORGE_MODULES = { craft = true, caract = true, bis = true, group = true, map = true }
 local function updateHint()
     if Core.IsCurseForge() then return 'mets-le à jour avec l’application CurseForge' end
-    return 'télécharge le pack complet sur ' .. V.PACK_URL .. ' puis remplace les dossiers dans Interface/AddOns'
+    if Core.Officers and Core.Announce.IsOfficer() and not Core.Edition() then
+        return 'télécharge le pack complet sur ' .. Core.Officers.PACK_URL .. ' puis remplace les dossiers dans Interface/AddOns'
+    end
+    return 'télécharge le pack sur ' .. V.PACK_URL .. ' puis remplace les dossiers dans Interface/AddOns'
 end
 
 -- ---------------------------------------------------------------------------------------------------------------------
@@ -81,7 +84,7 @@ end
 
 function V.Prune(now)
     now = now or Core.Now()
-    local limited = Core.IsCurseForge()
+    local limited = Core.Edition() ~= nil
     for key, e in pairs(store()) do
         if type(e) ~= 'table' or type(e.at) ~= 'number' or now - e.at > KEEP or not validVersion(e.v) then store()[key] = nil
         elseif limited and type(e.m) == 'table' then
@@ -132,7 +135,7 @@ function V.Record(sender, version, modules, modulesText, now)
         m = readModules(modules, modulesText),
         at = now,
     }
-    if Core.IsCurseForge() then
+    if Core.Edition() then
         for id in pairs(entry.m) do if not CURSEFORGE_MODULES[id] then entry.m[id] = nil end end
     end
     store()[Core.CanonicalKey(sender)] = entry
@@ -358,10 +361,4 @@ function V.Init()
     end
 end
 
-Core:RegisterModule({
-    id = 'versions', title = 'Versions', order = 900, icon = 'Interface\\Icons\\INV_Misc_Gear_01', version = Core.version,
-    width = W, height = H,
-    create = function(parent) return create(parent) end,
-    refresh = function() V.Refresh() end,
-    summary = function() return V.Summary() end,
-})
+V.CreatePanel = create -- onglet Versions de la section Officiers (Officers.lua)

@@ -38,7 +38,7 @@ end
 function Q.Search(query)
     local matches, needle = {}, fold(query)
     for key, c in pairs(QuinteCaractDB.characters) do
-        if fold(key):find(needle, 1, true) then matches[#matches + 1] = {key = key, data = c} end
+        if ((c.level or 0) >= Q.MIN_LEVEL or c.source == 'self') and fold(key):find(needle, 1, true) then matches[#matches + 1] = {key = key, data = c} end
     end
     table.sort(matches, function(a, b) return a.key < b.key end)
     if #matches == 0 then return Q.Print('Aucun personnage correspondant à « ' .. Q.Safe(query) .. ' ».') end

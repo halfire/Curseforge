@@ -13,7 +13,7 @@ local addonName, Core = ...
   Règle Retail 12+ : aucune écriture dans une table, une fonction ou un cadre de Blizzard.
 ]]
 Quintessence = Core -- seule globale publique de la suite (nom propre, jamais une globale de Blizzard)
-Core.name, Core.version = addonName or 'Quintessence', '1.28.0'
+Core.name, Core.version = addonName or 'Quintessence', '1.29.0'
 Core.modules, Core.syncModules, Core.channels, Core.debug = {}, {}, {}, { errors = {}, slow = {} }
 
 function Core.Call(fn, ...)
@@ -86,14 +86,15 @@ function Core.GuildStatus()
     return 'none'
 end
 --- Raison du blocage ('none' ou 'other', puis le nom de l'autre guilde), nil pour un membre (ou guilde pas encore lue).
---- Édition CurseForge : .toc avec « ## X-Quinte-Edition: curseforge » (ajouté par scripts/build_suite.py).
---- Les membres n'y voient que Craft, Fiches, BiS, Donjons & Quêtes, SOS et Versions.
-function Core.IsCurseForge()
+--- Édition réduite : .toc avec « ## X-Quinte-Edition: curseforge » ou « site » (ajouté par scripts/build_suite.py).
+--- Les membres n'y ont que Craft, Fiches, BiS, Donjons & Quêtes, SOS et Camp ; nil pour le pack complet des officiers.
+function Core.Edition()
     local fn = (C_AddOns and C_AddOns.GetAddOnMetadata) or GetAddOnMetadata
-    if not fn then return false end
+    if not fn then return nil end
     local ok, value = pcall(fn, 'Quintessence', 'X-Quinte-Edition')
-    return ok and value == 'curseforge'
+    return ok and (value == 'curseforge' or value == 'site') and value or nil
 end
+function Core.IsCurseForge() return Core.Edition() == 'curseforge' end
 
 function Core.GuildBlocked()
     local status, name = Core.GuildStatus()
@@ -341,7 +342,7 @@ SlashCmdList.QUINTESSENCE = function(message)
         elseif command == 'erreurs' or command == 'errors' or command == 'error' then Core.ShowErrors(value)
         elseif command == 'test' then Core.Test()
         elseif command == 'versions' or command == 'version' then
-            if Core.Versions then Core.Versions.Check(); Core.UI.Open('versions') end
+            if Core.Versions then Core.Versions.Check(); if Core.Officers then Core.Officers.Open('versions') end end
         elseif command == 'minimap' then Core.MinimapToggle()
         elseif command == 'interface' or command == 'theme' then
             if value == '' then

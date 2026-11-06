@@ -149,6 +149,7 @@ function Q.CollectCharacter()
         level = Q.Number(Q.Read('UnitLevel', UnitLevel, 'player'), 1, 1000, true),
         guild = Q.String(guild), guildRank = Q.String(guildRank), itemLevel = itemLevel,
         talents = build, spec = spec, stats = stats(), pvp = pvp(), professions = professions(),
-        equipment = equipment, attunements = attunements, lockouts = Q.CollectLockouts()}
+        equipment = equipment, attunements = attunements, lockouts = Q.CollectLockouts(),
+        pex = Q.PexForRecord and Q.PexForRecord() or nil}
 end
 Q.Talents, Q.Professions = talents, professions

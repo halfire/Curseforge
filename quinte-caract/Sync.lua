@@ -30,7 +30,7 @@ local function field(target, source, name, kind, lo, hi, integer)
     target[name] = clean; return true
 end
 local function validate(value, recordKey, now)
-    if not bounded(value, 24) or not Q.String(recordKey) then return nil end
+    if not bounded(value, 25) or not Q.String(recordKey) then return nil end
     local clean = {}
     for _, name in ipairs(stringFields) do if not field(clean, value, name, 'string') then return nil end end
     for name, limits in pairs(numberFields) do
@@ -80,6 +80,23 @@ local function validate(value, recordKey, now)
             clean.lockouts[k] = v
         end
     end
+    -- Journal de pex (Journey.lua) : { since, start, min, levels = { { niveau, date, carte, minutes } }, zones = { [carte] = minutes } }
+    if value.pex ~= nil then
+        local p = value.pex
+        if not bounded(p, 5) or not array(p.levels, 80) or not bounded(p.zones, 64) then return nil end
+        clean.pex = {levels = {}, zones = {}}
+        if not field(clean.pex, p, 'since', 'number', 0, now + 300, true) or not field(clean.pex, p, 'start', 'number', 1, 1000, true)
+            or not field(clean.pex, p, 'min', 'number', 0, 5000000) then return nil end
+        for i, row in ipairs(p.levels) do
+            if not array(row, 4) or not Q.Number(row[1], 1, 1000, true) or not Q.Number(row[2], 0, now + 300, true)
+                or not Q.Number(row[3], 0, 1e7, true) or not Q.Number(row[4], 0, 5000000) then return nil end
+            clean.pex.levels[i] = {row[1], row[2], row[3], row[4]}
+        end
+        for map, minutes in pairs(p.zones) do
+            if not Q.Number(map, 1, 1e7, true) or not Q.Number(minutes, 0, 5000000) then return nil end
+            clean.pex.zones[map] = minutes
+        end
+    end
     if value.professions ~= nil then
         if not array(value.professions, 16) then return nil end
         clean.professions = {}; local names = {}
@@ -121,6 +138,10 @@ local function inactive(c, now)
 end
 local function purgedAt(db, key) return type(db.purged) == 'table' and db.purged[Lib.CanonicalKey(key)] or nil end
 Q.INACTIVE, Q.MAX_LEVEL = INACTIVE, MAX_LEVEL
+-- Sous le niveau 10, une fiche n'est ni partagée, ni acceptée, ni affichée (le joueur garde seulement la sienne)
+local MIN_LEVEL = 10
+Q.MIN_LEVEL = MIN_LEVEL
+local function tooLow(c) return (tonumber(c.level) or 0) < MIN_LEVEL end
 -- Sortie de WoW Forever (4 novembre 2026) : toute fiche d'avant le 04/11/2026 16:00 UTC (bêta) est effacée une fois
 -- (Q.ResetBeforeLaunch, appelé à l'initialisation) et refusée ensuite par la synchro. Le site fait de même (v16).
 local RESET_AT = 1793808000
@@ -146,7 +167,7 @@ local checked = setmetatable({}, {__mode = 'k'})
 local function manifest(db)
     local batches, batch, now = {}, {}, Q.Now()
     for key, c in pairs(db.characters) do
-        if checked[c] == key or validate(c, key, now) then
+        if not tooLow(c) and (checked[c] == key or validate(c, key, now)) then
             checked[c] = key
             batch[#batch + 1] = {key = key, updated = c.updated}
             if #batch == 20 then batches[#batches + 1] = batch; batch = {} end
@@ -176,7 +197,7 @@ local function export(db, request)
     local c = db.characters[request.key]
     if not c then return {} end
     local clean = validate(c, request.key, Q.Now())
-    if not clean then return {} end
+    if not clean or tooLow(clean) then return {} end
     return {{key = request.key, character = clean}}
 end
 local function merge(db, part, sender, now, request)
@@ -186,7 +207,7 @@ local function merge(db, part, sender, now, request)
     if old and old.source == 'self' then return false end
     if not old and not bounded(db.characters, 999) then return false end
     local clean = validate(part.character, part.key, now)
-    if not clean or clean.updated < now - 60 * 86400 or old and clean.updated <= (old.updated or 0) then return false end
+    if not clean or tooLow(clean) or clean.updated < now - 60 * 86400 or old and clean.updated <= (old.updated or 0) then return false end
     local gone = purgedAt(db, part.key)
     if not old and ((gone and clean.updated <= gone) or inactive(clean, now)) then return false end
     clean.source, clean.syncedFrom, clean.syncedAt = 'sync', sender, now
@@ -201,8 +222,8 @@ local function cleanup(db, roster, now)
             db.purged = db.purged or {}
             db.purged[Lib.CanonicalKey(key)] = tonumber(c.updated) or 0
             db.characters[key] = nil
-        elseif type(c) == 'table' and c.source ~= 'self' and
-            (not roster[Lib.CanonicalKey(key)] or not Q.Number(c.updated, now - 60 * 86400, now + 300, true)) then
+        elseif type(c) == 'table' and c.source ~= 'self' and (tooLow(c) or
+            not roster[Lib.CanonicalKey(key)] or not Q.Number(c.updated, now - 60 * 86400, now + 300, true)) then
             db.characters[key] = nil
         end
     end

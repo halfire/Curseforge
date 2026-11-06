@@ -224,6 +224,9 @@ function Q.DungeonQuests(code)
         local key = sameTitle(title)
         local logId = (mine[id] or Q.IsOnQuest(id)) and id or (key and mineTitles[key]) or nil
         local info = Q.DUNGEON_QUEST_INFO and Q.DUNGEON_QUEST_INFO[id]
+        -- Niveau et donneur de Forever d'abord ; la table d'informations ne sert plus que pour la classe et la suite
+        local place = Q.DUNGEON_QUEST_PLACES and Q.DUNGEON_QUEST_PLACES[id]
+        local minLevel = (place and place.level) or (info and info.level)
         local holders, groupHas, groupMissing = {}, {}, {}
         for _, l in ipairs(logs) do
             local has = l.ids[id] or (key and l.titles[key])
@@ -240,13 +243,13 @@ function Q.DungeonQuests(code)
                 prevState = (Q.IsOnQuest(info.prev) and 'log') or (done(info.prev) and 'done') or 'todo'
                 if state == 'todo' and prevState ~= 'done' then state = 'locked' end
             end
-            if state == 'todo' and info and info.level and level and level < info.level then state = 'low' end
+            if state == 'todo' and minLevel and level and level < minLevel then state = 'low' end
             out[#out + 1] = { id = id, logId = logId, level = q[2], title = title, state = state,
                 complete = logId and complete(logId) or false,
                 shareable = logId and Q.CanShareQuest(logId) or false,
                 holders = holders, groupHas = groupHas, groupMissing = groupMissing,
                 known = info ~= nil, classes = info and info.class and classNames(info.class) or nil,
-                minLevel = info and info.level, start = info and info.start,
+                minLevel = minLevel, start = (place and place.start) or (info and info.start),
                 prev = info and info.prev, prevState = prevState,
                 prevTitle = info and info.prev and questTitle(info.prev, info.prevTitle) or nil }
         end

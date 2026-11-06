@@ -62,7 +62,7 @@ local refreshPending = false
 function UI.Characters(query)
     local needle, out = fold(query or ''), {}
     for key, c in pairs(QuinteCaractDB.characters) do
-        if type(c) == 'table' and (needle == '' or fold(key):find(needle, 1, true)) then out[#out + 1] = { key = key, data = c } end
+        if type(c) == 'table' and ((c.level or 0) >= Q.MIN_LEVEL or c.source == 'self') and (needle == '' or fold(key):find(needle, 1, true)) then out[#out + 1] = { key = key, data = c } end
     end
     table.sort(out, function(a, b)
         local la, lb = a.data.level or 0, b.data.level or 0

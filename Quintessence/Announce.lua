@@ -124,6 +124,12 @@ local function senderIsOfficer(sender)
     local rank = ranks[Core.CanonicalKey(sender)]
     return rank ~= nil and rankIsOfficer(rank)
 end
+A.SenderIsOfficer = senderIsOfficer
+--- Officiers en ligne (clés triées), le joueur compris.
+function A.OnlineOfficers()
+    local _, online = roster()
+    return online
+end
 local function myPlace()
     local _, online = roster()
     local me = Core.CanonicalKey(Core.PlayerName())
@@ -409,7 +415,7 @@ end
 -- ---------------------------------------------------------------------------------------------------------------------
 -- Onglet
 -- ---------------------------------------------------------------------------------------------------------------------
-local W, H, ROWS = 760, 440, 10
+local ROWS = 10
 local panel
 local state = { offset = 0, selected = nil, days = '0000000', confirm = false, enabled = true, every = nil }
 
@@ -458,7 +464,7 @@ end
 local function create(parent)
     panel = CreateFrame('Frame', nil, parent)
     panel:SetAllPoints(parent)
-    local heading = S.Heading(panel, 'Officiers · annonces en guilde'); heading:SetPoint('TOPLEFT', 0, 0)
+    local heading = S.Heading(panel, 'Annonces en guilde'); heading:SetPoint('TOPLEFT', 0, 0)
     panel.count = S.Text(panel, 11, S.colors.muted, 'RIGHT'); panel.count:SetPoint('TOPLEFT', 660, -3); panel.count:SetWidth(100)
     local box = S.Box(panel, S.colors.panel, S.colors.line); box:SetPoint('TOPLEFT', 0, -24); box:SetSize(280, ROWS * 39 + 6)
     box:EnableMouseWheel(true)
@@ -553,21 +559,16 @@ local function create(parent)
     return panel
 end
 
-Core:RegisterModule({
-    id = A.MODULE, title = 'Officiers', order = 890, icon = 'Interface\\Icons\\INV_Misc_Horn_01', version = Core.version, width = W, height = H,
-    visible = function() return A.IsOfficer() end,
-    create = function(parent) return create(parent) end,
-    refresh = function() A.Refresh() end,
-    summary = function()
-        local on, bad = 0, 0
-        for _, item in ipairs(db().items) do
-            if item.enabled then on = on + 1 end
-            local last = db().last[item.id]
-            if last and last.status ~= 'ok' then bad = bad + 1 end
-        end
-        return on .. ' annonce(s) active(s)' .. (bad > 0 and (' · ' .. bad .. ' refusée(s)') or '')
-    end,
-})
+A.CreatePanel = create -- onglet Annonces de la section Officiers (Officers.lua)
+function A.Summary()
+    local on, bad = 0, 0
+    for _, item in ipairs(db().items) do
+        if item.enabled then on = on + 1 end
+        local last = db().last[item.id]
+        if last and last.status ~= 'ok' then bad = bad + 1 end
+    end
+    return on .. ' annonce(s) active(s)' .. (bad > 0 and (' · ' .. bad .. ' refusée(s)') or '')
+end
 
 -- ---------------------------------------------------------------------------------------------------------------------
 -- Horloge et écoute du chat
