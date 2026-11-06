@@ -1,6 +1,6 @@
 local addonName, Q = ...
 -- Nom réel du dossier installé (ex. « Quinte-craft » cloné depuis GitHub) : ADDON_LOADED le renvoie tel quel.
-Q.name, Q.version, Q.revision = addonName or 'quinte-craft', '0.10.0', 0
+Q.name, Q.version, Q.revision = addonName or 'quinte-craft', '0.10.1', 0
 Q.debug = { errors = {}, scans = 0, changes = 0, slow = {} }
 function Q.Call(fn, ...)
     if type(fn) ~= 'function' then return false end

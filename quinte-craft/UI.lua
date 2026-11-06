@@ -548,13 +548,7 @@ local function create(parent)
         row.count = text(row, 'GameFontDisableSmall', 'RIGHT'); row.count:SetPoint('RIGHT', -4, 0)
         row:SetScript('OnClick', function(self)
             if not self.entry then return end
-            -- Forever : ChatFrameUtil.InsertLink (ChatEdit_InsertLink n'y est pas chargé)
-            local insertLink = (ChatFrameUtil and ChatFrameUtil.InsertLink) or ChatEdit_InsertLink
-            if IsModifiedClick and IsModifiedClick('CHATLINK') and self.entry.item and insertLink then
-                local ok, _, link = Q.Call((C_Item or {}).GetItemInfo or GetItemInfo, self.entry.item)
-                if ok and link then Q.Call(insertLink, link) end
-                return
-            end
+            if self.entry.item and Quintessence.LinkItem(self.entry.item) then return end
             state.selected = self.entry
             Q.Run('sélection', function() renderRows(); renderDetails() end)
         end)

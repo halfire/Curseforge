@@ -13,7 +13,7 @@ local addonName, Core = ...
   Règle Retail 12+ : aucune écriture dans une table, une fonction ou un cadre de Blizzard.
 ]]
 Quintessence = Core -- seule globale publique de la suite (nom propre, jamais une globale de Blizzard)
-Core.name, Core.version = addonName or 'Quintessence', '1.20.0'
+Core.name, Core.version = addonName or 'Quintessence', '1.21.0'
 Core.modules, Core.syncModules, Core.channels, Core.debug = {}, {}, {}, { errors = {}, slow = {} }
 
 function Core.Call(fn, ...)
@@ -176,6 +176,41 @@ function Core.Whisper(name)
     local tell = (ChatFrameUtil and ChatFrameUtil.SendTell) or ChatFrame_SendTell
     if tell then Core.Call(tell, target) elseif ChatFrame_OpenChat then Core.Call(ChatFrame_OpenChat, '/w ' .. target .. ' ') end
 end
+--- Maj+clic sur un objet de nos fenêtres : met son lien dans le chat (ouvert s'il est fermé, dans le dernier canal utilisé).
+--- `item` : numéro ou lien d'objet. Renvoie vrai si le clic était un Maj+clic : l'appelant ne fait alors rien d'autre.
+function Core.LinkItem(item)
+    if not (IsModifiedClick and IsModifiedClick('CHATLINK')) then return false end
+    local link = type(item) == 'string' and item:find('|Hitem:', 1, true) and item or nil
+    local id = not link and (tonumber(item) or (type(item) == 'string' and tonumber(item:match('item:(%d+)')))) or nil
+    if id then
+        local fn = (C_Item and C_Item.GetItemInfo) or GetItemInfo
+        if fn then
+            local ok, _, found = pcall(fn, id)
+            if ok and type(found) == 'string' then link = found end
+        end
+    end
+    if not link then
+        if id and C_Item and C_Item.RequestLoadItemDataByID then pcall(C_Item.RequestLoadItemDataByID, id) end
+        if id then Core.Print('Objet pas encore chargé par le jeu, refais Maj+clic dans une seconde.') end
+        return true
+    end
+    -- Forever : ChatFrameUtil.InsertLink (ChatEdit_InsertLink n'y est pas chargé). Le drapeau évite qu'un module
+    -- qui surveille les liens (liste BiS de quinte-bis) prenne ce clic pour le sien.
+    Core.linkingItem = true
+    local insert = (ChatFrameUtil and ChatFrameUtil.InsertLink) or ChatEdit_InsertLink
+    local inserted = false
+    if insert then
+        local ok, value = pcall(insert, link)
+        inserted = ok and value and true or false
+    end
+    if not inserted then
+        local open = (ChatFrameUtil and ChatFrameUtil.OpenChat) or ChatFrame_OpenChat
+        if open then pcall(open, link) end
+    end
+    Core.linkingItem = false
+    return true
+end
+
 --- Anciennes clés possibles du joueur dans les données d'un module (avant 1.3.0, WoW Forever : « Prénom-Royaume »,
 --- sans le nom de famille). Sur les autres clients, la liste est vide.
 function Core.LegacyKeys()

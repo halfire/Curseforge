@@ -1,6 +1,6 @@
 local addonName, Q = ...
 -- Nom réel du dossier installé (ex. « Quinte-Caract » cloné depuis GitHub) : ADDON_LOADED le renvoie tel quel.
-Q.name, Q.version = addonName or 'quinte-caract', '0.10.0'
+Q.name, Q.version = addonName or 'quinte-caract', '0.10.1'
 Q.api, Q.errors, Q.pendingItems = {}, {}, {}
 Q.scans, Q.changes, Q.slow = 0, 0, {}
 

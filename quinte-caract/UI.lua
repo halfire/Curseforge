@@ -286,6 +286,7 @@ local function create(parent)
         b.ilvl = S.Text(b, 9, S.colors.text, 'RIGHT', 'OUTLINE'); b.ilvl:SetPoint('BOTTOMRIGHT', -2, 2)
         local hl = S.Fill(b, 'HIGHLIGHT', { 1, 1, 1, 0.12 }); hl:SetPoint('TOPLEFT', 2, -2); hl:SetPoint('BOTTOMRIGHT', -2, 2)
         b.slot = slot
+        b:SetScript('OnClick', function(self) if self.item then Quintessence.LinkItem(self.item) end end)
         b:SetScript('OnEnter', function(self)
             if self.item then return tooltip(self) end
             if GameTooltip then GameTooltip:SetOwner(self, 'ANCHOR_RIGHT'); GameTooltip:SetText(SLOT_NAMES[slot] or '?'); GameTooltip:Show() end
@@ -338,6 +339,7 @@ local function create(parent)
     d.gear = {}
     for i = 1, 19 do
         local line = CreateFrame('Button', nil, lv)
+        line:SetScript('OnClick', function(self) if self.item then Quintessence.LinkItem(self.item) end end)
         line:SetSize(310, 18); line:SetPoint('TOPLEFT', 0, -66 - (i - 1) * 18)
         line.label = text(line, 'GameFontHighlightSmall'); line.label:SetPoint('LEFT', 0, 0); line.label:SetPoint('RIGHT', 0, 0)
         local hl = S.Fill(line, 'HIGHLIGHT', { 1, 1, 1, 0.05 }); hl:SetAllPoints()

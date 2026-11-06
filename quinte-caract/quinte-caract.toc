@@ -2,7 +2,7 @@
 ## Title: quinte-caract
 ## Notes: Module Quintessence - Fiches personnage de la guilde : stuff, stats, PvP (onglet Fiches, /qcaract). Nécessite l'addon Quintessence.
 ## Author: Quintessence
-## Version: 0.10.0
+## Version: 0.10.1
 ## SavedVariables: QuinteCaractDB
 ## Dependencies: Quintessence
 Core.lua

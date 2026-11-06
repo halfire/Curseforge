@@ -577,6 +577,7 @@ local function createDungeonsPanel(parent)
         r:SetScript('OnEnter', function(self)
             if self.quest then showQuestTooltip(self, self.quest) else showItemTooltip(self, self.itemID) end
         end)
+        r:SetScript('OnClick', function(self) if self.itemID then Quintessence.LinkItem(self.itemID) end end)
         r:SetScript('OnLeave', hideTooltip)
 
         lootRows[i] = {
@@ -861,6 +862,9 @@ local function createCodexPanel(parent)
         ilvlText:SetPoint('RIGHT', -14, 0)
 
         r:SetScript('OnEnter', function(self) showItemTooltip(self, self.itemLink or self.itemID) end)
+        r:SetScript('OnClick', function(self)
+            if self.itemLink or self.itemID then Quintessence.LinkItem(self.itemLink or self.itemID) end
+        end)
         r:SetScript('OnLeave', hideTooltip)
 
         rows[i] = { frame = r, icon = icon, nameText = nameText, metaText = metaText, ilvlText = ilvlText }

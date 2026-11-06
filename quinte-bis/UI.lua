@@ -109,6 +109,7 @@ local function createList(parent)
         row.label = S.Text(row, 12, S.colors.text); row.label:SetPoint('LEFT', 104, 0); row.label:SetWidth(132)
         row.source = S.Text(row, 10, S.colors.muted, 'RIGHT'); row.source:SetPoint('RIGHT', -8, 0); row.source:SetWidth(90)
         row:SetScript('OnClick', function(self)
+            if self.item and Quintessence.LinkItem(self.item) then return end
             Q.Run('emplacement', function() if not dropOn(self.slot) then state.slot = self.slot end; UI.Refresh() end)
         end)
         row:SetScript('OnReceiveDrag', function(self) Q.Run('glisser', function() dropOn(self.slot); UI.Refresh() end) end)
@@ -312,6 +313,7 @@ local function createLoot(parent)
         row.slotText = S.Text(row, 10, S.colors.muted); row.slotText:SetPoint('LEFT', 42, -7); row.slotText:SetWidth(420)
         row:SetScript('OnClick', function(self)
             if not self.item then return end
+            if Quintessence.LinkItem(self.item) then return end
             Q.Run('butin', function()
                 local ok, result = Q.PickRaidItem(self.item, state.raid, state.slot)
                 if ok then
@@ -335,6 +337,7 @@ end
 -- ouvert : l'objet va dans la liste, à l'emplacement choisi. hooksecurefunc : aucune écriture dans le code de Blizzard.
 local lastLink, lastAt = nil, 0
 local function onItemLink(link)
+    if Quintessence.linkingItem then return end -- Maj+clic sur une de nos lignes : le lien va au chat, pas dans la liste
     if not frame or not frame:IsVisible() or type(link) ~= 'string' or not link:find('item:', 1, true) then return end
     if IsModifiedClick and not IsModifiedClick('CHATLINK') then return end
     local now = GetTime()
