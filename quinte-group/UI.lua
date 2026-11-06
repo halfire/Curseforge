@@ -469,8 +469,13 @@ local function createDungeonsPanel(parent)
 
     local bannerText = S.Text(banner, 11, S.colors.text)
     bannerText:SetPoint('LEFT', 24, 0)
-    bannerText:SetWidth(410)
+    bannerText:SetWidth(308)
     panel.bannerText = bannerText
+
+    -- Repère, flèche et carte ouverte sur l'entrée du donjon affiché
+    panel.btnEntrance = S.Button(banner, 'Afficher l\'entrée', 108, 20, 'ghost')
+    panel.btnEntrance:SetPoint('RIGHT', -2, 0)
+    panel.btnEntrance:SetScript('OnClick', function() Q.Run('entrée', Q.ShowDungeonEntrance, dungeonState.selectedDungeon) end)
 
     -- Section 1 : Membres disponibles & rôles
     local mHeading = S.Heading(rightBox, 'Membres intéressés · clic pour chuchoter')
@@ -667,11 +672,11 @@ function UI.RefreshDungeons()
 
     if selectedNeeds.hasConflicts then
         p.bannerDot:SetColorTexture(unpack(S.colors.red))
-        p.bannerText:SetText(string.format('|c%s%d conflit(s) de butin :|r plusieurs membres convoitent le même objet.',
+        p.bannerText:SetText(string.format('|c%s%d conflit(s) de butin :|r même objet convoité.',
             S.hex.red, selectedNeeds.conflictCount))
     elseif selectedNeeds.totalMembers > 0 then
         p.bannerDot:SetColorTexture(unpack(S.colors.mint))
-        p.bannerText:SetText('|c' .. S.hex.mint .. 'Répartition optimale :|r aucun doublon sur les objets convoités.')
+        p.bannerText:SetText('|c' .. S.hex.mint .. 'Répartition optimale :|r aucun doublon de butin.')
     else
         p.bannerDot:SetColorTexture(unpack(S.colors.muted))
         p.bannerText:SetText('|c' .. S.hex.muted .. 'Aucun besoin enregistré sur ce donjon.|r')

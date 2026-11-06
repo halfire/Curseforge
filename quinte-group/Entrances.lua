@@ -1,0 +1,131 @@
+local _, Q = ...
+--[[
+  Entrances.lua : entrée de chaque donjon, affichée par le bouton « Afficher l'entrée » de l'onglet Donjons
+  (repère + flèche Blizzard et carte du monde ouverte, jamais d'écriture dans WorldMapFrame).
+
+  Coordonnées relevées le 06/11/2026 dans les guides de Warcraft Tavern pour WoW Forever.
+  `approx` : position notée de mémoire ou sources en désaccord, à confirmer en jeu.
+  La carte est cherchée par le nom de la zone (français ou anglais), puis par son numéro Classic (`id`), car les
+  numéros de Forever ne sont pas confirmés. Sans carte trouvée, la position reste écrite dans le chat.
+]]
+local ZONES = {
+    ORGRIMMAR = { fr = 'Orgrimmar', en = 'Orgrimmar', id = 1454 },
+    IRONFORGE = { fr = 'Forgefer', en = 'Ironforge', id = 1455 },
+    STORMWIND = { fr = 'Hurlevent', en = 'Stormwind City', id = 1453 },
+    TIRISFAL = { fr = 'Clairières de Tirisfal', en = 'Tirisfal Glades', id = 1420 },
+    BARRENS = { fr = 'Les Tarides', en = 'The Barrens', id = 1413 },
+    WESTFALL = { fr = 'Marche de l\'Ouest', en = 'Westfall', id = 1436 },
+    SILVERPINE = { fr = 'Forêt des Pins-Argentés', en = 'Silverpine Forest', id = 1421 },
+    ASHENVALE = { fr = 'Orneval', en = 'Ashenvale', id = 1440 },
+    WETLANDS = { fr = 'Les Paluns', en = 'Wetlands', id = 1437 },
+    DUNMOROGH = { fr = 'Dun Morogh', en = 'Dun Morogh', id = 1426 },
+    STV = { fr = 'Vallée de Strangleronce', en = 'Stranglethorn Vale', id = 1434 },
+    RIVERGLADES = { fr = 'Riverglades', en = 'Riverglades' },
+    BADLANDS = { fr = 'Terres ingrates', en = 'Badlands', id = 1418 },
+    TANARIS = { fr = 'Tanaris', en = 'Tanaris', id = 1446 },
+    DESOLACE = { fr = 'Désolace', en = 'Desolace', id = 1443 },
+    DUSTWALLOW = { fr = 'Marécage d\'Âprefange', en = 'Dustwallow Marsh', id = 1445 },
+    SWAMP = { fr = 'Marais des Chagrins', en = 'Swamp of Sorrows', id = 1435 },
+    STEPPES = { fr = 'Steppes ardentes', en = 'Burning Steppes', id = 1428 },
+    AZSHARA = { fr = 'Azshara', en = 'Azshara', id = 1447 },
+    FERALAS = { fr = 'Féralas', en = 'Feralas', id = 1444 },
+    UNGORO = { fr = 'Cratère d\'Un\'Goro', en = 'Un\'Goro Crater', id = 1449 },
+    EPL = { fr = 'Maleterres de l\'est', en = 'Eastern Plaguelands', id = 1423 },
+    WPL = { fr = 'Maleterres de l\'ouest', en = 'Western Plaguelands', id = 1422 },
+}
+local BLACKROCK = 'Entrée du mont Rochenoire : descends la grande chaîne au centre de la montagne.'
+local MONASTERY = 'Dans le bâtiment principal, chaque aile a son portail.'
+local DIRE_MAUL = 'Le portail de cette aile donne sur la cour centrale ou la rue d\'entrée de Hache-Tripes.'
+Q.ENTRANCES = {
+    RFC = { zone = 'ORGRIMMAR', x = 52.8, y = 49.6, note = 'Faille de l\'Ombre, au centre d\'Orgrimmar.' },
+    THANES = { zone = 'IRONFORGE', x = 43.5, y = 52.0, note = 'Dans la salle du trône, passage couvert de toiles à gauche : descends-le.' },
+    LORDAERON = { zone = 'TIRISFAL', x = 61, y = 67, approx = true, note = 'Après la porte principale, escalier à gauche avant le donjon.' },
+    WC = { zone = 'BARRENS', x = 46.0, y = 36.3, note = 'Grotte au-dessus de l\'oasis.' },
+    DM = { zone = 'WESTFALL', x = 42, y = 72, note = 'Grand bâtiment au sud-ouest de Ruisselune, puis la mine.' },
+    SFK = { zone = 'SILVERPINE', x = 44.5, y = 68.0, note = 'Au nord du village de Bois-du-Bûcher.' },
+    EXCAV = { zone = 'WETLANDS', x = 48.1, y = 56.5, note = 'Le sentier commence près de la pierre de rencontre (53.9, 65.4).' },
+    STOCKS = { zone = 'STORMWIND', x = 42, y = 58, note = 'Quartier des Canaux, près du quartier des Mages.' },
+    BFD = { zone = 'ASHENVALE', x = 14.5, y = 14.6, note = 'Ruines englouties de la Grève de Zoram : plonge.' },
+    SM_GY = { zone = 'TIRISFAL', x = 84, y = 32, note = MONASTERY .. ' Cimetière : tout à gauche.' },
+    SM_LIB = { zone = 'TIRISFAL', x = 84, y = 32, note = MONASTERY },
+    SM_ARM = { zone = 'TIRISFAL', x = 84, y = 32, note = MONASTERY },
+    SM_CATH = { zone = 'TIRISFAL', x = 84, y = 32, note = MONASTERY },
+    DALARAN = { zone = 'SILVERPINE', x = 69.3, y = 45.6, note = 'On entre par les égouts, côté Pins-Argentés.' },
+    GNOMER = { zone = 'DUNMOROGH', x = 24, y = 40, note = 'Nord-ouest de Dun Morogh.' },
+    RFK = { zone = 'BARRENS', x = 43, y = 90, note = 'Sud-ouest des Tarides.' },
+    DROWNED = { zone = 'STV', x = 21.4, y = 27.9, note = 'Sous l\'eau, au large de la côte.' },
+    RFD = { zone = 'BARRENS', x = 43, y = 95, approx = true, note = 'Sud des Tarides, dans le dédale de ronces.' },
+    KROLDOK = { zone = 'RIVERGLADES', x = 37.5, y = 37.5, note = 'Grotte à l\'ouest des grandes portes de la forteresse.' },
+    ULDA = { zone = 'BADLANDS', x = 44, y = 12, note = 'Nord des Terres ingrates. Entrée arrière vers (66, 43).' },
+    ZF = { zone = 'TANARIS', x = 39, y = 20, note = 'Nord-ouest de Tanaris.' },
+    MARA = { zone = 'DESOLACE', x = 38, y = 58, note = 'Porte de pierre à l\'ouest de la vallée, puis les cavernes.' },
+    ALCAZ = { zone = 'DUSTWALLOW', x = 75, y = 15, note = 'Sous-sol du grand bâtiment de l\'île d\'Alcaz.' },
+    ST = { zone = 'SWAMP', x = 70, y = 54, approx = true, note = 'Au milieu du lac : nage jusqu\'au temple.' },
+    BRD = { zone = 'STEPPES', x = 29, y = 37, approx = true, note = BLACKROCK },
+    LBRS = { zone = 'STEPPES', x = 29, y = 37, approx = true, note = BLACKROCK },
+    BLACKMAW = { zone = 'AZSHARA', x = 38.7, y = 33.4, note = 'Tunnel des furbolgs ; le portail est tout au bout, côté Berceau-de-l\'Hiver.' },
+    DME = { zone = 'FERALAS', x = 59, y = 45, approx = true, note = DIRE_MAUL },
+    DMW = { zone = 'FERALAS', x = 59, y = 45, approx = true, note = DIRE_MAUL .. ' Clé en croissant requise.' },
+    DMN = { zone = 'FERALAS', x = 59, y = 45, approx = true, note = DIRE_MAUL .. ' Clé en croissant requise.' },
+    SHAPER = { zone = 'UNGORO', x = 48.1, y = 6.1, note = 'Colline au-dessus du Refuge des Marshal.' },
+    STRAT = { zone = 'EPL', x = 27, y = 12, approx = true, note = 'Nord-ouest des Maleterres de l\'est.' },
+    SCHOLO = { zone = 'WPL', x = 69.7, y = 73.2, approx = true, note = 'Île de Caer Darrow. Clé squelette requise.' },
+}
+
+local function plain(name)
+    return (tostring(name or ''):lower():gsub('’', '\''))
+end
+-- Index nom de zone -> carte, lu une fois dans le jeu
+local mapIndex
+local function buildIndex()
+    mapIndex = {}
+    if not (C_Map and C_Map.GetMapChildrenInfo) then return end
+    for _, root in ipairs({ 947, 946 }) do
+        local ok, list = pcall(C_Map.GetMapChildrenInfo, root, nil, true)
+        if ok and type(list) == 'table' then
+            for _, info in ipairs(list) do
+                local key = info.name and plain(info.name)
+                if key and not mapIndex[key] then mapIndex[key] = info.mapID end
+            end
+        end
+    end
+end
+--- Numéro de carte d'une zone d'entrée, nil si le jeu ne la connaît pas.
+function Q.EntranceMap(zoneKey)
+    local zone = ZONES[zoneKey]
+    if not zone then return nil end
+    if not mapIndex then buildIndex() end
+    local id = mapIndex[plain(zone.fr)] or mapIndex[plain(zone.en)]
+    if id then return id end
+    if zone.id and C_Map and C_Map.GetMapInfo then
+        local ok, info = pcall(C_Map.GetMapInfo, zone.id)
+        if ok and info then return zone.id end
+    end
+    return nil
+end
+local function placeWaypoint(mapID, x, y)
+    if not (C_Map and C_Map.SetUserWaypoint and UiMapPoint and UiMapPoint.CreateFromCoordinates) then return false end
+    if C_Map.CanSetUserWaypointOnMap then
+        local ok, can = pcall(C_Map.CanSetUserWaypointOnMap, mapID)
+        if not ok or not can then return false end
+    end
+    local ok = pcall(function()
+        C_Map.SetUserWaypoint(UiMapPoint.CreateFromCoordinates(mapID, x / 100, y / 100))
+        if C_SuperTrack and C_SuperTrack.SetSuperTrackedUserWaypoint then C_SuperTrack.SetSuperTrackedUserWaypoint(true) end
+    end)
+    return ok
+end
+--- Un clic : repère, flèche et carte ouverte sur l'entrée ; la position est toujours écrite dans le chat.
+function Q.ShowDungeonEntrance(code)
+    local e = Q.ENTRANCES[code]
+    local d = Q.DUNGEON_BY_CODE and Q.DUNGEON_BY_CODE[code]
+    local name = d and d.name or tostring(code)
+    if not e then Q.Print('Entrée inconnue pour ' .. name .. '.'); return false end
+    local zone = ZONES[e.zone]
+    local text = string.format('%s : %s (%s, %s)%s. %s', name, zone.fr, e.x, e.y, e.approx and ', position approximative' or '', e.note)
+    local mapID = Q.EntranceMap(e.zone)
+    local placed = mapID and placeWaypoint(mapID, e.x, e.y)
+    if mapID and C_Map and C_Map.OpenWorldMap then pcall(C_Map.OpenWorldMap, mapID) end
+    Q.Print(text .. (placed and '' or ' Repère impossible sur cette carte.'))
+    return placed and true or false
+end
