@@ -13,7 +13,7 @@ local addonName, Core = ...
   Règle Retail 12+ : aucune écriture dans une table, une fonction ou un cadre de Blizzard.
 ]]
 Quintessence = Core -- seule globale publique de la suite (nom propre, jamais une globale de Blizzard)
-Core.name, Core.version = addonName or 'Quintessence', '1.29.0'
+Core.name, Core.version = addonName or 'Quintessence', '1.29.1'
 Core.modules, Core.syncModules, Core.channels, Core.debug = {}, {}, {}, { errors = {}, slow = {} }
 
 function Core.Call(fn, ...)
@@ -152,12 +152,7 @@ function Core.IsOnline(name)
     return member.online and true or false
 end
 -- « Prénom Nom s'est déconnecté(e). » / « [Prénom Nom] s'est connecté(e). » : modèles tirés des textes du jeu
-local function systemPattern(text)
-    if type(text) ~= 'string' or text == '' then return nil end
-    text = text:gsub('%%%d?%$?s', '\001')
-    text = text:gsub('[%%%^%$%(%)%.%[%]%*%+%-%?]', '%%%0')
-    return '^' .. text:gsub('\001', '(.-)') .. '$'
-end
+local systemPattern = Names.SystemPattern
 local offlinePattern, onlinePattern
 function Core.OnSystemMessage(text)
     if type(text) ~= 'string' or (type(issecretvalue) == 'function' and issecretvalue(text)) then return end

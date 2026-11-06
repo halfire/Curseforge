@@ -14,9 +14,11 @@
 --     royaume, reconnaissance de soi par le GUID de la liste de guilde.
 -- v9 : expéditeur « Prénom-Nom » / « Prénom Nom-Royaume » reconnu (clés sans espaces ni tirets, nom remis sous la
 --   forme de la liste de guilde), Forever reconnu par l'interface du jeu et non par le seul nom de famille du joueur.
+-- v10 : plus de chuchotement vers un membre déconnecté (« Aucun joueur nommé… » répété chez tous ceux qui lui envoyaient
+--   encore des données) : file vidée à sa déconnexion, message du jeu masqué s'il répond à un envoi de la synchro.
 -- Leçons du vrai jeu : ne jamais conditionner un envoi à C_ChatInfo.AreOutgoingAddonChatMessagesRestricted (toujours
 -- vrai sur Forever) ; un envoi réussi peut renvoyer nil ; la liste de guilde est vide à la connexion.
-local Lib=LibStub:NewLibrary('LibQuinteSync-1.0',9)
+local Lib=LibStub:NewLibrary('LibQuinteSync-1.0',10)
 if not Lib then return end
 local Serializer,Deflate,Guard=LibStub('LibSerialize'),LibStub('LibDeflate'),LibStub('LibQuinteDeflateGuard-1.0')
 local MAX_RAW,MAX_ENCODED,MAX_QUEUE=131072,65536,6000
@@ -28,6 +30,7 @@ local MAX_PENDING,MAX_WANTS,MAX_PARTS=64,512,32
 local REMEMBER=45*86400             -- un membre vu dans la liste reste membre 45 jours (hors ligne compris)
 local PER_SOURCE=4                   -- demandes en cours par membre interrogé (les autres attendent leur tour)
 local ASK_TIMEOUT,ASK_TRIES=90,3     -- sans progrès en 90 s, on redemande (autre membre si possible), 3 fois au plus
+local GONE_MAX,SEEN_RECENT,HIDE_FOR=600,60,15 -- déconnexion retenue 10 min ; message reçu < 60 s = connecté ; masquage 15 s
 local Instance={};Instance.__index=Instance
 local function clock() return GetTime() end
 local function stamp() return (time or GetServerTime)() end
@@ -178,7 +181,7 @@ Lib.Fingerprint=fingerprint
 -- Liste de guilde
 -- ---------------------------------------------------------------------------------------------------------------------
 function Instance:RefreshRoster()
-    local members={}
+    local members,partial={},false
     local n=safe(GetNumGuildMembers) or 0
     local guid=UnitGUID and safe(UnitGUID,'player')
     for i=1,n do
@@ -189,7 +192,7 @@ function Instance:RefreshRoster()
             if regionalCache==false and name:find(' ',1,true) then regionalCache=true;keyCache,keyCount={},0;return self:RefreshRoster() end
             members[key(name)]={name=name,online=(online and not mobile) or false,level=level,class=class}
             if guid and not secret(guid) and rowGuid==guid then Lib.playerName=plain(name) end
-        end
+        elseif ok and name~=nil then partial=true end
     end
     -- Le jeu ne donne souvent que les membres connectés (case « membres hors ligne » décochée, client Forever) :
     -- sans mémoire, la fiche d'un membre déconnecté était effacée au nettoyage et plus jamais relayée.
@@ -210,7 +213,7 @@ function Instance:RefreshRoster()
             elseif not members[who] then members[who]={name=m.name,online=false,level=m.level,class=m.class,remembered=true} end
         end
     end
-    self.roster=members;self.rosterAt=clock()
+    self.roster=members;self.rosterAt=clock();self.rosterPartial=partial
     local known=n>0;local first=known and not self.rosterKnown;self.rosterKnown=known
     if known then safe(self.adapter.Cleanup,self.data,members,stamp()) end
     if first then self:Resume() end -- messages reçus avant la liste de guilde : on les traite maintenant
@@ -245,6 +248,80 @@ function Instance:IsSelf(sender)
     end
     return who==self.selfKey or who==self.selfPlayer
 end
+-- ---------------------------------------------------------------------------------------------------------------------
+-- Membres déconnectés : chuchoter à un absent fait afficher « Aucun joueur nommé… » à chaque message.
+-- ---------------------------------------------------------------------------------------------------------------------
+local gone,alive,whispered={},{},{} -- par clé : déconnexion constatée, dernière preuve de présence, dernier chuchotement
+-- Déconnecté à coup sûr ? Dans le doute (liste pas lue, membre inconnu, ligne illisible en combat) on envoie.
+function Instance:Offline(who)
+    local at=gone[who]
+    if at then
+        if clock()-at<GONE_MAX then return true end
+        gone[who]=nil
+    end
+    if not self.rosterKnown then return false end
+    local member=self.roster[who]
+    if not member or member.online or (member.remembered and self.rosterPartial) then return false end
+    -- Un message reçu vaut mieux qu'une liste en retard : un membre qui vient d'arriver a dit bonjour avant qu'elle change
+    local seen=alive[who]
+    return not (seen and (seen>=(self.rosterAt or 0) or clock()-seen<SEEN_RECENT))
+end
+local function drop(queue,who)
+    local kept=0
+    for i=1,#queue do
+        local message=queue[i];queue[i]=nil
+        if message.who~=who then kept=kept+1;queue[kept]=message end
+    end
+end
+function Lib.MarkGone(name)
+    local who=key(name)
+    if who=='' then return end
+    gone[who]=clock();alive[who]=nil
+    for _,object in pairs(Lib.instances or {}) do drop(object.lanes.W.queue,who);drop(object.lanes.W.urgent,who) end
+end
+function Lib.MarkAlive(name)
+    local who=key(name)
+    if who~='' then gone[who]=nil;alive[who]=clock() end
+end
+-- Texte du jeu → motif Lua, le nom étant la première capture
+function Lib.SystemPattern(text)
+    if type(text)~='string' or text=='' then return nil end
+    text=text:gsub('%%%d?%$?s','\001')
+    text=text:gsub('[%%%^%$%(%)%.%[%]%*%+%-%?]','%%%0')
+    return '^'..text:gsub('\001','(.-)')..'$'
+end
+local notFound,offlineText,onlineText
+local function matchNotFound(text)
+    notFound=notFound or Lib.SystemPattern(ERR_CHAT_PLAYER_NOT_FOUND_S or "No player named '%s' is currently playing.")
+    return notFound and text:match(notFound)
+end
+local function onSystem(text)
+    if type(text)~='string' or secret(text) then return end
+    offlineText=offlineText or Lib.SystemPattern(ERR_FRIEND_OFFLINE_S or '%s has gone offline.')
+    onlineText=onlineText or Lib.SystemPattern(ERR_FRIEND_ONLINE_SS or '|Hplayer:%s|h[%s]|h has come online.')
+    local who=offlineText and text:match(offlineText)
+    if who then return Lib.MarkGone(who) end
+    who=onlineText and text:match(onlineText)
+    if who then return Lib.MarkAlive(who) end
+    who=matchNotFound(text)
+    if who and whispered[key(who)] then Lib.MarkGone(who) end
+end
+-- Masque le message seulement s'il suit de près un envoi de la synchro : un /w tapé à un absent reste signalé.
+function Lib.HideNotFound(_,_,text)
+    if type(text)~='string' or secret(text) then return false end
+    local who=matchNotFound(text)
+    local at=who and whispered[key(who)]
+    return (at and clock()-at<=HIDE_FOR) and true or false
+end
+local function watchSystem()
+    if Lib.systemFrame then return end
+    local frame=CreateFrame('Frame');Lib.systemFrame=frame
+    safe(frame.RegisterEvent,frame,'CHAT_MSG_SYSTEM')
+    frame:SetScript('OnEvent',function(_,_,text) safe(onSystem,text) end)
+    local addFilter=(ChatFrameUtil and ChatFrameUtil.AddMessageEventFilter) or ChatFrame_AddMessageEventFilter
+    if addFilter then safe(addFilter,'CHAT_MSG_SYSTEM',Lib.HideNotFound) end
+end
+
 -- urgent : messages temps réel (Ride, ping), petits, jamais retenus par un raid chargé (seule la grosse synchro l'est)
 function Instance:Busy(urgent)
     if not self.enabled or not IsInGuild or not IsInGuild() then return true,'off/guilde' end
@@ -293,11 +370,15 @@ function Instance:Enqueue(kind,value,target,urgent)
     local id=self.nonce..'-'..self.serial
     local lane=target and self.lanes.W or self.lanes.G
     local list=urgent and lane.urgent or lane.queue
-    if target then target=Lib.WhisperTarget(target) end
+    local who
+    if target then
+        target=Lib.WhisperTarget(target);who=key(target)
+        if self:Offline(who) then self.stats.offline=self.stats.offline+1;return end
+    end
     for part=1,total do
         local text='2:'..id..':'..part..':'..total..':'..encoded:sub((part-1)*210+1,part*210)
         if #text>255 then self.rejected=self.rejected+1;return end
-        list[#list+1]={text=text,target=target,channel=target and 'WHISPER' or 'GUILD',epoch=self.epoch,urgent=urgent}
+        list[#list+1]={text=text,target=target,who=who,channel=target and 'WHISPER' or 'GUILD',epoch=self.epoch,urgent=urgent}
     end
     self.stats.messages[kind]=(self.stats.messages[kind] or 0)+total
     self:Pump()
@@ -314,7 +395,12 @@ function Instance:PumpLane(lane)
     if lane.inflight or not self.enabled then return end
     if #lane.urgent+#lane.queue==0 then return end
     if self:Busy(#lane.urgent>0) then self:Wake();return end
-    local message=table.remove(lane.urgent,1) or table.remove(lane.queue,1)
+    local message
+    repeat
+        message=table.remove(lane.urgent,1) or table.remove(lane.queue,1)
+        if not message then return end
+        if message.who and self:Offline(message.who) then self.stats.offline=self.stats.offline+1;message=nil end
+    until message
     local ctl=ChatThrottleLib
     if not ctl or type(ctl.Enqueue)~='function' or not ctl.Prio or not ctl.Prio.BULK then
         self.rejected=self.rejected+1;return
@@ -331,6 +417,9 @@ function Instance:PumpLane(lane)
         -- Occupé (combat, raid chargé) : le message revient dans notre file au lieu de bloquer CTL, pour qu'un message
         -- temps réel puisse passer devant ; il repartira à la reprise.
         if self:Busy(message.urgent) then message.returned=true;return SUCCESS end
+        -- Parti de chez nous pendant l'attente chez CTL : rien à envoyer
+        if message.who and self:Offline(message.who) then message.skipped=true;self.stats.offline=self.stats.offline+1;return SUCCESS end
+        if message.who then whispered[message.who]=clock() end
         local ok,a,b=pcall(C_ChatInfo.SendAddonMessage,...)
         if not ok then return ERROR end
         -- Avant 11.0 le code était en 2e position ; sur Forever un envoi réussi peut ne rien renvoyer (nil)
@@ -349,12 +438,15 @@ function Instance:PumpLane(lane)
             message.returned=nil;table.insert(message.urgent and lane.urgent or lane.queue,1,message);self:Wake();return
         end
         local stats=self.stats;stats.lastResult=result
-        if sent then stats.sent=stats.sent+1
+        if message.skipped then -- ni envoyé ni en échec
+        elseif sent then stats.sent=stats.sent+1
         else
             stats.failed=stats.failed+1;self.rejected=self.rejected+1
             -- Premier refus de la session : on prévient le joueur une fois (code du jeu), sans inonder le chat
             -- (joueur déconnecté : refus normal, pas d'avertissement)
-            if not self.warned and result~=(results.TargetOffline or 12) then self.warned=true;safe(self.adapter.Problem,result,message.channel) end
+            local offline=result==(results.TargetOffline or 12)
+            if offline and message.who then gone[message.who]=clock();drop(lane.queue,message.who);drop(lane.urgent,message.who) end
+            if not self.warned and not offline then self.warned=true;safe(self.adapter.Problem,result,message.channel) end
         end
         self:Later(.02,function() self:PumpLane(lane) end)
     end
@@ -749,6 +841,7 @@ function Instance:Receive(prefix,text,channel,sender)
     if self.adapter.Blocked and safe(self.adapter.Blocked)=='refuse' then return end
     -- Le canal GUILD n'arrive que des membres (le serveur s'en charge) ; un chuchotement doit venir d'un membre.
     if channel=='WHISPER' and self.rosterKnown and not self:Member(sender) then self.stats.strangers=self.stats.strangers+1;return end
+    Lib.MarkAlive(sender)
     local id,part,total,chunk=text:match('^2:([%w%-]+):(%d+):(%d+):(.*)$')
     if not id or #id>60 or #part>4 or #total>4 or #chunk>210 then self.rejected=self.rejected+1;return end
     part,total=tonumber(part),tonumber(total)
@@ -810,7 +903,7 @@ function Instance:Status()
         deferred=busy and reason or 'non',rejected=self.rejected,roster=count(self.roster),rosterKnown=self.rosterKnown,
         waiting=#self.deferredInput,sent=self.stats.sent,failed=self.stats.failed,lastResult=self.stats.lastResult,
         received=self.stats.received,lastFrom=self.stats.lastFrom,strangers=self.stats.strangers,prefix=self.prefixResult,
-        retries=self.stats.retries,pending=count(self.pending),wants=count(self.wants),messages=self.stats.messages,
+        retries=self.stats.retries,offline=self.stats.offline,pending=count(self.pending),wants=count(self.wants),messages=self.stats.messages,
         ctl=ChatThrottleLib and ChatThrottleLib.version,regional=regional(),player=Lib.PlayerName()}
 end
 function Lib:Register(prefix,data,adapter)
@@ -820,9 +913,10 @@ function Lib:Register(prefix,data,adapter)
     local object=setmetatable({prefix=prefix,data=data,adapter=adapter,enabled=true,channels={},buffers={},roster={},rates={},
         lanes={G={queue={},urgent={}},W={queue={},urgent={}}},
         scans={},baseline={},known={},exchanged={},wants={},pending={},byId={},load={},serving={},manifests={},answers={},answering={},
-        pongs={},stats={sent=0,failed=0,retries=0,received=0,strangers=0,messages={}},createdAt=clock(),
+        pongs={},stats={sent=0,failed=0,retries=0,offline=0,received=0,strangers=0,messages={}},createdAt=clock(),
         deferredInput={},serial=0,requestSerial=0,rejected=0,epoch=1,nonce=tostring(stamp())..'-'..math.random(100000,999999)},Instance)
     self.instances[prefix]=object
+    watchSystem()
     object.prefixResult=safe(C_ChatInfo.RegisterAddonMessagePrefix,prefix)
     local frame=CreateFrame('Frame');object.frame=frame
     for _,event in ipairs({'CHAT_MSG_ADDON','PLAYER_REGEN_ENABLED','GUILD_ROSTER_UPDATE','GROUP_ROSTER_UPDATE','PLAYER_ENTERING_WORLD'}) do safe(frame.RegisterEvent,frame,event) end
