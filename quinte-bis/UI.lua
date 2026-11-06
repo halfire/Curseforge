@@ -3,7 +3,7 @@ local _, Q = ...
   Onglet « BiS & donjons » de la fenêtre Quintessence, deux vues :
     Ma liste BiS        un objet par emplacement (glisser-déposer, Maj+clic sur un objet du jeu, numéro, lien ou adresse
                         Wowhead) et où le trouver
-    Butin des raids     tables de butin des raids vanilla, boss par boss : un clic met l'objet dans la liste
+    Butin des boss      une carte par instance, puis boss par boss : un clic met l'objet dans la liste
     Besoins par donjon  pour chaque donjon, les membres qui y cherchent encore un objet : chuchoter, inviter
   Règle Retail 12+ : uniquement nos propres cadres, aucune écriture dans les objets de Blizzard.
 ]]
@@ -14,9 +14,9 @@ local SOURCE_ROWS, DUNGEON_ROWS, MEMBER_ROWS = 9, 10, 8
 local QUALITY_HEX = { [0] = 'ff9d9d9d', 'ffffffff', 'ff1eff00', 'ff0070dd', 'ffa335ee', 'ffff8000', 'ffe6cc80' }
 local frame
 local state = { view = 'list', slot = 1, sourceOffset = 0, dungeonOffset = 0, memberOffset = 0, dungeon = nil, onlineOnly = false, needs = {},
-    raid = 'MC', boss = 1, bossOffset = 0, lootOffset = 0, slotOnly = true, picked = nil }
+    raid = nil, boss = 1, bossOffset = 0, lootOffset = 0, slotOnly = false, picked = nil, cardOffset = 0, cardsPlaced = false }
 local BOSS_ROWS, LOOT_ROWS = 14, 10
-local RAID_LABELS = { MC = 'Magma', ONY = 'Onyxia', BWL = 'Aile noire', ZG = 'Zul\'Gurub', AQ20 = 'AQ 20', AQ40 = 'AQ 40', NAXX = 'Naxx' }
+local CARD_COLUMNS, CARD_ROWS, CARD_W, CARD_H, CARD_GAP = 4, 6, 181, 56, 5
 local CODE_NAMES = { HEAD = 'Tête', NECK = 'Cou', SHOULDER = 'Épaules', CLOAK = 'Dos', CHEST = 'Torse', WRIST = 'Poignets', HAND = 'Mains',
     WAIST = 'Taille', LEGS = 'Jambes', FEET = 'Pieds', FINGER = 'Doigt', TRINKET = 'Bijou', WEAPON = 'Une main', WEAPONMAINHAND = 'Main droite',
     ['2HWEAPON'] = 'Deux mains', WEAPONOFFHAND = 'Main gauche', SHIELD = 'Bouclier', HOLDABLE = 'Tenu en main gauche', RANGED = 'À distance',
@@ -108,7 +108,13 @@ local function createList(parent)
         row.icon = row:CreateTexture(nil, 'ARTWORK'); row.icon:SetSize(16, 16); row.icon:SetPoint('LEFT', 82, 0); row.icon:SetTexCoord(0.08, 0.92, 0.08, 0.92)
         row.label = S.Text(row, 12, S.colors.text); row.label:SetPoint('LEFT', 104, 0); row.label:SetWidth(132)
         row.source = S.Text(row, 10, S.colors.muted, 'RIGHT'); row.source:SetPoint('RIGHT', -8, 0); row.source:SetWidth(90)
-        row:SetScript('OnClick', function(self)
+        row:RegisterForClicks('LeftButtonUp', 'RightButtonUp')
+        row:SetScript('OnClick', function(self, button)
+            -- Clic droit : retire l'objet de cette ligne
+            if button == 'RightButton' then
+                if self.item then Q.Run('retirer', function() Q.ClearSlot(self.slot); UI.Refresh() end) end
+                return
+            end
             if self.item and Quintessence.LinkItem(self.item) then return end
             Q.Run('emplacement', function() if not dropOn(self.slot) then state.slot = self.slot end; UI.Refresh() end)
         end)
@@ -171,22 +177,31 @@ local function createList(parent)
 end
 
 -- ---------------------------------------------------------------------------------------------- Butin des raids
--- Deux catalogues : donjons de Forever (DungeonLoot.lua, par défaut pendant la phase de pex) et raids (RaidLoot.lua)
-local function lootList() return state.lootMode == 'raid' and (Q.RAID_LOOT or {}) or (Q.DUNGEON_LOOT or {}) end
-local function currentRaid()
-    local list = lootList()
-    for _, raid in ipairs(list) do if raid.key == state.raid then return raid end end
-    local first = list[1]
-    -- Donjons : celui de son niveau d'abord
-    if state.lootMode ~= 'raid' then
-        local level = UnitLevel and UnitLevel('player') or 0
-        for _, raid in ipairs(list) do
-            local d = Q.DUNGEON_BY_KEY[raid.key]
-            if d and d.min and level >= d.min and level <= d.max then first = raid; break end
+-- Deux catalogues : donjons de Forever (DungeonLoot.lua) et raids (RaidLoot.lua), présentés ensemble en cartes.
+-- Une instance sans table de butin (pas encore ouverte ou pas encore relevée) garde sa carte, éteinte.
+local lootByKey
+local function lootOf(key)
+    if not lootByKey then
+        lootByKey = {}
+        for _, list in ipairs({ Q.DUNGEON_LOOT or {}, Q.RAID_LOOT or {} }) do
+            for _, raid in ipairs(list) do lootByKey[raid.key] = raid end
         end
     end
-    state.raid = first and first.key
-    return first
+    return key and lootByKey[key]
+end
+local instanceCards
+local function instances()
+    if not instanceCards then
+        instanceCards = {}
+        for _, d in ipairs(Q.DUNGEONS or {}) do
+            if not d.other then instanceCards[#instanceCards + 1] = d end
+        end
+    end
+    return instanceCards
+end
+local function isMyLevel(d)
+    local level = UnitLevel and UnitLevel('player') or 0
+    return not d.raid and d.min and level >= d.min and level <= d.max
 end
 -- Objets d'un boss qui se portent, filtrés sur l'emplacement choisi dans la liste si le filtre est actif
 local function visibleItems(boss)
@@ -197,27 +212,45 @@ local function visibleItems(boss)
     end
     return out
 end
-local function stepDungeon(delta)
-    local list = lootList()
-    for i, raid in ipairs(list) do
-        if raid.key == state.raid then
-            local nxt = list[((i - 1 + delta) % #list) + 1]
-            state.raid = nxt and nxt.key; break
+local function renderCards()
+    local v, list = frame.loot, instances()
+    local totalRows = math.ceil(#list / CARD_COLUMNS)
+    local maxOffset = math.max(0, totalRows - CARD_ROWS)
+    -- Première ouverture : la grille commence aux donjons de son niveau
+    if not state.cardsPlaced then
+        state.cardsPlaced = true
+        for i, d in ipairs(list) do
+            if isMyLevel(d) then state.cardOffset = math.floor((i - 1) / CARD_COLUMNS); break end
         end
     end
-    state.boss = 1; state.bossOffset = 0; state.lootOffset = 0; state.picked = nil
+    state.cardOffset = math.max(0, math.min(state.cardOffset, maxOffset))
+    for i, card in ipairs(v.cardButtons) do
+        local d = list[state.cardOffset * CARD_COLUMNS + i]
+        local loot = d and lootOf(d.key)
+        card.key = loot and d.key or nil
+        if d then
+            local mine = isMyLevel(d)
+            local levels = Q.DungeonLevels(d.key)
+            local parts = {}
+            if d.raid then parts[#parts + 1] = '|cffe6b450Raid|r' end
+            if levels ~= '' then parts[#parts + 1] = levels end
+            if loot then parts[#parts + 1] = #loot.bosses .. ' boss' else parts[#parts + 1] = 'butin inconnu' end
+            if mine then parts[#parts + 1] = '|cff5cd1a8ton niveau|r' end
+            card.label:SetText((loot and '' or '|cff94a1b8') .. Q.Safe(d.name) .. (loot and '' or '|r'))
+            card.info:SetText(table.concat(parts, ' · '))
+            card.hover:SetShown(loot ~= nil)
+            if card.SetBackdropBorderColor then card:SetBackdropBorderColor(unpack(mine and S.colors.gold or S.colors.line)) end
+            card:Show()
+        else card:Hide() end
+    end
+    v.cardScroll:SetMinMaxValues(0, maxOffset); v.cardScroll:SetValue(state.cardOffset)
 end
 local function renderLoot()
-    local v, raid = frame.loot, currentRaid()
-    local raidMode = state.lootMode == 'raid'
-    v.modeDungeons:SetActive(not raidMode); v.modeRaids:SetActive(raidMode)
-    for i, button in ipairs(v.raids) do local r = Q.RAID_LOOT[i]; button:SetActive(raidMode and r ~= nil and r.key == state.raid); button:SetShown(raidMode) end
-    v.prev:SetShown(not raidMode); v.next:SetShown(not raidMode); v.dungeonName:SetShown(not raidMode)
-    if not raid then return end
-    if not raidMode then
-        local levels = Q.DungeonLevels(raid.key)
-        v.dungeonName:SetText(Q.Safe(Q.DungeonName(raid.key)) .. (levels ~= '' and ('  |cff94a1b8' .. levels .. '|r') or ''))
-    end
+    local v, raid = frame.loot, lootOf(state.raid)
+    v.cards:SetShown(not raid); v.detail:SetShown(raid ~= nil)
+    if not raid then return renderCards() end
+    local levels = Q.DungeonLevels(raid.key)
+    v.dungeonName:SetText(Q.Safe(raid.name or Q.DungeonName(raid.key)) .. (levels ~= '' and ('  |cff94a1b8' .. levels .. '|r') or ''))
     local bosses = raid.bosses
     state.boss = math.max(1, math.min(state.boss, #bosses))
     state.bossOffset = math.max(0, math.min(state.bossOffset, #bosses - BOSS_ROWS))
@@ -236,7 +269,7 @@ local function renderLoot()
     local items = visibleItems(boss)
     v.title:SetText(Q.Safe(boss.name)); v.raidName:SetText(Q.Safe(raid.name or Q.DungeonName(raid.key)))
     local slotName = Q.SLOT_NAMES[state.slot] or '?'
-    v.slotToggle:SetLabel(state.slotOnly and ('Emplacement : ' .. slotName) or 'Tous les emplacements'); v.slotToggle:SetActive(state.slotOnly)
+    v.slotToggle:SetLabel(state.slotOnly and ('Emplacement : ' .. slotName) or ('Filtrer : ' .. slotName)); v.slotToggle:SetActive(state.slotOnly)
     state.lootOffset = math.max(0, math.min(state.lootOffset, #items - LOOT_ROWS))
     for i = 1, LOOT_ROWS do
         local row, it = v.lootRows[i], items[state.lootOffset + i]
@@ -252,42 +285,49 @@ local function renderLoot()
     end
     v.lootScroll:SetMinMaxValues(0, math.max(0, #items - LOOT_ROWS)); v.lootScroll:SetValue(state.lootOffset)
     v.empty:SetShown(#items == 0)
-    v.empty:SetText('Rien pour l\'emplacement « ' .. slotName .. ' » chez ce boss.\nClique sur « Emplacement : ' .. slotName .. ' » pour tout voir.')
-    v.status:SetText(state.picked or ('Clic sur un objet : il va dans ta liste (' .. slotName .. ' ou l\'emplacement libre qui convient), avec '
-        .. (raidMode and 'ce raid' or 'ce donjon') .. ' pour source.'))
+    v.empty:SetText(state.slotOnly and ('Rien pour l\'emplacement « ' .. slotName .. ' » chez ce boss.\nClique sur « Emplacement : ' .. slotName .. ' » pour tout voir.')
+        or 'Aucun objet connu chez ce boss.')
+    v.status:SetText(state.picked or 'Clic : ajouter à ta liste. Clic droit : retirer. Maj+clic : lien dans le chat.')
 end
 
 local function createLoot(parent)
     local v = CreateFrame('Frame', nil, parent)
     v:SetPoint('TOPLEFT', 0, -40); v:SetPoint('BOTTOMRIGHT')
-    local function setMode(mode)
-        state.lootMode = mode; state.raid = nil; state.boss = 1; state.bossOffset = 0; state.lootOffset = 0; state.picked = nil
-        Q.Run('butin', renderLoot)
-    end
-    v.modeDungeons = S.Button(v, 'Donjons', 84, 24, 'ghost'); v.modeDungeons:SetPoint('TOPLEFT', 0, 0)
-    v.modeDungeons:SetScript('OnClick', function() setMode('dungeon') end)
-    v.modeRaids = S.Button(v, 'Raids', 84, 24, 'ghost'); v.modeRaids:SetPoint('TOPLEFT', 88, 0)
-    v.modeRaids:SetScript('OnClick', function() setMode('raid') end)
-    v.prev = S.Button(v, '<', 28, 24, 'ghost'); v.prev:SetPoint('TOPLEFT', 184, 0)
-    v.prev:SetScript('OnClick', function() stepDungeon(-1); Q.Run('donjon', renderLoot) end)
-    v.next = S.Button(v, '>', 28, 24, 'ghost'); v.next:SetPoint('TOPLEFT', 732, 0)
-    v.next:SetScript('OnClick', function() stepDungeon(1); Q.Run('donjon', renderLoot) end)
-    v.dungeonName = S.Text(v, 13, S.colors.text, 'CENTER'); v.dungeonName:SetPoint('TOPLEFT', 216, -5); v.dungeonName:SetWidth(512)
-    v.raids = {}
-    for i, raid in ipairs(Q.RAID_LOOT or {}) do
-        local b = S.Button(v, RAID_LABELS[raid.key] or raid.key, 76, 24, 'ghost'); b:SetPoint('TOPLEFT', 184 + (i - 1) * 80, 0)
-        b:SetScript('OnClick', function()
-            state.lootMode = 'raid'; state.raid = raid.key; state.boss = 1; state.bossOffset = 0; state.lootOffset = 0; state.picked = nil
-            Q.Run('raid', renderLoot)
+
+    -- Toutes les instances, en cartes
+    v.cards = CreateFrame('Frame', nil, v); v.cards:SetAllPoints(v)
+    local heading = S.Text(v.cards, 13, S.colors.text); heading:SetPoint('TOPLEFT', 0, -5); heading:SetText('Toutes les instances')
+    local hint = S.Text(v.cards, 10, S.colors.muted, 'RIGHT'); hint:SetPoint('TOPRIGHT', -10, -7); hint:SetText('Clique sur une instance pour voir le butin de ses boss')
+    v.cards:EnableMouseWheel(true)
+    v.cards:SetScript('OnMouseWheel', function(_, delta) state.cardOffset = state.cardOffset - delta; Q.Run('défilement', renderLoot) end)
+    v.cardButtons = {}
+    for i = 1, CARD_COLUMNS * CARD_ROWS do
+        local card = S.Box(v.cards, S.colors.panel, S.colors.line, 'Button'); card:SetSize(CARD_W, CARD_H)
+        card:SetPoint('TOPLEFT', ((i - 1) % CARD_COLUMNS) * (CARD_W + 8), -32 - math.floor((i - 1) / CARD_COLUMNS) * (CARD_H + CARD_GAP))
+        card.hover = S.Fill(card, 'HIGHLIGHT', { 1, 1, 1, 0.07 }); card.hover:SetAllPoints()
+        card.label = S.Text(card, 12, S.colors.text); card.label:SetPoint('TOPLEFT', 8, -7); card.label:SetWidth(CARD_W - 16); card.label:SetWordWrap(true)
+        card.info = S.Text(card, 10, S.colors.muted); card.info:SetPoint('BOTTOMLEFT', 8, 6); card.info:SetWidth(CARD_W - 16)
+        card:SetScript('OnClick', function(self)
+            if not self.key then return end
+            state.raid = self.key; state.boss = 1; state.bossOffset = 0; state.lootOffset = 0; state.picked = nil
+            Q.Run('instance', renderLoot)
         end)
-        v.raids[i] = b
+        v.cardButtons[i] = card
     end
-    local box = S.Box(v, S.colors.panel, S.colors.line); box:SetPoint('TOPLEFT', 0, -32); box:SetSize(250, 368)
+    v.cardScroll = S.Scrollbar(v.cards, CARD_ROWS * (CARD_H + CARD_GAP) - CARD_GAP, function(offset) if offset ~= state.cardOffset then state.cardOffset = offset; Q.Run('défilement', renderLoot) end end)
+    v.cardScroll:SetPoint('TOPLEFT', 754, -32)
+
+    -- Une instance : ses boss à gauche, leur butin à droite
+    v.detail = CreateFrame('Frame', nil, v); v.detail:SetAllPoints(v)
+    v.back = S.Button(v.detail, '< Toutes les instances', 170, 24, 'ghost'); v.back:SetPoint('TOPLEFT', 0, 0)
+    v.back:SetScript('OnClick', function() state.raid = nil; state.picked = nil; Q.Run('instances', renderLoot) end)
+    v.dungeonName = S.Text(v.detail, 13, S.colors.text); v.dungeonName:SetPoint('TOPLEFT', 182, -5); v.dungeonName:SetWidth(570)
+    local box = S.Box(v.detail, S.colors.panel, S.colors.line); box:SetPoint('TOPLEFT', 0, -32); box:SetSize(250, 368)
     box:EnableMouseWheel(true)
     box:SetScript('OnMouseWheel', function(_, delta) state.bossOffset = state.bossOffset - delta * 2; Q.Run('défilement', renderLoot) end)
     v.bossRows = {}
     for i = 1, BOSS_ROWS do
-        local row = S.Row(v, 238, 25); row:SetPoint('TOPLEFT', 1, -36 - (i - 1) * 26)
+        local row = S.Row(v.detail, 238, 25); row:SetPoint('TOPLEFT', 1, -36 - (i - 1) * 26)
         row.label = S.Text(row, 12, S.colors.text); row.label:SetPoint('LEFT', 12, 0); row.label:SetWidth(190)
         row.count = S.Text(row, 10, S.colors.muted, 'RIGHT'); row.count:SetPoint('RIGHT', -8, 0)
         row:SetScript('OnClick', function(self)
@@ -295,10 +335,10 @@ local function createLoot(parent)
         end)
         v.bossRows[i] = row
     end
-    v.bossScroll = S.Scrollbar(v, BOSS_ROWS * 26, function(offset) if offset ~= state.bossOffset then state.bossOffset = offset; Q.Run('défilement', renderLoot) end end)
+    v.bossScroll = S.Scrollbar(v.detail, BOSS_ROWS * 26, function(offset) if offset ~= state.bossOffset then state.bossOffset = offset; Q.Run('défilement', renderLoot) end end)
     v.bossScroll:SetPoint('TOPLEFT', 242, -36)
 
-    local d = S.Box(v, S.colors.panel, S.colors.line); d:SetPoint('TOPLEFT', 262, -32); d:SetSize(498, 368)
+    local d = S.Box(v.detail, S.colors.panel, S.colors.line); d:SetPoint('TOPLEFT', 262, -32); d:SetSize(498, 368)
     d:EnableMouseWheel(true)
     d:SetScript('OnMouseWheel', function(_, delta) state.lootOffset = state.lootOffset - delta * 2; Q.Run('défilement', renderLoot) end)
     v.title = S.Text(d, 15, S.colors.text); v.title:SetPoint('TOPLEFT', 16, -12); v.title:SetWidth(300)
@@ -311,8 +351,21 @@ local function createLoot(parent)
         row.icon = row:CreateTexture(nil, 'ARTWORK'); row.icon:SetSize(22, 22); row.icon:SetPoint('LEFT', 12, 0); row.icon:SetTexCoord(0.08, 0.92, 0.08, 0.92)
         row.label = S.Text(row, 12, S.colors.text); row.label:SetPoint('LEFT', 42, 6); row.label:SetWidth(420)
         row.slotText = S.Text(row, 10, S.colors.muted); row.slotText:SetPoint('LEFT', 42, -7); row.slotText:SetWidth(420)
-        row:SetScript('OnClick', function(self)
+        row:RegisterForClicks('LeftButtonUp', 'RightButtonUp')
+        row:SetScript('OnClick', function(self, button)
             if not self.item then return end
+            -- Clic droit : retire l'objet de la liste, pour corriger une erreur
+            if button == 'RightButton' then
+                Q.Run('retirer', function()
+                    local slot = Q.InMyList(self.item)
+                    if slot then
+                        Q.ClearSlot(slot)
+                        state.picked = '|cffe5545cRetiré :|r ' .. itemText(self.item) .. ' |cff94a1b8(' .. (Q.SLOT_NAMES[slot] or '?') .. ')|r'
+                    else state.picked = itemText(self.item) .. ' |cff94a1b8n\'est pas dans ta liste.|r' end
+                    UI.Refresh()
+                end)
+                return
+            end
             if Quintessence.LinkItem(self.item) then return end
             Q.Run('butin', function()
                 local ok, result = Q.PickRaidItem(self.item, state.raid, state.slot)
@@ -517,7 +570,11 @@ local function create(parent)
     frame.tabList = S.Button(frame, 'Ma liste BiS', 150, 28, 'ghost'); frame.tabList:SetPoint('TOPLEFT', 0, 0)
     frame.tabList:SetScript('OnClick', function() state.view = 'list'; Q.Run('vue', UI.Refresh) end)
     frame.tabLoot = S.Button(frame, 'Butin des boss', 150, 28, 'ghost'); frame.tabLoot:SetPoint('TOPLEFT', 336, 0)
-    frame.tabLoot:SetScript('OnClick', function() state.view = 'loot'; state.picked = nil; Q.Run('vue', UI.Refresh) end)
+    frame.tabLoot:SetScript('OnClick', function()
+        -- Déjà sur le butin : retour aux cartes ; depuis un autre onglet : on retrouve l'instance ouverte
+        if state.view == 'loot' then state.raid = nil end
+        state.view = 'loot'; state.picked = nil; Q.Run('vue', UI.Refresh)
+    end)
     frame.tabNeeds = S.Button(frame, 'Besoins par donjon', 170, 28, 'ghost'); frame.tabNeeds:SetPoint('TOPLEFT', 158, 0)
     frame.tabNeeds:SetScript('OnClick', function() state.view = 'needs'; Q.Run('vue', UI.Refresh) end)
     frame.progress = S.Text(frame, 11, S.colors.gold, 'RIGHT'); frame.progress:SetPoint('TOPRIGHT', -2, -8)
@@ -540,9 +597,7 @@ function UI.Toggle() Quintessence.UI.Toggle('bis') end
 
 --- Ouvre le butin des boss sur ce donjon ou ce raid (clé du site), par exemple depuis l'onglet Donjons.
 function UI.ShowLoot(key)
-    local d = Q.DUNGEON_BY_KEY[key]
-    state.lootMode = (d and d.raid) and 'raid' or 'dungeon'
-    state.raid = key; state.boss = 1; state.bossOffset = 0; state.lootOffset = 0; state.picked = nil
+    state.raid = lootOf(key) and key or nil; state.boss = 1; state.bossOffset = 0; state.lootOffset = 0; state.picked = nil
     UI.Open('loot')
 end
 -- Pont pour les autres modules (onglet Donjons de quinte-group : bouton « Butin des boss »)
