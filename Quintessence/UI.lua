@@ -107,7 +107,7 @@ local function createHome()
 
     local heading = S.Heading(home, 'Modules installés'); heading:SetPoint('TOPLEFT', 0, -82)
     home.cards = {}
-    for i = 1, 10 do
+    for i = 1, 14 do
         local col, line = (i - 1) % 2, math.floor((i - 1) / 2)
         local card = S.Box(home, S.colors.panel, S.colors.line, 'Button')
         card:SetSize((HOME_W - 12) / 2, 54)
@@ -300,7 +300,7 @@ function UI.Open(id)
     if id == 'locked' then id = nil end
     id = id or (QuintessenceDB and QuintessenceDB.lastTab) or 'home'
     local m = Core.modules[id]
-    if id ~= 'home' and not (m and m.create) then id = 'home'; m = nil end
+    if id ~= 'home' and not (m and m.create and (not m.visible or m.visible())) then id = 'home'; m = nil end
     if m and not panels[id] then
         local ok, panel = Core.Run('création ' .. id, m.create, content)
         if not ok or type(panel) ~= 'table' then id = 'home'; m = nil else panels[id] = panel end

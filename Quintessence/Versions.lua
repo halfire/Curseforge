@@ -53,7 +53,7 @@ local function validId(id) return type(id) == 'string' and #id > 0 and #id <= 24
 function V.Mine()
     local m = {}
     for id, def in pairs(Core.modules) do
-        if id ~= 'versions' and validVersion(def.version) then m[id] = def.version end
+        if id ~= 'versions' and id ~= 'annonces' and validVersion(def.version) then m[id] = def.version end
     end
     return { v = Core.version, m = m }
 end

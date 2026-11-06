@@ -13,7 +13,7 @@ local addonName, Core = ...
   Règle Retail 12+ : aucune écriture dans une table, une fonction ou un cadre de Blizzard.
 ]]
 Quintessence = Core -- seule globale publique de la suite (nom propre, jamais une globale de Blizzard)
-Core.name, Core.version = addonName or 'Quintessence', '1.24.0'
+Core.name, Core.version = addonName or 'Quintessence', '1.25.0'
 Core.modules, Core.syncModules, Core.channels, Core.debug = {}, {}, {}, { errors = {}, slow = {} }
 
 function Core.Call(fn, ...)
@@ -261,7 +261,8 @@ end
 
 function Core:ModuleList()
     local list = {}
-    for _, m in pairs(self.modules) do list[#list + 1] = m end
+    -- def.visible : onglet réservé à certains joueurs (ex. Annonces, pour les officiers)
+    for _, m in pairs(self.modules) do if not m.visible or m.visible() then list[#list + 1] = m end end
     table.sort(list, function(a, b) if a.order ~= b.order then return a.order < b.order end return a.id < b.id end)
     return list
 end
@@ -425,7 +426,7 @@ end
 function Core.Info()
     local modules = {}
     for _, m in ipairs(Core:ModuleList()) do
-        if m.id ~= 'versions' then modules[#modules + 1] = m.id .. ' ' .. tostring(m.version or '?') end
+        if m.id ~= 'versions' and m.id ~= 'annonces' then modules[#modules + 1] = m.id .. ' ' .. tostring(m.version or '?') end
     end
     return { v = Core.version, m = table.concat(modules, ', '):sub(1, 200), t = Core.Versions and Core.Versions.Mine().m or nil }
 end
