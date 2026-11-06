@@ -73,6 +73,7 @@ local activeTab = 'leveling'
 -- =========================================================================
 
 local QUEST_ROWS = 9
+local sharedOpen, sharedOffset = nil, 0 -- quête ouverte dans « Quêtes partagées », décalage de la molette
 
 local function createLevelingPanel(parent)
     local panel = CreateFrame('Frame', nil, parent)
@@ -117,6 +118,15 @@ local function createLevelingPanel(parent)
 
     local sharedHeading = S.Heading(rightBox, 'Quêtes en commun avec la guilde')
     sharedHeading:SetPoint('TOPLEFT', 16, -12)
+    sharedHeading:SetWidth(270)
+    panel.sharedHeading = sharedHeading
+
+    -- Liste des personnes d'une quête : retour à la liste, inviter tout le monde
+    panel.back = S.Button(rightBox, 'Retour', 64, 22, 'ghost')
+    panel.back:SetPoint('TOPRIGHT', -12, -8)
+    panel.back:SetScript('OnClick', function() UI.ShowSharedQuest(nil) end)
+    panel.inviteAll = S.Button(rightBox, 'Inviter tous', 88, 22, 'ghost')
+    panel.inviteAll:SetPoint('TOPRIGHT', -82, -8)
 
     panel.sharedCount = S.Text(rightBox, 11, S.colors.muted, 'RIGHT')
     panel.sharedCount:SetPoint('TOPRIGHT', -16, -12)
@@ -142,11 +152,27 @@ local function createLevelingPanel(parent)
         mText:SetPoint('TOPLEFT', 42, -21)
         mText:SetWidth(300)
 
+        local count = S.Text(r, 12, S.colors.gold, 'RIGHT')
+        count:SetPoint('RIGHT', -14, 0)
+        count:SetWidth(100)
+
         local invBtn = S.Button(r, 'Inviter', 96, 24, 'primary')
         invBtn:SetPoint('RIGHT', -12, 0)
 
-        panel.rows[i] = { frame = r, qText = qText, mText = mText, invBtn = invBtn }
+        -- Clic : sur une quête, ses personnes ; sur une personne, un chuchotement
+        r:SetScript('OnClick', function(self)
+            if self.sharedTitle then UI.ShowSharedQuest(self.sharedTitle)
+            elseif self.memberName then Quintessence.Whisper(self.memberName) end
+        end)
+
+        panel.rows[i] = { frame = r, qText = qText, mText = mText, count = count, invBtn = invBtn }
     end
+
+    rightBox:EnableMouseWheel(true)
+    rightBox:SetScript('OnMouseWheel', function(_, delta)
+        sharedOffset = math.max(0, sharedOffset - delta)
+        UI.RefreshLeveling()
+    end)
 
     local emptyText = S.Text(rightBox, 12, S.colors.muted, 'CENTER')
     emptyText:SetPoint('CENTER', 0, -10)
@@ -184,6 +210,53 @@ function UI.RefreshLeveling()
     else p.partyXP:SetText('') end
 
     local shared = Q.FindSharedQuests and Q.FindSharedQuests(myQuests) or {}
+    -- Quête ouverte : ses personnes, ou retour à la liste si plus personne ne l'a
+    local opened
+    for _, q in ipairs(shared) do if q.title == sharedOpen then opened = q end end
+    if not opened then sharedOpen, sharedOffset = nil, 0 end
+
+    p.back:SetShown(opened ~= nil)
+    p.inviteAll:SetShown(false)
+    p.sharedCount:SetShown(opened == nil)
+
+    if opened then
+        p.sharedHeading:SetText(Q.Safe(opened.title))
+        p.emptyText:Hide()
+        local outside = 0
+        for _, m in ipairs(opened.members) do if not Q.InMyGroup(m.name) then outside = outside + 1 end end
+        p.inviteAll:SetShown(outside > 0)
+        p.inviteAll:SetScript('OnClick', function()
+            local sent = 0
+            for _, m in ipairs(opened.members) do
+                if not Q.InMyGroup(m.name) and invitePlayer(m.name) ~= false then sent = sent + 1 end
+            end
+            Q.Print(sent .. ' invitation(s) envoyée(s) pour la quête : ' .. Q.Safe(opened.title))
+        end)
+        sharedOffset = math.max(0, math.min(sharedOffset, math.max(0, #opened.members - QUEST_ROWS)))
+        for i, r in ipairs(p.rows) do
+            local m = opened.members[sharedOffset + i]
+            if m then
+                local inGroup = Q.InMyGroup(m.name)
+                r.frame:Show()
+                r.frame.sharedTitle = nil
+                r.frame.memberName = m.name
+                r.count:SetText('')
+                r.qText:SetPoint('TOPLEFT', 42, -5)
+                r.qText:SetText(string.format('|c%s%s|r |c%sniv. %d|r', classHex(m.class), Q.Safe(m.name), S.hex.muted, m.level or 60))
+                local where = Quintessence.Layer and Quintessence.Layer.Where and Quintessence.Layer.Where(m.name)
+                r.mText:SetText(inGroup and ('|c' .. S.hex.mint .. 'dans ton groupe|r') or (where and Q.Safe(where) or ''))
+                r.invBtn:SetShown(not inGroup)
+                r.invBtn:SetScript('OnClick', function()
+                    if invitePlayer(m.name) ~= false then Q.Print('Invitation envoyée à ' .. Q.Safe(m.name) .. '.') end
+                end)
+            else
+                r.frame:Hide()
+            end
+        end
+        return
+    end
+
+    p.sharedHeading:SetText('Quêtes en commun avec la guilde')
     p.sharedCount:SetText(#shared .. ' quête' .. (#shared > 1 and 's' or '') .. ' partagée' .. (#shared > 1 and 's' or ''))
 
     if #shared == 0 then
@@ -193,31 +266,28 @@ function UI.RefreshLeveling()
     end
     p.emptyText:Hide()
 
+    sharedOffset = math.max(0, math.min(sharedOffset, math.max(0, #shared - QUEST_ROWS)))
     for i, r in ipairs(p.rows) do
-        local q = shared[i]
+        local q = shared[sharedOffset + i]
         if q then
             r.frame:Show()
+            r.frame.sharedTitle = q.title
+            r.frame.memberName = nil
+            r.qText:SetPoint('TOPLEFT', 42, -12)
             r.qText:SetText(string.format('|c%s[%d]|r  %s', S.hex.gold, q.level or 0, Q.Safe(q.title)))
-
-            local memberNames = {}
-            for _, m in ipairs(q.members) do
-                memberNames[#memberNames + 1] = string.format('|c%s%s|r (%d)', classHex(m.class), Q.Safe(m.name), m.level or 60)
-            end
-            r.mText:SetText('En cours chez : ' .. table.concat(memberNames, ', '))
-
-            -- Bouton seulement s'il reste quelqu'un hors de notre groupe
-            local outside = 0
-            for _, m in ipairs(q.members) do if not Q.InMyGroup(m.name) then outside = outside + 1 end end
-            r.invBtn:SetShown(outside > 0)
-            r.invBtn:SetScript('OnClick', function()
-                local sent = 0
-                for _, m in ipairs(q.members) do if invitePlayer(m.name) ~= false then sent = sent + 1 end end
-                Q.Print(sent .. ' invitation(s) envoyée(s) pour la quête : ' .. Q.Safe(q.title))
-            end)
+            r.mText:SetText('')
+            r.count:SetText(#q.members .. (#q.members > 1 and ' personnes' or ' personne'))
+            r.invBtn:Hide()
         else
             r.frame:Hide()
         end
     end
+end
+
+--- Ouvre la liste des personnes d'une quête en commun (nil : retour à la liste des quêtes).
+function UI.ShowSharedQuest(title)
+    sharedOpen, sharedOffset = title, 0
+    UI.RefreshLeveling()
 end
 
 -- =========================================================================
@@ -859,8 +929,8 @@ local function create(parent)
     mainFrame:SetAllPoints(parent)
 
     local tabDefs = {
+        { id = 'dungeons', label = 'Donjons', w = 110 },
         { id = 'leveling', label = 'Quêtes partagées', w = 150 },
-        { id = 'dungeons', label = 'Donjons & butin', w = 150 },
         { id = 'codex', label = 'Codex secret', w = 136 },
     }
     if Q.NoCodex() then tabDefs[3] = nil end
@@ -910,7 +980,7 @@ function UI.Toggle() Quintessence.UI.Toggle('group') end
 
 Quintessence:RegisterModule({
     id = 'group',
-    title = 'Quêtes & Donjons',
+    title = 'Donjons & Quêtes',
     order = 45,
     icon = 'Interface\\Icons\\INV_Misc_Book_08',
     version = Q.version,

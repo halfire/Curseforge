@@ -13,7 +13,7 @@ local addonName, Core = ...
   Règle Retail 12+ : aucune écriture dans une table, une fonction ou un cadre de Blizzard.
 ]]
 Quintessence = Core -- seule globale publique de la suite (nom propre, jamais une globale de Blizzard)
-Core.name, Core.version = addonName or 'Quintessence', '1.18.0'
+Core.name, Core.version = addonName or 'Quintessence', '1.19.0'
 Core.modules, Core.syncModules, Core.channels, Core.debug = {}, {}, {}, { errors = {}, slow = {} }
 
 function Core.Call(fn, ...)
@@ -87,7 +87,7 @@ function Core.GuildStatus()
 end
 --- Raison du blocage ('none' ou 'other', puis le nom de l'autre guilde), nil pour un membre (ou guilde pas encore lue).
 --- Édition CurseForge : .toc avec « ## X-Quinte-Edition: curseforge » (ajouté par scripts/build_suite.py).
---- Les membres n'y voient que Craft, Fiches, BiS, Quêtes & Donjons, SOS et Versions.
+--- Les membres n'y voient que Craft, Fiches, BiS, Donjons & Quêtes, SOS et Versions.
 function Core.IsCurseForge()
     local fn = (C_AddOns and C_AddOns.GetAddOnMetadata) or GetAddOnMetadata
     if not fn then return false end

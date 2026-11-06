@@ -2,7 +2,7 @@
 ## Title: Quinte-group
 ## Notes: Module Quintessence - Compagnon de leveling, quêtes partagées, préférences de donjons et Codex secret de WoW Forever (/qgroup).
 ## Author: Quintessence
-## Version: 0.7.2
+## Version: 0.8.0
 ## SavedVariables: QuinteGroupDB
 ## Dependencies: Quintessence
 Core.lua

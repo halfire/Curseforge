@@ -1,7 +1,7 @@
 # Quintessence pour CurseForge
 
 Addons de la guilde **Quintessence**, réservés à ses membres (ils ne s'activent que dans la guilde) :
-Craft, Fiches, BiS & donjons, Quêtes & Donjons, SOS et Versions.
+Craft, Fiches, BiS & donjons, Donjons & Quêtes, SOS et Versions.
 
 Ce dépôt est généré : ne pas modifier les dossiers d'addons à la main. Ils sont réécrits par
 `Quintessence/scripts/build_suite.py` ; pousser un nouveau `pack.json` sur `main` envoie la version sur CurseForge.

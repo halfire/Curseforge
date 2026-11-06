@@ -5,7 +5,7 @@ local addonName, Q = ...
   Règle Retail 12+ : uniquement nos propres cadres, aucune écriture dans les objets de Blizzard.
 ]]
 local Core = Quintessence
-Q.name, Q.version = addonName or 'quinte-group', '0.7.2'
+Q.name, Q.version = addonName or 'quinte-group', '0.8.0'
 Q.debug = { errors = {}, slow = {} }
 
 function Q.Call(fn, ...)
@@ -78,7 +78,7 @@ function Q.Init()
     initSubmodules()
 end
 
---- Édition CurseForge : Quêtes & Donjons seulement, pas de Codex (ni onglet, ni relevé des butins).
+--- Édition CurseForge : Donjons & Quêtes seulement, pas de Codex (ni onglet, ni relevé des butins).
 function Q.NoCodex() return Core.IsCurseForge ~= nil and Core.IsCurseForge() end
 
 function Q.OnNetworkMessage(data, sender)
