@@ -33,7 +33,8 @@ def request(base, token, path, data=None, content_type=None):
             return json.load(response)
     except urllib.error.HTTPError as error:
         body = error.read().decode('utf-8', 'replace')[:800]
-        raise SystemExit(f'CurseForge a répondu {error.code} sur {path} : {body}')
+        print(f'::error title=CurseForge::Réponse {error.code} sur {path} : ' + body.replace('\n', ' '))
+        raise SystemExit(1)
 
 
 def build_zip(folder, addons):
@@ -66,7 +67,7 @@ def game_versions(base, token):
         raise SystemExit('Aucune version « Forever » trouvée : donner le nom exact dans la variable CF_GAME_VERSIONS.\n'
                          f'Types : {names}\nDernières versions : ' + ', '.join(str(v.get('name')) for v in versions[-40:]))
     best = max(found, key=lambda v: v['id'])
-    print(f"Version du jeu choisie : {best.get('name')} ({best['id']})")
+    print(f"::notice title=CurseForge::Version du jeu choisie : {best.get('name')} ({best['id']})")
     return [best['id']]
 
 
@@ -87,7 +88,7 @@ def main():
     token = os.environ.get('CF_API_KEY', '').strip()
     project = os.environ.get('CF_PROJECT_ID', '').strip()
     if not token or not project:
-        print('CF_API_KEY ou CF_PROJECT_ID absent : rien à envoyer.')
+        print('::warning title=CurseForge::CF_API_KEY ou CF_PROJECT_ID absent : rien envoyé.')
         return
     if not project.isdigit():
         raise SystemExit('CF_PROJECT_ID doit être un numéro.')
@@ -104,7 +105,7 @@ def main():
     }
     body, content_type = multipart(metadata, f"Quintessence-{pack['version']}.zip", content)
     result = request(base, token, f'/api/projects/{project}/upload-file', body, content_type)
-    print(f"Pack {pack['version']} envoyé sur CurseForge, fichier n° {result.get('id')}.")
+    print(f"::notice title=CurseForge::Version {pack['version']} envoyée, fichier n° {result.get('id')}, jeu {metadata['gameVersions']}.")
 
 
 if __name__ == '__main__':
