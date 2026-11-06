@@ -1,5 +1,5 @@
 # Envoie les addons de ce dépôt sur CurseForge quand pack.json change sur main.
-# Réglages du dépôt GitHub : secret CF_API_KEY et variable CF_PROJECT_ID ; sans eux, rien n'est envoyé.
+# Réglages du dépôt GitHub : secret CF_API_KEY et CF_PROJECT_ID (variable ou secret) ; sans eux, rien n'est envoyé.
 name: Pack CurseForge
 on:
   push:
@@ -22,6 +22,6 @@ jobs:
       - name: Envoyer le pack
         env:
           CF_API_KEY: ${{ secrets.CF_API_KEY }}
-          CF_PROJECT_ID: ${{ vars.CF_PROJECT_ID }}
-          CF_GAME_VERSIONS: ${{ vars.CF_GAME_VERSIONS }}
+          CF_PROJECT_ID: ${{ vars.CF_PROJECT_ID || secrets.CF_PROJECT_ID }}
+          CF_GAME_VERSIONS: ${{ vars.CF_GAME_VERSIONS || secrets.CF_GAME_VERSIONS }}
         run: python3 .github/scripts/curseforge_upload.py .
