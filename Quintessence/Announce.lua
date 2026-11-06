@@ -1,9 +1,10 @@
 local _, Core = ...
 --[[
-  Announce.lua : annonces automatiques en guilde, écrites par les officiers (onglet « Annonces », visible des seuls
-  officiers). Guilde seulement : le recrutement reste à un clic par envoi.
+  Announce.lua : annonces automatiques en guilde, dans la section « Officiers », visible des deux rangs les plus hauts
+  de la guilde (rang 0 et 1, lus dans le jeu). Guilde seulement : le recrutement reste à un clic par envoi.
 
-  - Une annonce : { id, text, days = '1010000' (lundi à dimanche), hour, min, enabled }. 20 au plus, heure de l'ordinateur.
+  - Une annonce : { id, text, days = '1010000' (lundi à dimanche), hour, min, enabled, every }. 20 au plus, heure de
+    l'ordinateur. `every` (15, 30, 60, 120 ou 240 min) : répétée à partir de hour:min jusqu'à minuit ; sinon une fois par jour.
   - Partage entre officiers sur le canal 'qann' : la liste entière et sa date, la plus récente gagne. Un message d'un
     expéditeur qui n'est pas officier est jeté, les non-officiers ignorent tout le canal.
   - Un seul envoi : les officiers en ligne sont classés par nom, chacun attend position × 8 s après l'heure ; l'écho de
@@ -28,6 +29,9 @@ local LOCK_RETRY = 15
 local MIN_GAP = 30      -- deux annonces automatiques du même client restent espacées
 local REPLY_GAP = 60
 local DAY_NAMES = { 'Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam', 'Dim' }
+local TOP_RANK = 1      -- rangs de guilde qui ont la section : 0 (maître de guilde) et 1
+local REPEATS = { { nil, 'Une fois' }, { 15, '15 min' }, { 30, '30 min' }, { 60, '1 h' }, { 120, '2 h' }, { 240, '4 h' } }
+local VALID_EVERY = { [15] = true, [30] = true, [60] = true, [120] = true, [240] = true }
 
 local plans, waiting, replied = {}, {}, {}
 local lastAuto, wasOfficer, asked = 0, false, false
@@ -70,26 +74,27 @@ end
 -- ---------------------------------------------------------------------------------------------------------------------
 -- Rangs
 -- ---------------------------------------------------------------------------------------------------------------------
+local function myRank()
+    if GetGuildInfo then
+        local ok, _, _, rank = pcall(GetGuildInfo, 'player')
+        if ok and type(rank) == 'number' and not secret(rank) then return rank end
+    end
+    if GetNumGuildMembers and GetGuildRosterInfo then
+        local me = Core.CanonicalKey(Core.PlayerName())
+        for i = 1, GetNumGuildMembers() or 0 do
+            local name, _, rank = GetGuildRosterInfo(i)
+            if type(name) == 'string' and not secret(name) and type(rank) == 'number' and not secret(rank)
+                and Core.CanonicalKey(name) == me then return rank end
+        end
+    end
+    return nil
+end
+--- Le joueur est-il dans les deux rangs les plus hauts de la guilde ?
 function A.IsOfficer()
-    if C_GuildInfo and C_GuildInfo.IsGuildOfficer then
-        local ok, value = pcall(C_GuildInfo.IsGuildOfficer)
-        if ok and value == true then return true end
-    end
-    if CanEditOfficerNote then
-        local ok, value = pcall(CanEditOfficerNote)
-        if ok and value == true then return true end
-    end
-    return false
+    local rank = myRank()
+    return rank ~= nil and rank <= TOP_RANK
 end
--- Rang officier : droit de lire le canal officier du rang, à défaut un rang au moins égal au mien
-local function rankIsOfficer(rank, mine)
-    if rank == 0 then return true end
-    if C_GuildInfo and C_GuildInfo.GuildControlGetRankFlags then
-        local ok, flags = pcall(C_GuildInfo.GuildControlGetRankFlags, rank + 1)
-        if ok and type(flags) == 'table' and flags[3] ~= nil then return flags[3] == true end
-    end
-    return mine ~= nil and rank <= mine
-end
+local function rankIsOfficer(rank) return rank <= TOP_RANK end
 -- Liste de guilde : rang par nom, et officiers en ligne triés
 local function roster()
     local ranks, online = {}, {}
@@ -108,16 +113,16 @@ local function roster()
     local seenMe = false
     for _, row in ipairs(rows) do
         if row.key == me then seenMe = true; online[#online + 1] = row.key
-        elseif row.online and rankIsOfficer(row.rank, mine) then online[#online + 1] = row.key end
+        elseif row.online and rankIsOfficer(row.rank) then online[#online + 1] = row.key end
     end
     if not seenMe then online[#online + 1] = me end
     table.sort(online)
     return ranks, online, mine
 end
 local function senderIsOfficer(sender)
-    local ranks, _, mine = roster()
+    local ranks = roster()
     local rank = ranks[Core.CanonicalKey(sender)]
-    return rank ~= nil and rankIsOfficer(rank, mine)
+    return rank ~= nil and rankIsOfficer(rank)
 end
 local function myPlace()
     local _, online = roster()
@@ -134,15 +139,20 @@ local function today()
     local t = date('*t', now())
     return ((t.wday + 5) % 7) + 1, string.format('%d-%d', t.year, t.yday), t.hour * 3600 + t.min * 60 + t.sec
 end
--- Secondes écoulées depuis l'heure de l'annonce, si elle tombe aujourd'hui
-local function elapsedToday(item, weekday, seconds)
+-- Envoi attendu de l'annonce aujourd'hui : sa clé (jour, et numéro de répétition) et les secondes écoulées depuis son heure
+local function dueSlot(item, weekday, day, seconds)
     if item.days:sub(weekday, weekday) ~= '1' then return nil end
-    return seconds - (item.hour * 3600 + item.min * 60)
+    local delta = seconds - (item.hour * 3600 + item.min * 60)
+    if delta < 0 then return nil end
+    if not item.every then return day, delta end
+    local period = item.every * 60
+    local n = math.floor(delta / period)
+    return day .. '#' .. n, delta - n * period
 end
 local function inWindow(item)
     local weekday, day, seconds = today()
-    local delta = elapsedToday(item, weekday, seconds)
-    if delta and delta >= 0 and delta < WINDOW then return day, delta end
+    local key, delta = dueSlot(item, weekday, day, seconds)
+    if key and delta < WINDOW then return key, delta end
 end
 
 -- ---------------------------------------------------------------------------------------------------------------------
@@ -176,7 +186,7 @@ local function refused(id, why)
     if not item then return end
     setLast(id, 'refused')
     Core.Print('|cffe5545cAnnonce non envoyée|r' .. (why and (' (' .. why .. ')') or '') .. ' : « ' .. Core.Safe(item.text:sub(1, 40))
-        .. '… ». Onglet Annonces, bouton Envoyer maintenant.')
+        .. '… ». Section Officiers, bouton Envoyer maintenant.')
 end
 local function push(id, item, day)
     local send = (C_ChatInfo and C_ChatInfo.SendChatMessage) or SendChatMessage
@@ -257,14 +267,15 @@ function A.Tick()
     local place
     for _, item in ipairs(d.items) do
         local plan = plans[item.id]
-        local delta = item.enabled and elapsedToday(item, weekday, seconds)
-        if delta and delta >= 0 and delta < WINDOW and d.sent[item.id] ~= day and not (plan and plan.day == day)
+        local key, delta
+        if item.enabled then key, delta = dueSlot(item, weekday, day, seconds) end
+        if key and delta < WINDOW and d.sent[item.id] ~= key and not (plan and plan.day == key)
             and (A.started or 0) <= now() - delta then
             place = place or myPlace()
-            plans[item.id] = { day = day, place = place }
+            plans[item.id] = { day = key, place = place }
             -- En retard sur l'heure (écran de chargement…) : l'ordre des officiers reste le même
-            local id, wait = item.id, delta > TICK + 1 and place * SLOT or math.max(0, place * SLOT - delta)
-            C_Timer.After(wait, function() Core.Run('annonce', A.Attempt, id, day) end)
+            local id, slot, wait = item.id, key, delta > TICK + 1 and place * SLOT or math.max(0, place * SLOT - delta)
+            C_Timer.After(wait, function() Core.Run('annonce', A.Attempt, id, slot) end)
         end
     end
 end
@@ -280,13 +291,14 @@ local function validItem(item)
     if type(min) ~= 'number' or min ~= math.floor(min) or min < 0 or min > 59 then return nil end
     local text = A.Clean(item.text)
     if text == '' then return nil end
-    return { id = item.id, text = text, days = item.days, hour = hour, min = min, enabled = item.enabled and true or false }
+    if item.every ~= nil and not VALID_EVERY[item.every] then return nil end
+    return { id = item.id, text = text, days = item.days, hour = hour, min = min, enabled = item.enabled and true or false, every = item.every }
 end
 local function shareList(target)
     if not A.comm then return end
     local d, sent = db(), {}
     local _, day = today()
-    for id, value in pairs(d.sent) do if value == day then sent[id] = value end end
+    for id, value in pairs(d.sent) do if value == day or value:sub(1, #day + 1) == day .. '#' then sent[id] = value end end
     A.comm:Send({ t = 'list', at = d.at, by = d.by, items = d.items, sent = sent }, target)
 end
 local function touch()
@@ -306,7 +318,10 @@ function A.Save(draft)
     local existing = draft.id and find(draft.id)
     if not existing and #d.items >= MAX_ITEMS then return false, MAX_ITEMS .. ' annonces au plus.' end
     local id = existing and existing.id or string.format('%x%04x', now(), math.random(0, 65535))
-    local item = validItem({ id = id, text = text, days = draft.days, hour = draft.hour, min = draft.min, enabled = draft.enabled ~= false })
+    -- Répétition sans heure : dès minuit
+    local hour, min = draft.hour, draft.min
+    if draft.every then hour, min = hour or 0, min or 0 end
+    local item = validItem({ id = id, text = text, days = draft.days, hour = hour, min = min, enabled = draft.enabled ~= false, every = draft.every })
     if not item then return false, 'Heure invalide (0 à 23, minutes 0 à 59).' end
     if existing then
         local _, index = find(id)
@@ -378,7 +393,9 @@ A.comm = Core:RegisterChannel('qann', function(data, sender) Core.Run('annonces'
 function A.When(item)
     local names = {}
     for i = 1, 7 do if item.days:sub(i, i) == '1' then names[#names + 1] = DAY_NAMES[i] end end
-    return table.concat(names, ' ') .. ' · ' .. string.format('%02d:%02d', item.hour, item.min)
+    local at = string.format('%02d:%02d', item.hour, item.min)
+    local every = item.every and (item.every < 60 and (item.every .. ' min') or ((item.every / 60) .. ' h'))
+    return table.concat(names, ' ') .. ' · ' .. (every and ('toutes les ' .. every .. ' dès ' .. at) or at)
 end
 function A.Status(id)
     local last = db().last[id]
@@ -394,7 +411,7 @@ end
 -- ---------------------------------------------------------------------------------------------------------------------
 local W, H, ROWS = 760, 440, 10
 local panel
-local state = { offset = 0, selected = nil, days = '0000000', confirm = false, enabled = true }
+local state = { offset = 0, selected = nil, days = '0000000', confirm = false, enabled = true, every = nil }
 
 local function fill(id)
     local item = id and find(id)
@@ -402,6 +419,7 @@ local function fill(id)
     state.confirm = false
     state.days = item and item.days or '0000000'
     state.enabled = not item or item.enabled
+    state.every = item and item.every or nil
     panel.text:SetText(item and item.text or '')
     panel.hour:SetText(item and tostring(item.hour) or '')
     panel.min:SetText(item and tostring(item.min) or '')
@@ -426,6 +444,7 @@ local function render()
     panel.scroll:SetMinMaxValues(0, math.max(0, #items - ROWS)); panel.scroll:SetValue(state.offset)
     panel.count:SetText(#items .. ' / ' .. MAX_ITEMS)
     for i, button in ipairs(panel.dayButtons) do button:SetActive(state.days:sub(i, i) == '1') end
+    for i, button in ipairs(panel.repeatButtons) do button:SetActive(REPEATS[i][1] == state.every) end
     local item = state.selected and find(state.selected)
     panel.title:SetText(item and 'Modifier l\'annonce' or 'Nouvelle annonce')
     panel.toggle:SetShown(item ~= nil); panel.sendNow:SetShown(item ~= nil); panel.delete:SetShown(item ~= nil)
@@ -439,8 +458,8 @@ end
 local function create(parent)
     panel = CreateFrame('Frame', nil, parent)
     panel:SetAllPoints(parent)
-    local heading = S.Heading(panel, 'Annonces en guilde'); heading:SetPoint('TOPLEFT', 0, 0)
-    panel.count = S.Text(panel, 11, S.colors.muted, 'RIGHT'); panel.count:SetPoint('TOPLEFT', 180, -3); panel.count:SetWidth(100)
+    local heading = S.Heading(panel, 'Officiers · annonces en guilde'); heading:SetPoint('TOPLEFT', 0, 0)
+    panel.count = S.Text(panel, 11, S.colors.muted, 'RIGHT'); panel.count:SetPoint('TOPLEFT', 660, -3); panel.count:SetWidth(100)
     local box = S.Box(panel, S.colors.panel, S.colors.line); box:SetPoint('TOPLEFT', 0, -24); box:SetSize(280, ROWS * 39 + 6)
     box:EnableMouseWheel(true)
     box:SetScript('OnMouseWheel', function(_, delta) state.offset = state.offset - delta; Core.Run('annonces', render) end)
@@ -478,14 +497,14 @@ local function create(parent)
         end)
         panel.dayButtons[i] = b
     end
-    local timeLabel = S.Text(e, 11, S.colors.muted); timeLabel:SetPoint('TOPLEFT', 16, -128); timeLabel:SetText('Heure et minutes (heure de ton ordinateur)')
+    local timeLabel = S.Text(e, 11, S.colors.muted); timeLabel:SetPoint('TOPLEFT', 16, -128); timeLabel:SetText('Heure, ou début de la répétition (heure de ton ordinateur)')
     panel.hour = S.Input(e, 76, 'h'); panel.hour:SetPoint('TOPLEFT', 16, -146)
     panel.min = S.Input(e, 76, 'min'); panel.min:SetPoint('TOPLEFT', 100, -146)
     panel.save = S.Button(e, 'Enregistrer', 110, 26, 'primary'); panel.save:SetPoint('TOPLEFT', 190, -146)
     panel.save:SetScript('OnClick', function()
         Core.Run('annonces', function()
             local ok, result = A.Save({ id = state.selected, text = panel.text:GetText(), days = state.days, hour = tonumber(panel.hour:GetText()),
-                min = tonumber(panel.min:GetText()), enabled = state.enabled })
+                min = tonumber(panel.min:GetText()), enabled = state.enabled, every = state.every })
             if ok then
                 fill(result)
                 setNote('|cff5cd1a8Enregistrée et partagée avec les officiers connectés.|r')
@@ -493,7 +512,14 @@ local function create(parent)
             render()
         end)
     end)
-    panel.toggle = S.Button(e, 'Mettre en pause', 130, 24, 'ghost'); panel.toggle:SetPoint('TOPLEFT', 16, -188)
+    local repeatLabel = S.Text(e, 11, S.colors.muted); repeatLabel:SetPoint('TOPLEFT', 16, -178); repeatLabel:SetText('Répéter jusqu\'à minuit')
+    panel.repeatButtons = {}
+    for i, choice in ipairs(REPEATS) do
+        local b = S.Button(e, choice[2], 68, 24, 'ghost'); b:SetPoint('TOPLEFT', 16 + (i - 1) * 73, -194)
+        b:SetScript('OnClick', function() state.every = choice[1]; Core.Run('annonces', render) end)
+        panel.repeatButtons[i] = b
+    end
+    panel.toggle = S.Button(e, 'Mettre en pause', 130, 24, 'ghost'); panel.toggle:SetPoint('TOPLEFT', 16, -228)
     panel.toggle:SetScript('OnClick', function()
         Core.Run('annonces', function()
             state.enabled = not state.enabled
@@ -501,7 +527,7 @@ local function create(parent)
             render()
         end)
     end)
-    panel.sendNow = S.Button(e, 'Envoyer maintenant', 150, 24, 'ghost'); panel.sendNow:SetPoint('TOPLEFT', 152, -188)
+    panel.sendNow = S.Button(e, 'Envoyer maintenant', 150, 24, 'ghost'); panel.sendNow:SetPoint('TOPLEFT', 152, -228)
     panel.sendNow:SetScript('OnClick', function()
         Core.Run('annonces', function()
             local ok, why = A.SendNow(state.selected)
@@ -509,7 +535,7 @@ local function create(parent)
             render()
         end)
     end)
-    panel.delete = S.Button(e, 'Supprimer', 100, 24, 'danger'); panel.delete:SetPoint('TOPLEFT', 308, -188)
+    panel.delete = S.Button(e, 'Supprimer', 100, 24, 'danger'); panel.delete:SetPoint('TOPLEFT', 308, -228)
     panel.delete:SetScript('OnClick', function()
         Core.Run('annonces', function()
             if state.confirm then
@@ -518,17 +544,17 @@ local function create(parent)
             render()
         end)
     end)
-    panel.status = S.Text(e, 11, S.colors.muted); panel.status:SetPoint('TOPLEFT', 16, -226); panel.status:SetWidth(436); panel.status:SetWordWrap(true)
-    panel.note = S.Text(e, 11, S.colors.muted); panel.note:SetPoint('TOPLEFT', 16, -262); panel.note:SetWidth(436); panel.note:SetWordWrap(true)
+    panel.status = S.Text(e, 11, S.colors.muted); panel.status:SetPoint('TOPLEFT', 16, -262); panel.status:SetWidth(436); panel.status:SetWordWrap(true)
+    panel.note = S.Text(e, 11, S.colors.muted); panel.note:SetPoint('TOPLEFT', 16, -296); panel.note:SetWidth(436); panel.note:SetWordWrap(true)
     local help = S.Text(e, 10, S.colors.muted); help:SetPoint('BOTTOMLEFT', 16, 12); help:SetWidth(436); help:SetWordWrap(true)
-    help:SetText('Part une fois par jour prévu, si un officier avec l\'addon était connecté à l\'heure dite. Une annonce manquée n\'est pas rattrapée.')
+    help:SetText('Part si un officier avec l\'addon est connecté à l\'heure dite. Une annonce manquée n\'est pas rattrapée.')
     panel:SetScript('OnShow', function() Core.Run('annonces', render) end)
     panel:Hide()
     return panel
 end
 
 Core:RegisterModule({
-    id = A.MODULE, title = 'Annonces', order = 890, icon = 'Interface\\Icons\\INV_Misc_Horn_01', version = Core.version, width = W, height = H,
+    id = A.MODULE, title = 'Officiers', order = 890, icon = 'Interface\\Icons\\INV_Misc_Horn_01', version = Core.version, width = W, height = H,
     visible = function() return A.IsOfficer() end,
     create = function(parent) return create(parent) end,
     refresh = function() A.Refresh() end,
