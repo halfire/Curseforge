@@ -37,7 +37,20 @@ function Q.ValidCharacter(c, now)
         if row.obtained ~= nil and row.obtained ~= true then return nil end
         items[slot] = { item = row.item, source = row.source, obtained = row.obtained }
     end
-    return { name = c.name, realm = c.realm, class = c.class, level = c.level, updated = c.updated, items = items }
+    -- Butin vu en jeu (Learn.lua) : ligne invalide ignorée, la liste reste bonne
+    local seen
+    if type(c.seen) == 'table' then
+        n = 0
+        for id, row in pairs(c.seen) do
+            n = n + 1
+            if n > 60 then break end
+            if integer(id, 1, 9999999) and type(row) == 'table' and str(row.k, 16) and row.k:match('^[%u%d_]+$') and str(row.b, 40) then
+                seen = seen or {}
+                seen[id] = { k = row.k, b = row.b }
+            end
+        end
+    end
+    return { name = c.name, realm = c.realm, class = c.class, level = c.level, updated = c.updated, items = items, seen = seen }
 end
 function Q.CharKeyOf(c) return c.name .. '-' .. (c.realm:gsub('%s', '')) end
 
@@ -85,6 +98,7 @@ function Q.Mine(level)
     return c
 end
 local function touch(c) c.updated = Q.Tick(c.updated); Q.Changed(true) end
+function Q.TouchMine() touch(Q.Mine()) end
 
 --- Identifiant d'objet depuis un nombre, un lien d'objet ou une adresse Wowhead (…/item=12345/…).
 function Q.ParseItem(value)
@@ -156,6 +170,11 @@ function Q.BossOf(id)
     end
     local hit = BOSS_OF[tonumber(id) or 0]
     if hit then return hit[1], hit[2] end
+    -- Pas dans les tables : ce que la guilde a vu en jeu (Learn.lua)
+    for _, c in pairs(QuinteBisDB.characters) do
+        local row = type(c.seen) == 'table' and c.seen[tonumber(id) or 0]
+        if type(row) == 'table' then return row.b, row.k end
+    end
 end
 function Q.RaidSourceOf(id) return RAID_SOURCE[id] end
 -- Emplacement pour un objet choisi dans les raids ou au Maj+clic : celui demandé s'il est libre, sinon un emplacement

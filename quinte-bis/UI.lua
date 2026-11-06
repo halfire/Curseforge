@@ -187,7 +187,11 @@ local function lootOf(key)
             for _, raid in ipairs(list) do lootByKey[raid.key] = raid end
         end
     end
-    return key and lootByKey[key]
+    if not key then return nil end
+    if lootByKey[key] then return lootByKey[key] end
+    -- Pas de table, mais la guilde y a vu du butin (Learn.lua)
+    if #Q.SeenFor(key) > 0 then return { key = key, bosses = {} } end
+    return nil
 end
 local instanceCards
 local function instances()
@@ -234,7 +238,8 @@ local function renderCards()
             local parts = {}
             if d.raid then parts[#parts + 1] = '|cffe6b450Raid|r' end
             if levels ~= '' then parts[#parts + 1] = levels end
-            if loot then parts[#parts + 1] = #loot.bosses .. ' boss' else parts[#parts + 1] = 'butin inconnu' end
+            local shown = loot and #loot.bosses or 0
+            if shown > 0 then parts[#parts + 1] = shown .. ' boss' elseif loot then parts[#parts + 1] = 'vu par la guilde' else parts[#parts + 1] = 'butin inconnu' end
             if mine then parts[#parts + 1] = '|cff5cd1a8ton niveau|r' end
             card.label:SetText((loot and '' or '|cff94a1b8') .. Q.Safe(d.name) .. (loot and '' or '|r'))
             card.info:SetText(table.concat(parts, ' · '))
@@ -251,7 +256,7 @@ local function renderLoot()
     if not raid then return renderCards() end
     local levels = Q.DungeonLevels(raid.key)
     v.dungeonName:SetText(Q.Safe(raid.name or Q.DungeonName(raid.key)) .. (levels ~= '' and ('  |cff94a1b8' .. levels .. '|r') or ''))
-    local bosses = raid.bosses
+    local bosses = Q.LootBosses(raid)
     state.boss = math.max(1, math.min(state.boss, #bosses))
     state.bossOffset = math.max(0, math.min(state.bossOffset, #bosses - BOSS_ROWS))
     for i = 1, BOSS_ROWS do
@@ -279,7 +284,7 @@ local function renderLoot()
             row.icon:SetTexture(Q.ItemIcon(it[1]))
             row.label:SetText(itemText(it[1], it[3]))
             local code = Q.LootCode(it) or '?'
-            row.slotText:SetText((CODE_NAMES[code] or code) .. (inList and ('  |cff5cd1a8dans ta liste (' .. (Q.SLOT_NAMES[inList] or '?') .. ')|r') or ''))
+            row.slotText:SetText((CODE_NAMES[code] or code) .. (it.boss and (' · ' .. Q.Safe(it.boss)) or '') .. (inList and ('  |cff5cd1a8dans ta liste (' .. (Q.SLOT_NAMES[inList] or '?') .. ')|r') or ''))
             row:Show()
         else row:Hide() end
     end

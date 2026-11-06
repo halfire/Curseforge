@@ -2,7 +2,7 @@
 ## Title: quinte-bis
 ## Notes: Module Quintessence - Listes BiS de la guilde et besoins par donjon pour monter les groupes (onglet BiS & donjons, /qbis). Nécessite l'addon Quintessence.
 ## Author: Quintessence
-## Version: 0.5.0
+## Version: 0.6.0
 ## SavedVariables: QuinteBisDB
 ## Dependencies: Quintessence
 Core.lua
@@ -10,6 +10,7 @@ Dungeons.lua
 RaidLoot.lua
 DungeonLoot.lua
 Data.lua
+Learn.lua
 Sync.lua
 Tooltip.lua
 UI.lua

@@ -54,7 +54,7 @@ local function export(db, request)
     for _, key in ipairs(request.keys) do
         local c = type(key) == 'string' and known[key]
         if c then
-            current[#current + 1] = { k = key, d = { name = c.name, realm = c.realm, class = c.class, level = c.level, updated = c.updated, items = c.items } }
+            current[#current + 1] = { k = key, d = { name = c.name, realm = c.realm, class = c.class, level = c.level, updated = c.updated, items = c.items, seen = c.seen } }
             if #current == PART then parts[#parts + 1] = { records = current }; current = {} end
         end
     end
