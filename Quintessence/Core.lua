@@ -13,7 +13,7 @@ local addonName, Core = ...
   Règle Retail 12+ : aucune écriture dans une table, une fonction ou un cadre de Blizzard.
 ]]
 Quintessence = Core -- seule globale publique de la suite (nom propre, jamais une globale de Blizzard)
-Core.name, Core.version = addonName or 'Quintessence', '1.31.1'
+Core.name, Core.version = addonName or 'Quintessence', '1.31.2'
 Core.modules, Core.syncModules, Core.channels, Core.debug = {}, {}, {}, { errors = {}, slow = {} }
 
 function Core.Call(fn, ...)

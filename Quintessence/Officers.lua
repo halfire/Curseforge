@@ -8,6 +8,8 @@ local _, Core = ...
   - Partage : personne n'envoie son relevé toutes les 5 min. Un membre n'est publié (synchro de guilde, groupe 'gscan') que tous les
     3 niveaux, ou après 2 h de jeu de plus que la version connue : aucune date n'est perdue, chaque version porte tout le journal. Le premier qui le voit publie, les autres reçoivent la
     version et n'ont plus rien à publier ; entre deux versions, les minutes les plus hautes gagnent, sans additionner.
+    Garde-fou : deux joueurs qui ne se sont pas croisés ont chacun une partie de la nuit. Celui qui reçoit une version plus récente
+    garde ce qu'il sait de plus (niveaux, zones, temps), et republie le tout : la version la plus haute finit complète chez tous.
   - Notes : une par joueur, 200 caractères, la plus récente gagne. Elles ne partent qu'en chuchotement vers les officiers
     en ligne (canal 'qoff'), jamais sur le canal de guilde que tout membre peut lire. Un message d'un non-officier est jeté.
   - Chat : le canal officier du jeu, avec son historique (200 lignes) ; envoi à un clic ou à la touche Entrée.
@@ -24,6 +26,7 @@ local SCAN, ROSTER_WAIT, FIRST_SCAN = 300, 5, 30
 local KEEP_GONE, MAX_SAMPLES, MAX_CHAT, MAX_NOTE = 60 * 86400, 60, 200, 200
 local MAX_LEVELS, MAX_ZONES, MAX_MINUTES = 80, 64, 5000000
 local PUBLISH_MINUTES, PUBLISH_LEVELS, MAX_SHARED = 120, 3, 2000 -- 2 h de jeu ou 3 niveaux de plus que la version connue
+local PUBLISH_WAIT, EXTRA_MINUTES = 7200, 30 -- un niveau pas encore envoyé part au bout de 2 h ; écart qui mérite une republication
 local DAY = 86400
 local W, H, BODY_TOP = 760, 476, 36
 
@@ -89,12 +92,13 @@ function O.ReadRoster(at)
             if list[#list] and list[#list].d == day then list[#list].l = level
             else list[#list + 1] = { d = day, l = level } end
             while #list > MAX_SAMPLES do table.remove(list, 1) end
-            if not e.pubLevel then e.pubLevel, e.pubMin = level, tonumber(e.min) or 0 end -- rien à publier à la première vue
+            if not e.pubLevel then e.pubLevel, e.pubMin, e.pubAt = level, tonumber(e.min) or 0, at end -- rien à publier à la première vue
             local here = e.online and type(zone) == 'string' and not secret(zone) and zone ~= '' and zone or nil
             local away = secret(status) or status == 1
             noteJournal(e, level, here, (e.online and not away) and gap or 0, at)
-            if level >= e.pubLevel + PUBLISH_LEVELS or e.min >= e.pubMin + PUBLISH_MINUTES then
-                e.v, e.pubLevel, e.pubMin = math.max(at, (tonumber(e.v) or 0) + 1), level, e.min
+            if level >= e.pubLevel + PUBLISH_LEVELS or e.min >= e.pubMin + PUBLISH_MINUTES
+                or (level > e.pubLevel and at - (tonumber(e.pubAt) or 0) >= PUBLISH_WAIT) then
+                e.v, e.pubLevel, e.pubMin, e.pubAt = math.max(at, (tonumber(e.v) or 0) + 1), level, e.min, at
                 changed = true
             end
             count = count + 1
@@ -180,6 +184,16 @@ function scanAdapter.Merge(_, part, _, at, request)
     elseif (tonumber(e.v) or 0) >= rec.v then return false end
     if type(e.levels) ~= 'table' then e.levels = {} end
     if type(e.zones) ~= 'table' then e.zones = {} end
+    -- Ce que nous savons et que cette version ignore : on le rajoute et on republie, sinon il resterait chez nous
+    local known, extra = {}, (tonumber(e.min) or 0) >= rec.min + EXTRA_MINUTES
+    for _, row in ipairs(rec.levels) do known[row[1]] = row end
+    for _, row in ipairs(e.levels) do
+        local theirs = known[row[1]]
+        if not theirs or row[2] < theirs[2] - EXTRA_MINUTES * 60 then extra = true end
+    end
+    for place, minutes in pairs(e.zones) do
+        if minutes >= (rec.zones[place] or 0) + EXTRA_MINUTES then extra = true end
+    end
     e.name, e.class, e.v = e.name or rec.name, e.class or rec.class, rec.v
     e.level = math.max(tonumber(e.level) or 0, rec.level)
     e.min = math.max(tonumber(e.min) or 0, rec.min)
@@ -202,7 +216,11 @@ function scanAdapter.Merge(_, part, _, at, request)
     while #rows > MAX_LEVELS do table.remove(rows, 1) end
     e.levels = rows
     -- Version connue : plus rien à publier tant qu'on n'a pas vu mieux
-    e.pubLevel, e.pubMin = math.max(tonumber(e.pubLevel) or 0, rec.level), math.max(tonumber(e.pubMin) or 0, rec.min)
+    e.pubLevel, e.pubMin, e.pubAt = math.max(tonumber(e.pubLevel) or 0, rec.level), math.max(tonumber(e.pubMin) or 0, rec.min), at
+    if extra then
+        e.v, e.pubLevel, e.pubMin = rec.v + 1 > at and rec.v + 1 or at, e.level, e.min
+        if O.sync then O.sync:NotifyLocal() end
+    end
     return true
 end
 O.ScanAdapter = scanAdapter
