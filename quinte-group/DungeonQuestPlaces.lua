@@ -18,6 +18,7 @@ Q.DUNGEON_QUEST_PLACES = {
     [391] = { start = 'Gardien Thelwater', map = 1453, zone = 'Stormwind City', x = 51.5, y = 69.4, level = 16 },
     [704] = { start = 'Prospecteur Ironband', zone = 'Loch Modan', note = 'Prospector Ironband in Loch Modan' },
     [709] = { start = 'Theldurin l’Egaré', zone = 'Badlands', level = 30, note = 'Theldurin the Lost in Badlands' },
+    [722] = { start = 'Hammertoe Grez', zone = 'Badlands', note = 'Hammertoe Grez in Badlands' },
     [959] = { start = 'Grutier Bigglefuzz', map = 1413, zone = 'The Barrens', x = 63.1, y = 37.6, level = 14 },
     [971] = { start = 'Gerrig Bonegrip', zone = 'Ironforge', level = 18, note = 'Gerrig Bonegrip at The Forlorn Caverns in Ironforge' },
     [1050] = { start = 'Bibliothécaire Mae Paledust', map = 1455, zone = 'Ironforge', x = 75.0, y = 12.4, level = 28 },

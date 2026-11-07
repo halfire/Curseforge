@@ -486,7 +486,7 @@ local function createDungeonsPanel(parent)
     end)
 
     -- Section 1 : Membres disponibles & rôles
-    local mHeading = S.Heading(rightBox, 'Membres intéressés · clic pour chuchoter')
+    local mHeading = S.Heading(rightBox, 'Membres inscrits · clic pour chuchoter')
     mHeading:SetPoint('TOPLEFT', 14, -80)
     panel.mHeading = mHeading
 
@@ -734,7 +734,15 @@ function UI.RefreshDungeons()
     p.btnReset:SetShown(announce and announce.IsOfficer and announce.IsOfficer() and true or false)
 
     local members = selectedNeeds.members
-    p.mHeading:SetText(string.format('Membres intéressés (%d) · clic pour chuchoter', #members))
+    -- Non inscrits qui ont des objets BiS ici : comptés à part, jamais dans la liste (seule l'inscription y fait entrer)
+    local bisOnly = selectedNeeds.bisOnly or {}
+    local bisText = ''
+    if #bisOnly > 0 then
+        local mine = false
+        for _, b in ipairs(bisOnly) do if b.isPlayer then mine = true end end
+        bisText = string.format(' · |c%s+%d en BiS%s|r', S.hex.muted, #bisOnly, mine and ' (toi compris)' or '')
+    end
+    p.mHeading:SetText(string.format('Membres inscrits (%d)%s', #members, bisText))
     p.memberEmpty:SetShown(#members == 0)
     dungeonState.memberOffset = math.max(0, math.min(dungeonState.memberOffset, math.max(0, #members - M_ROWS)))
 

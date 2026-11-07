@@ -383,6 +383,9 @@ local function prefKey(name)
 end
 function Q.OnReceiveDungeonPref(data, sender)
     if not sender or not data then return end
+    -- Son propre message revenu par la guilde : jamais rangé parmi les autres (il resterait affiché après une désinscription)
+    local me = Q.PlayerName and Q.PlayerName()
+    if me and Quintessence.SameName and Quintessence.SameName(sender, me) then return end
     if not QuinteGroupDB.memberPreferences then QuinteGroupDB.memberPreferences = {} end
     local key, now = prefKey(sender), Q.Now()
 
@@ -618,6 +621,7 @@ function Q.GetDungeonNeeds(dungeonCode)
         for key, p in pairs(QuinteGroupDB.memberPreferences) do
             local name = type(p) == 'table' and p.name or key
             if key ~= myKey and type(p) == 'table' and p.status == 'active' and (now - (p.updated or 0)) < 7200
+                and not (myName and Quintessence.SameName and Quintessence.SameName(name, myName))
                 and not (Quintessence.IsOnline and Quintessence.IsOnline(name) == false) then
                 local matches = false
                 if type(p.dungeons) == 'table' then
@@ -652,24 +656,38 @@ function Q.GetDungeonNeeds(dungeonCode)
         end
     end
 
-    -- 3. Vérifier les besoins BiS dans QuinteBisDB si présent
+    -- 3. Besoins BiS (QuinteBisDB) : objets ajoutés aux INSCRITS seulement. Un membre non inscrit qui a des objets BiS ici
+    -- est seulement compté (bisOnly) : avant 0.12.1 il apparaissait parmi les intéressés et ne pouvait pas en sortir en
+    -- se désinscrivant.
+    local bisOnly, bisOnlySeen = {}, {}
     local bisDB = _G.QuinteBisDB
     if bisDB and bisDB.characters then
         for charKey, c in pairs(bisDB.characters) do
-            local cName = c.name or charKey:match('^([^-]+)')
+            local cName = c.name or (type(charKey) == 'string' and charKey:match('^([^-]+)')) or tostring(charKey)
             if c.items and type(c.items) == 'table' then
                 for _, row in pairs(c.items) do
                     if row and not row.obtained and row.source and row.item then
                         if Q.NormalizeDungeonCode(row.source) == norm then
-                            local isPlayer = myName and (cName == myName or (Quintessence and Quintessence.SameName and Quintessence.SameName(cName, myName)))
-                            local m = getOrCreateMember(cName, c.class, c.level, nil, isPlayer, nil, 'bis')
-                            addLootNeed(row.item, nil, m)
+                            local m = membersMap[cName]
+                            if not m and Quintessence and Quintessence.SameName then
+                                for mName, mm in pairs(membersMap) do
+                                    if Quintessence.SameName(mName, cName) then m = mm; break end
+                                end
+                            end
+                            if m then
+                                addLootNeed(row.item, nil, m)
+                            elseif not bisOnlySeen[cName] then
+                                bisOnlySeen[cName] = true
+                                local isPlayer = myName and (cName == myName or (Quintessence and Quintessence.SameName and Quintessence.SameName(cName, myName)))
+                                bisOnly[#bisOnly + 1] = { name = cName, class = c.class, isPlayer = isPlayer and true or false }
+                            end
                         end
                     end
                 end
             end
         end
     end
+    table.sort(bisOnly, function(a, b) return tostring(a.name) < tostring(b.name) end)
 
     -- Construction des listes et analyse des conflits
     local memberList = {}
@@ -729,6 +747,7 @@ function Q.GetDungeonNeeds(dungeonCode)
         conflictCount = #conflictList,
         hasConflicts = (#conflictList > 0),
         uniqueLoots = uniqueList,
+        bisOnly = bisOnly,
     }
 end
 
@@ -932,6 +951,9 @@ end
 
 function Q.InitDungeons()
     applyResets()
+    -- Sa propre fiche reçue par la guilde (ancienne version) : retirée
+    local me = Q.PlayerName and Q.PlayerName()
+    if me then QuinteGroupDB.memberPreferences[prefKey(me)] = nil end
     -- Anciennes clés (expéditeur brut) remplacées à la prochaine réception
     for key, p in pairs(QuinteGroupDB.memberPreferences or {}) do
         if type(p) ~= 'table' or key ~= prefKey(p.name or key) then QuinteGroupDB.memberPreferences[key] = nil end
@@ -943,6 +965,11 @@ function Q.InitDungeons()
         if Q.UI and Q.UI.RefreshDungeons then Q.Run('groupe', Q.UI.RefreshDungeons) end
         if Q.UI and Q.UI.RefreshLeveling then Q.Run('groupe', Q.UI.RefreshLeveling) end
     end)
+    -- À la connexion : ses inscriptions (même vides) partent une fois, pour que la guilde oublie une inscription retirée
+    -- ailleurs ou perdue, et que les inscrits répondent au nouveau venu
+    if C_Timer and C_Timer.After then
+        C_Timer.After(12, function() Q.Run('inscriptions', Q.BroadcastMyDungeonPreferences, true) end)
+    end
     -- Rappel toutes les 20 min tant qu'on est inscrit (les autres gardent une inscription 2 h)
     if C_Timer and C_Timer.After then
         local function keepalive()
