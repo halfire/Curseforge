@@ -5,8 +5,8 @@ local _, Core = ...
 
   - Relevé : toutes les 5 min, chez TOUS les joueurs qui ont l'addon, la liste de guilde donne le niveau, la zone et la dernière
     connexion de chacun, y compris des membres sans addon. Un point par jour (60 au plus) sert à la vitesse de leveling.
-  - Partage : personne n'envoie son relevé toutes les 5 min. Un membre n'est publié (synchro de guilde, groupe 'gscan') qu'à un
-    passage de niveau, ou après 2 h de jeu de plus que la version connue. Le premier qui le voit publie, les autres reçoivent la
+  - Partage : personne n'envoie son relevé toutes les 5 min. Un membre n'est publié (synchro de guilde, groupe 'gscan') que tous les
+    3 niveaux, ou après 2 h de jeu de plus que la version connue : aucune date n'est perdue, chaque version porte tout le journal. Le premier qui le voit publie, les autres reçoivent la
     version et n'ont plus rien à publier ; entre deux versions, les minutes les plus hautes gagnent, sans additionner.
   - Notes : une par joueur, 200 caractères, la plus récente gagne. Elles ne partent qu'en chuchotement vers les officiers
     en ligne (canal 'qoff'), jamais sur le canal de guilde que tout membre peut lire. Un message d'un non-officier est jeté.
@@ -23,7 +23,7 @@ O.PACK_URL = 'quintessence-community.fr/addons/pack-complet'
 local SCAN, ROSTER_WAIT, FIRST_SCAN = 300, 5, 30
 local KEEP_GONE, MAX_SAMPLES, MAX_CHAT, MAX_NOTE = 60 * 86400, 60, 200, 200
 local MAX_LEVELS, MAX_ZONES, MAX_MINUTES = 80, 64, 5000000
-local PUBLISH_MINUTES, MAX_SHARED = 120, 2000 -- 2 h de jeu de plus qu'à la dernière version connue
+local PUBLISH_MINUTES, PUBLISH_LEVELS, MAX_SHARED = 120, 3, 2000 -- 2 h de jeu ou 3 niveaux de plus que la version connue
 local DAY = 86400
 local W, H, BODY_TOP = 760, 476, 36
 
@@ -93,7 +93,7 @@ function O.ReadRoster(at)
             local here = e.online and type(zone) == 'string' and not secret(zone) and zone ~= '' and zone or nil
             local away = secret(status) or status == 1
             noteJournal(e, level, here, (e.online and not away) and gap or 0, at)
-            if level > e.pubLevel or e.min >= e.pubMin + PUBLISH_MINUTES then
+            if level >= e.pubLevel + PUBLISH_LEVELS or e.min >= e.pubMin + PUBLISH_MINUTES then
                 e.v, e.pubLevel, e.pubMin = math.max(at, (tonumber(e.v) or 0) + 1), level, e.min
                 changed = true
             end
