@@ -5,11 +5,13 @@ local _, Core = ...
 
   - Relevé : toutes les 5 min, chez TOUS les joueurs qui ont l'addon, la liste de guilde donne le niveau, la zone et la dernière
     connexion de chacun, y compris des membres sans addon. Un point par jour (60 au plus) sert à la vitesse de leveling.
+  - Sans conflit : personne ne tient de compteur. Un membre vu en ligne est une case de 5 min (date divisée par 300) notée dans sa zone,
+    un niveau est une ligne (niveau, date, zone). Réunir deux relevés donne le même résultat dans n'importe quel ordre : même case vue
+    par deux addons = comptée une fois, cases vues par deux addons à des heures différentes = toutes comptées, même niveau = la
+    date la plus ancienne. Le temps et les zones se déduisent des cases.
   - Partage : personne n'envoie son relevé toutes les 5 min. Un membre n'est publié (synchro de guilde, groupe 'gscan') que tous les
-    3 niveaux, ou après 2 h de jeu de plus que la version connue : aucune date n'est perdue, chaque version porte tout le journal. Le premier qui le voit publie, les autres reçoivent la
-    version et n'ont plus rien à publier ; entre deux versions, les minutes les plus hautes gagnent, sans additionner.
-    Garde-fou : deux joueurs qui ne se sont pas croisés ont chacun une partie de la nuit. Celui qui reçoit une version plus récente
-    garde ce qu'il sait de plus (niveaux, zones, temps), et republie le tout : la version la plus haute finit complète chez tous.
+    3 niveaux, après 2 h de jeu de plus, ou 2 h après un niveau pas encore envoyé. Celui qui reçoit une version et sait plus de
+    choses réunit et republie : la dernière version est complète chez tous. Plus de cases au-delà du niveau 60 : le pex est fini.
   - Notes : une par joueur, 200 caractères, la plus récente gagne. Elles ne partent qu'en chuchotement vers les officiers
     en ligne (canal 'qoff'), jamais sur le canal de guilde que tout membre peut lire. Un message d'un non-officier est jeté.
   - Chat : le canal officier du jeu, avec son historique (200 lignes) ; envoi à un clic ou à la touche Entrée.
@@ -24,9 +26,10 @@ local A, V = Core.Announce, Core.Versions
 O.PACK_URL = 'quintessence-community.fr/addons/pack-complet'
 local SCAN, ROSTER_WAIT, FIRST_SCAN = 300, 5, 30
 local KEEP_GONE, MAX_SAMPLES, MAX_CHAT, MAX_NOTE = 60 * 86400, 60, 200, 200
-local MAX_LEVELS, MAX_ZONES, MAX_MINUTES = 80, 64, 5000000
+local MAX_LEVELS, MAX_ZONES = 80, 64
 local PUBLISH_MINUTES, PUBLISH_LEVELS, MAX_SHARED = 120, 3, 2000 -- 2 h de jeu ou 3 niveaux de plus que la version connue
-local PUBLISH_WAIT, EXTRA_MINUTES = 7200, 30 -- un niveau pas encore envoyé part au bout de 2 h ; écart qui mérite une republication
+local PUBLISH_WAIT, EXTRA_SLOTS, EXTRA_DATE = 7200, 3, 1800 -- niveau pas encore envoyé ; 15 min ou une date plus juste de 30 min méritent une republication
+local SLOT, MAX_SPANS, LAST_PEX_LEVEL = 300, 300, 60 -- cases de 5 min, plages gardées par membre, niveau où le relevé s'arrête
 local DAY = 86400
 local W, H, BODY_TOP = 760, 476, 36
 
@@ -51,18 +54,75 @@ local function lastOnline(i, online, at)
     if secret(y) or (y == nil and m == nil and d == nil and h == nil) then return nil end
     return at - ((y or 0) * 365 + (m or 0) * 30 + (d or 0)) * DAY - (h or 0) * 3600
 end
--- Journal d'un membre, même sans addon : niveaux vus avec leur date et leur zone, minutes en ligne (hors absent) par zone.
--- La date d'un niveau pris pendant qu'aucun officier n'était là est celle du relevé suivant : ordre de grandeur.
-local function noteJournal(e, level, zone, minutes, at)
+-- Plages de cases : { { première case, nombre de cases }, ... }, triées et sans chevauchement.
+local function unionSpans(x, y)
+    local all = {}
+    for _, span in ipairs(x or {}) do all[#all + 1] = span end
+    for _, span in ipairs(y or {}) do all[#all + 1] = span end
+    table.sort(all, function(p, q) return p[1] < q[1] end)
+    local out = {}
+    for _, span in ipairs(all) do
+        local last = out[#out]
+        if last and span[1] <= last[1] + last[2] then last[2] = math.max(last[2], span[1] + span[2] - last[1])
+        else out[#out + 1] = { span[1], span[2] } end
+    end
+    return out
+end
+local function allSlots(spans)
+    local out = {}
+    for _, list in pairs(spans or {}) do out = unionSpans(out, list) end
+    return out
+end
+local function slotCount(list)
+    local n = 0
+    for _, span in ipairs(list) do n = n + span[2] end
+    return n
+end
+local function spanCount(spans)
+    local n = 0
+    for _, list in pairs(spans) do n = n + #list end
+    return n
+end
+-- Cases de `mine` absentes de `theirs`, jusqu'à la case `limit` comprise (les deux listes sont triées)
+local function missingSlots(mine, theirs, limit)
+    local missing, j = 0, 1
+    for _, span in ipairs(mine) do
+        local slot, stop = span[1], math.min(span[1] + span[2] - 1, limit)
+        while slot <= stop do
+            while theirs[j] and theirs[j][1] + theirs[j][2] <= slot do j = j + 1 end
+            local t = theirs[j]
+            if t and t[1] <= slot then slot = math.min(t[1] + t[2], stop + 1)
+            else
+                local nextSlot = t and math.min(t[1], stop + 1) or stop + 1
+                missing, slot = missing + nextSlot - slot, nextSlot
+            end
+        end
+    end
+    return missing
+end
+O.UnionSpans, O.MissingSlots = unionSpans, missingSlots
+-- Journal d'un membre, même sans addon : niveaux vus et cases où il était en ligne (hors absent). La date d'un niveau pris quand
+-- aucun addon n'était connecté est celle du relevé suivant : ordre de grandeur.
+local function noteJournal(e, level, zone, counted, at)
     if type(e.levels) ~= 'table' then e.levels = {} end
-    if type(e.zones) ~= 'table' then e.zones = {} end
-    e.min = math.min((tonumber(e.min) or 0) + minutes, MAX_MINUTES)
-    if zone and minutes > 0 and (e.zones[zone] or Core.Count(e.zones) < MAX_ZONES) then e.zones[zone] = (e.zones[zone] or 0) + minutes end
+    if type(e.spans) ~= 'table' then e.spans, e.zones, e.min = {}, nil, 0 end -- relevé d'avant les cases : repris de zéro
     local rows, known = e.levels, false
     for _, row in ipairs(rows) do if row[1] == level then known = true; break end end
     if not known and #rows < MAX_LEVELS and (not rows[#rows] or level > rows[#rows][1]) then
-        rows[#rows + 1] = { level, at, zone or '', e.min }
+        rows[#rows + 1] = { level, at, zone or '' }
     end
+    if not counted or level >= LAST_PEX_LEVEL then return end
+    local slot, place = math.floor(at / SLOT), zone or '?'
+    local list = e.spans[place]
+    local last = list and list[#list]
+    if last and slot < last[1] + last[2] then return end -- case déjà notée
+    if last and slot == last[1] + last[2] then last[2] = last[2] + 1
+    else
+        if spanCount(e.spans) >= MAX_SPANS or (not list and Core.Count(e.spans) >= MAX_ZONES) then return end
+        if not list then list = {}; e.spans[place] = list end
+        list[#list + 1] = { slot, 1 }
+    end
+    if e.lastSlot ~= slot then e.lastSlot = slot; e.min = (tonumber(e.min) or 0) + SLOT / 60 end
 end
 --- Lit la liste de guilde (hors ligne compris) ; rend le nombre de membres lus.
 function O.ReadRoster(at)
@@ -70,8 +130,6 @@ function O.ReadRoster(at)
     if not (GetNumGuildMembers and GetGuildRosterInfo) then return 0 end
     local d = db()
     local roster, count, day = d.roster, 0, math.floor(at / DAY)
-    -- Temps depuis le relevé précédent, 5 min au plus : un trou (officier déconnecté) ne compte pas comme du jeu
-    local gap = d.scanAt and math.max(0, math.min(at - d.scanAt, SCAN)) / 60 or 0
     local changed = false
     for i = 1, GetNumGuildMembers() or 0 do
         local name, rankName, _, level, _, zone, _, _, online, status, class = GetGuildRosterInfo(i)
@@ -95,16 +153,15 @@ function O.ReadRoster(at)
             if not e.pubLevel then e.pubLevel, e.pubMin, e.pubAt = level, tonumber(e.min) or 0, at end -- rien à publier à la première vue
             local here = e.online and type(zone) == 'string' and not secret(zone) and zone ~= '' and zone or nil
             local away = secret(status) or status == 1
-            noteJournal(e, level, here, (e.online and not away) and gap or 0, at)
+            noteJournal(e, level, here, e.online and not away, at)
             if level >= e.pubLevel + PUBLISH_LEVELS or e.min >= e.pubMin + PUBLISH_MINUTES
                 or (level > e.pubLevel and at - (tonumber(e.pubAt) or 0) >= PUBLISH_WAIT) then
-                e.v, e.pubLevel, e.pubMin, e.pubAt = math.max(at, (tonumber(e.v) or 0) + 1), level, e.min, at
+                e.v, e.pubLevel, e.pubMin, e.pubAt = math.max(at, (tonumber(e.v) or 0) + 1) + math.random(0, 59), level, e.min, at
                 changed = true
             end
             count = count + 1
         end
     end
-    if count > 0 then d.scanAt = at end
     if changed and O.sync then O.sync:NotifyLocal() end
     -- Parti de la guilde depuis longtemps : oublié, sa note reste jusqu'à ce qu'un officier l'efface
     if count > 0 then
@@ -119,26 +176,33 @@ end
 -- ---------------------------------------------------------------------------------------------------------------------
 local function cleanRecord(rec, at)
     if type(rec) ~= 'table' or type(rec.name) ~= 'string' or #rec.name > 100 or rec.name:find('|', 1, true) then return nil end
+    local limit = at + 600
     local function number(v, low, high) v = tonumber(v); return v and v >= low and v <= high and v or nil end
-    local out = { name = rec.name, level = number(rec.level, 1, 1000), v = number(rec.v, 1, at + 300), min = number(rec.min, 0, MAX_MINUTES),
-        firstAt = number(rec.firstAt, 1, at + 300), seen = number(rec.seen, 1, at + 300), last = number(rec.last, 1, at + 300),
-        levels = {}, zones = {} }
-    if not (out.level and out.v and out.min) then return nil end
+    local out = { name = rec.name, level = number(rec.level, 1, 1000), v = number(rec.v, 1, limit),
+        firstAt = number(rec.firstAt, 1, limit), seen = number(rec.seen, 1, limit), last = number(rec.last, 1, limit),
+        levels = {}, spans = {} }
+    if not (out.level and out.v) then return nil end
     if type(rec.class) == 'string' and #rec.class <= 16 then out.class = rec.class end
-    if type(rec.levels) ~= 'table' or type(rec.zones) ~= 'table' or #rec.levels > MAX_LEVELS then return nil end
+    if type(rec.levels) ~= 'table' or type(rec.spans) ~= 'table' or #rec.levels > MAX_LEVELS then return nil end
     for i, row in ipairs(rec.levels) do
         local place = type(row) == 'table' and row[3]
         if type(place) ~= 'string' or #place > 60 or place:find('|', 1, true) then return nil end
-        local lvl, moment, spent = number(row[1], 1, 1000), number(row[2], 1, at + 300), number(row[4], 0, MAX_MINUTES)
-        if not (lvl and moment and spent) then return nil end
-        out.levels[i] = { lvl, moment, place, spent }
+        local lvl, moment = number(row[1], 1, 1000), number(row[2], 1, limit)
+        if not (lvl and moment) then return nil end
+        out.levels[i] = { lvl, moment, place }
     end
-    local zones = 0
-    for place, minutes in pairs(rec.zones) do
+    local zones, total = 0, 0
+    for place, list in pairs(rec.spans) do
         zones = zones + 1
-        minutes = number(minutes, 0, MAX_MINUTES)
-        if zones > MAX_ZONES or type(place) ~= 'string' or #place > 60 or place:find('|', 1, true) or not minutes then return nil end
-        out.zones[place] = minutes
+        if zones > MAX_ZONES or type(place) ~= 'string' or #place > 60 or place:find('|', 1, true) or type(list) ~= 'table' then return nil end
+        local clean = {}
+        for i, span in ipairs(list) do
+            total = total + 1
+            local first, size = type(span) == 'table' and number(span[1], 1, limit / SLOT), type(span) == 'table' and number(span[2], 1, 100000)
+            if total > MAX_SPANS or not (first and size) then return nil end
+            clean[i] = { math.floor(first), math.floor(size) }
+        end
+        out.spans[place] = clean
     end
     return out
 end
@@ -160,7 +224,7 @@ function scanAdapter.Need(_, remote)
     for _, row in ipairs(remote) do
         if type(row) ~= 'table' or type(row.key) ~= 'string' or #row.key > 100 or type(row.v) ~= 'number' then return {} end
         local e = roster[row.key]
-        if row.v <= at + 300 and row.v > at - KEEP_GONE and not (type(e) == 'table' and (tonumber(e.v) or 0) >= row.v) then
+        if row.v <= at + 600 and row.v > at - KEEP_GONE and not (type(e) == 'table' and (tonumber(e.v) or 0) >= row.v) then
             out[#out + 1] = { key = row.key }
         end
     end
@@ -179,29 +243,35 @@ function scanAdapter.Merge(_, part, _, at, request)
     local e = roster[part.key]
     if type(e) ~= 'table' then
         if Core.Count(roster) >= MAX_SHARED then return false end
-        e = { first = rec.levels[1] and rec.levels[1][1] or rec.level, firstAt = rec.firstAt or at, samples = {}, levels = {}, zones = {}, min = 0 }
+        e = { first = rec.levels[1] and rec.levels[1][1] or rec.level, firstAt = rec.firstAt or at, samples = {} }
         roster[part.key] = e
     elseif (tonumber(e.v) or 0) >= rec.v then return false end
     if type(e.levels) ~= 'table' then e.levels = {} end
-    if type(e.zones) ~= 'table' then e.zones = {} end
-    -- Ce que nous savons et que cette version ignore : on le rajoute et on republie, sinon il resterait chez nous
-    local known, extra = {}, (tonumber(e.min) or 0) >= rec.min + EXTRA_MINUTES
+    if type(e.spans) ~= 'table' then e.spans = {} end
+    -- Ce que nous savons et que cette version ignore : elle va tout réunir, et nous la republierons
+    local known = {}
     for _, row in ipairs(rec.levels) do known[row[1]] = row end
+    local extra = false
     for _, row in ipairs(e.levels) do
         local theirs = known[row[1]]
-        if not theirs or row[2] < theirs[2] - EXTRA_MINUTES * 60 then extra = true end
+        if not theirs or row[2] < theirs[2] - EXTRA_DATE then extra = true end
     end
-    for place, minutes in pairs(e.zones) do
-        if minutes >= (rec.zones[place] or 0) + EXTRA_MINUTES then extra = true end
-    end
+    -- (les cases après sa publication ne comptent pas : tout addon connecté en note de nouvelles sans cesse)
+    if not extra then extra = missingSlots(allSlots(e.spans), allSlots(rec.spans), math.floor(rec.v / SLOT) - 1) >= EXTRA_SLOTS end
     e.name, e.class, e.v = e.name or rec.name, e.class or rec.class, rec.v
     e.level = math.max(tonumber(e.level) or 0, rec.level)
-    e.min = math.max(tonumber(e.min) or 0, rec.min)
     e.firstAt = math.min(tonumber(e.firstAt) or rec.firstAt or at, rec.firstAt or at)
     e.seen = math.max(tonumber(e.seen) or 0, rec.seen or 0)
     if rec.last then e.last = math.max(tonumber(e.last) or 0, rec.last) end
-    for place, minutes in pairs(rec.zones) do
-        if e.zones[place] or Core.Count(e.zones) < MAX_ZONES then e.zones[place] = math.max(e.zones[place] or 0, minutes) end
+    for place, list in pairs(rec.spans) do
+        if e.spans[place] or Core.Count(e.spans) < MAX_ZONES then e.spans[place] = unionSpans(e.spans[place], list) end
+    end
+    while spanCount(e.spans) > MAX_SPANS do -- garde la mémoire bornée : la plage la plus ancienne part
+        local oldest
+        for _, list in pairs(e.spans) do
+            if list[1] and (not oldest or list[1][1] < oldest[1][1]) then oldest = list end
+        end
+        table.remove(oldest, 1)
     end
     -- Niveaux : réunis, la date la plus ancienne gagne (celui qui l'a vu le plus tôt est le plus près de la vérité)
     local byLevel = {}
@@ -212,13 +282,14 @@ function scanAdapter.Merge(_, part, _, at, request)
     end
     local rows = {}
     for _, row in pairs(byLevel) do rows[#rows + 1] = row end
-    table.sort(rows, function(a, b) return a[1] < b[1] end)
+    table.sort(rows, function(p, q) return p[1] < q[1] end)
     while #rows > MAX_LEVELS do table.remove(rows, 1) end
     e.levels = rows
+    e.min = slotCount(allSlots(e.spans)) * SLOT / 60
     -- Version connue : plus rien à publier tant qu'on n'a pas vu mieux
-    e.pubLevel, e.pubMin, e.pubAt = math.max(tonumber(e.pubLevel) or 0, rec.level), math.max(tonumber(e.pubMin) or 0, rec.min), at
+    e.pubLevel, e.pubMin, e.pubAt = math.max(tonumber(e.pubLevel) or 0, rec.level), e.min, at
     if extra then
-        e.v, e.pubLevel, e.pubMin = rec.v + 1 > at and rec.v + 1 or at, e.level, e.min
+        e.v, e.pubLevel = math.max(at, rec.v + 1) + math.random(0, 59), e.level
         if O.sync then O.sync:NotifyLocal() end
     end
     return true
