@@ -18,6 +18,18 @@ local function settings()
 end
 
 -- ---------------------------------------------------------------------------------------------- Quêtes de donjon
+-- Titre anglais de secours d'une quête de la liste des donjons (quête précédente notée dans DungeonQuests.lua)
+local knownTitles
+local function knownTitle(id)
+    if not knownTitles then
+        knownTitles = {}
+        for _, list in pairs(Q.DUNGEON_QUESTS or {}) do
+            for _, q in ipairs(list) do knownTitles[q[1]] = q[3] end
+        end
+    end
+    return knownTitles[id]
+end
+
 local function questTitle(id, fallback)
     local fn = C_QuestLog and C_QuestLog.GetTitleForQuestID
     if fn then
@@ -224,23 +236,26 @@ function Q.DungeonQuests(code)
         local key = sameTitle(title)
         local logId = (mine[id] or Q.IsOnQuest(id)) and id or (key and mineTitles[key]) or nil
         local info = Q.DUNGEON_QUEST_INFO and Q.DUNGEON_QUEST_INFO[id]
-        -- Niveau et donneur de Forever d'abord ; la table d'informations ne sert plus que pour la classe et la suite
+        -- Niveau requis recoupé (DungeonQuests.lua), puis Forever (lieux) ; la table d'informations ne sert plus que pour
+        -- la classe et la suite (ou la quête précédente notée dans DungeonQuests.lua)
         local place = Q.DUNGEON_QUEST_PLACES and Q.DUNGEON_QUEST_PLACES[id]
-        local minLevel = (place and place.level) or (info and info.level)
+        local minLevel = tonumber(q[4]) or (place and place.level) or (info and info.level)
+        local prev = (info and info.prev) or tonumber(q[5])
+        local classMask = (info and info.class) or tonumber(q[6])
         local holders, groupHas, groupMissing = {}, {}, {}
         for _, l in ipairs(logs) do
             local has = l.ids[id] or (key and l.titles[key])
             if has then holders[#holders + 1] = l.name end
             if l.inGroup then
                 if has then groupHas[#groupHas + 1] = l.name
-                elseif hasClass(info and info.class, l.class) then groupMissing[#groupMissing + 1] = l.name end
+                elseif hasClass(classMask, l.class) then groupMissing[#groupMissing + 1] = l.name end
             end
         end
-        if logId or hasClass(info and info.class, class) then
+        if logId or hasClass(classMask, class) then
             local state = logId and 'log' or (done(id) and 'done' or 'todo')
             local prevState
-            if info and info.prev then
-                prevState = (Q.IsOnQuest(info.prev) and 'log') or (done(info.prev) and 'done') or 'todo'
+            if prev then
+                prevState = (Q.IsOnQuest(prev) and 'log') or (done(prev) and 'done') or 'todo'
                 if state == 'todo' and prevState ~= 'done' then state = 'locked' end
             end
             if state == 'todo' and minLevel and level and level < minLevel then state = 'low' end
@@ -248,10 +263,10 @@ function Q.DungeonQuests(code)
                 complete = logId and complete(logId) or false,
                 shareable = logId and Q.CanShareQuest(logId) or false,
                 holders = holders, groupHas = groupHas, groupMissing = groupMissing,
-                known = info ~= nil, classes = info and info.class and classNames(info.class) or nil,
+                known = info ~= nil or q[6] ~= nil, classes = classMask and classNames(classMask) or nil,
                 minLevel = minLevel, start = (place and place.start) or (info and info.start),
-                prev = info and info.prev, prevState = prevState,
-                prevTitle = info and info.prev and questTitle(info.prev, info.prevTitle) or nil }
+                prev = prev, prevState = prevState,
+                prevTitle = prev and questTitle(prev, (info and info.prevTitle) or knownTitle(prev)) or nil }
         end
     end
     -- Ce que je peux faire d'abord : mes quêtes, puis celles à prendre, puis celles déjà faites.

@@ -5,7 +5,7 @@ local addonName, Q = ...
   Règle Retail 12+ : uniquement nos propres cadres, aucune écriture dans les objets de Blizzard.
 ]]
 local Core = Quintessence
-Q.name, Q.version = addonName or 'quinte-group', '0.11.0'
+Q.name, Q.version = addonName or 'quinte-group', '0.12.0'
 Q.debug = { errors = {}, slow = {} }
 
 function Q.Call(fn, ...)
@@ -88,6 +88,8 @@ function Q.OnNetworkMessage(data, sender)
         Q.OnReceiveQuestSync(data, sender)
     elseif data.t == 'dungeon_pref' and Q.OnReceiveDungeonPref then
         Q.OnReceiveDungeonPref(data, sender)
+    elseif data.t == 'signup_reset' and Q.OnReceiveSignupReset then
+        Q.OnReceiveSignupReset(data, sender)
     elseif data.t == 'codex_item' and Q.OnReceiveCodexItem then
         Q.OnReceiveCodexItem(data, sender)
     elseif data.t == 'xp' and Q.OnReceiveXP then
@@ -125,10 +127,15 @@ SlashCmdList.QUINTEGROUP = function(message)
         elseif cmd == 'codex' and not Q.NoCodex() then
             local count = Q.GetCodexItemCount and Q.GetCodexItemCount() or 0
             Q.Print('Le Codex Secret de Quintessence contient ' .. count .. ' objet(s) inédit(s).')
+        elseif cmd == 'vider' then
+            -- Officiers : /qgroup vider (tous les donjons) ou /qgroup vider CODE
+            local code = (message or ''):match('^%s*%S+%s+(%S+)')
+            local ok, err = Q.ResetSignups(code)
+            if not ok then Q.Print(err) end
         elseif cmd == 'debug' then
             Q.Debug()
         else
-            Q.Print('/qgroup : ouvrir l\'interface de groupe · /qgroup quests · /qgroup pref' .. (Q.NoCodex() and '' or ' · /qgroup codex') .. ' · /qgroup debug')
+            Q.Print('/qgroup : ouvrir l\'interface de groupe · /qgroup quests · /qgroup pref' .. (Q.NoCodex() and '' or ' · /qgroup codex') .. ' · /qgroup debug · /qgroup vider (officiers)')
         end
     end)
 end

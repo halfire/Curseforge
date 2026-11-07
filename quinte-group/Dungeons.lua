@@ -14,7 +14,8 @@ local _, Q = ...
 ]]
 
 Q.FOREVER_DUNGEONS = {
-    -- Donjons de WoW Forever (liste de Wowhead Forever, relevée le 04/11/2026) ; mêmes codes que activities() du site
+    -- Donjons de WoW Forever (liste de Wowhead Forever, relevée le 04/11/2026 ; niveaux recoupés le 07/11/2026 sur 12 guides
+    -- Forever et l'annonce de Blizzard, voir quinte-group/AGENTS.md) ; mêmes codes que activities() du site
     -- et Q.DUNGEONS de quinte-bis. Nouveaux donjons de Forever sous leur nom anglais (nom français inconnu).
     -- `short` : nom de la liste de gauche de l'onglet Donjons ; le nom complet reste dans le panneau de droite.
     { code = 'RFC', name = 'Gouffre de Ragefeu', short = 'Ragefeu', minLvl = 13, maxLvl = 18, icon = 'Spell_Fire_Fire' },
@@ -26,14 +27,14 @@ Q.FOREVER_DUNGEONS = {
     { code = 'EXCAV', name = 'Excavation Site: Wetlands', short = 'Wetlands', minLvl = 24, maxLvl = 29, icon = 'INV_Pick_02', new = true },
     { code = 'STOCKS', name = 'La Prison', short = 'Prison', minLvl = 24, maxLvl = 32, icon = 'INV_Misc_Note_01' },
     { code = 'BFD', name = 'Profondeurs de Brassenoire', short = 'Brassenoire', minLvl = 24, maxLvl = 32, icon = 'INV_Misc_Head_Dragon_Black' },
-    { code = 'SM_GY', name = 'Monastère — Cimetière', short = 'Cimetière', minLvl = 26, maxLvl = 36, icon = 'INV_Misc_Bone_HumanSkull_01' },
+    { code = 'SM_GY', name = 'Monastère — Cimetière', short = 'Cimetière', minLvl = 30, maxLvl = 38, icon = 'INV_Misc_Bone_HumanSkull_01' },
     { code = 'DALARAN', name = 'City of Dalaran', short = 'Dalaran', minLvl = 28, maxLvl = 33, icon = 'Spell_Arcane_PortalDalaran', new = true },
     { code = 'GNOMER', name = 'Gnomeregan', short = 'Gnomeregan', minLvl = 29, maxLvl = 38, icon = 'Trade_BlackSmithing' },
     { code = 'RFK', name = 'Kraal de Tranchebauge', short = 'Tranchebauge', minLvl = 29, maxLvl = 38, icon = 'INV_Chest_Chain' },
-    { code = 'SM_LIB', name = 'Monastère — Bibliothèque', short = 'Bibliothèque', minLvl = 29, maxLvl = 39, icon = 'INV_Misc_Book_08' },
-    { code = 'SM_ARM', name = 'Monastère — Armurerie', short = 'Armurerie', minLvl = 32, maxLvl = 42, icon = 'INV_Helmet_04' },
+    { code = 'SM_LIB', name = 'Monastère — Bibliothèque', short = 'Bibliothèque', minLvl = 33, maxLvl = 41, icon = 'INV_Misc_Book_08' },
+    { code = 'SM_ARM', name = 'Monastère — Armurerie', short = 'Armurerie', minLvl = 36, maxLvl = 44, icon = 'INV_Helmet_04' },
     { code = 'DROWNED', name = 'The Drowned City', short = 'Drowned City', minLvl = 35, maxLvl = 40, icon = 'Spell_Frost_SummonWaterElemental', new = true },
-    { code = 'SM_CATH', name = 'Monastère — Cathédrale', short = 'Cathédrale', minLvl = 35, maxLvl = 45, icon = 'Spell_Holy_PrayerOfFortitude' },
+    { code = 'SM_CATH', name = 'Monastère — Cathédrale', short = 'Cathédrale', minLvl = 38, maxLvl = 46, icon = 'Spell_Holy_PrayerOfFortitude' },
     { code = 'RFD', name = 'Souilles de Tranchebauge', short = 'Souilles', minLvl = 37, maxLvl = 46, icon = 'INV_Misc_Bone_HumanSkull_01' },
     { code = 'KROLDOK', name = 'Krol\'dok Stronghold', short = 'Krol\'dok', minLvl = 40, maxLvl = 45, icon = 'INV_BannerPVP_02', new = true },
     { code = 'ULDA', name = 'Uldaman', short = 'Uldaman', minLvl = 41, maxLvl = 51, icon = 'INV_Misc_Book_11' },
@@ -44,9 +45,9 @@ Q.FOREVER_DUNGEONS = {
     { code = 'BRD', name = 'Profondeurs de Rochenoire', short = 'Rochenoire', minLvl = 52, maxLvl = 60, icon = 'INV_Hammer_05' },
     { code = 'BLACKMAW', name = 'Blackmaw Hold', short = 'Blackmaw', minLvl = 55, maxLvl = 60, icon = 'Ability_Hunter_Pet_Bear', new = true },
     { code = 'LBRS', name = 'Pic Rochenoire inférieur', short = 'Pic Rochenoire', minLvl = 55, maxLvl = 60, icon = 'INV_Helmet_04' },
-    { code = 'DME', name = 'Hache-Tripes Est', short = 'Hache-Tripes E', minLvl = 55, maxLvl = 60, icon = 'Spell_Nature_EarthBindTotem' },
-    { code = 'DMW', name = 'Hache-Tripes Ouest', short = 'Hache-Tripes O', minLvl = 57, maxLvl = 60, icon = 'Spell_Arcane_PortalStormWind' },
-    { code = 'DMN', name = 'Hache-Tripes Nord', short = 'Hache-Tripes N', minLvl = 57, maxLvl = 60, icon = 'INV_Chest_Chain' },
+    { code = 'DME', name = 'Hache-Tripes Est', short = 'Hache-Tripes E', minLvl = 54, maxLvl = 60, icon = 'Spell_Nature_EarthBindTotem' },
+    { code = 'DMW', name = 'Hache-Tripes Ouest', short = 'Hache-Tripes O', minLvl = 56, maxLvl = 60, icon = 'Spell_Arcane_PortalStormWind' },
+    { code = 'DMN', name = 'Hache-Tripes Nord', short = 'Hache-Tripes N', minLvl = 56, maxLvl = 60, icon = 'INV_Chest_Chain' },
     { code = 'SHAPER', name = 'Shaper\'s Terrace', short = 'Shaper', minLvl = 58, maxLvl = 60, icon = 'INV_Misc_Gem_Variety_02', new = true },
     { code = 'STRAT', name = 'Stratholme', short = 'Stratholme', minLvl = 58, maxLvl = 60, icon = 'INV_Misc_Bone_HumanSkull_01' },
     { code = 'SCHOLO', name = 'Scholomance', short = 'Scholomance', minLvl = 58, maxLvl = 60, icon = 'Spell_Shadow_AntiShadow' },
@@ -117,22 +118,6 @@ end
 
 local lastPrefBroadcast = 0
 
--- Enregistrer ses préférences de donjon et ses loots ciblés
-function Q.SaveMyDungeonPreferences(role, dungeons, status, note, targetLoots)
-    if not QuinteGroupDB.myPreferences then QuinteGroupDB.myPreferences = {} end
-    local p = QuinteGroupDB.myPreferences
-
-    p.role = role or p.role or 'DAMAGER'
-    p.dungeons = dungeons or p.dungeons or {}
-    p.status = status or p.status or 'active'
-    p.note = note or p.note or ''
-    p.targetLoots = targetLoots or p.targetLoots or {}
-    p.updated = Q.Now()
-
-    Q.BroadcastMyDungeonPreferences(true)
-    if Q.UI and Q.UI.RefreshDungeons then Q.UI.RefreshDungeons() end
-end
-
 -- Donjons choisis, toujours sous la forme { [CODE] = true } (anciens formats : chaîne seule ou liste de codes)
 local function dungeonSet(value)
     local set = {}
@@ -147,11 +132,150 @@ local function dungeonSet(value)
     return set
 end
 
+-- Remise à zéro des inscriptions par un officier. signupResets = { ALL = { at, by }, [CODE] = { at, by } } à l'heure du
+-- serveur ; chaque clé garde la date la plus récente (fusion dans n'importe quel ordre, même résultat partout). Une
+-- inscription (signedAt) ou un objet ciblé (at) plus ancien que la remise à zéro de son donjon, ou de tous, ne compte
+-- plus, chez soi comme chez les autres. La liste voyage dans chaque message d'inscriptions : un joueur absent ce
+-- jour-là l'apprend du premier membre qu'il croise.
+local RESET_ALL = 'ALL'
+local function serverNow() return (GetServerTime and GetServerTime()) or Q.Now() end
+Q.ServerNow = serverNow
+local function resetTable()
+    if type(QuinteGroupDB.signupResets) ~= 'table' then QuinteGroupDB.signupResets = {} end
+    return QuinteGroupDB.signupResets
+end
+local function resetAt(code)
+    local r = resetTable()
+    local all, one = r[RESET_ALL], r[code]
+    return math.max(type(all) == 'table' and tonumber(all.at) or 0, type(one) == 'table' and tonumber(one.at) or 0)
+end
+Q.SignupResetAt = resetAt
+--- Inscriptions encore valables : { [CODE] = true } sans celles d'avant une remise à zéro. changed = true si l'une est retirée.
+local function liveSignups(dungeons, signedAt)
+    local set, changed = {}, false
+    signedAt = type(signedAt) == 'table' and signedAt or {}
+    for code in pairs(dungeonSet(dungeons)) do
+        local at = resetAt(code)
+        if at == 0 or (tonumber(signedAt[code]) or 0) > at then set[code] = true else changed = true end
+    end
+    return set, changed
+end
+--- Objet ciblé encore valable (ajouté après la dernière remise à zéro de son donjon)
+local function liveLoot(lt, code)
+    local at = resetAt(code)
+    return at == 0 or (type(lt) == 'table' and (tonumber(lt.at) or 0) > at)
+end
+
+-- Rang d'un nom dans la liste de guilde : true officier, false autre rang, nil absent de la liste (hors ligne masqué)
+local function officerState(name)
+    local A = Quintessence.Announce
+    if A and A.SenderIsOfficer and A.SenderIsOfficer(name) then return true end
+    if GetNumGuildMembers and GetGuildRosterInfo and Quintessence.SameName then
+        for i = 1, GetNumGuildMembers() or 0 do
+            local full = GetGuildRosterInfo(i)
+            if type(full) == 'string' and Quintessence.SameName(full, name) then return false end
+        end
+    end
+    return nil
+end
+
+--- Fusionne une liste de remises à zéro reçue. direct = message de l'officier lui-même (sender), sinon relayée par un
+--- membre : refusée seulement si son auteur est connu et n'est pas officier. Renvoie true si une date a avancé.
+local function mergeResets(incoming, sender, direct)
+    if type(incoming) ~= 'table' then return false end
+    local r, limit, changed = resetTable(), serverNow() + 600, false
+    for key, e in pairs(incoming) do
+        local at = type(e) == 'table' and tonumber(e.at)
+        local by = type(e) == 'table' and type(e.by) == 'string' and e.by:sub(1, 64) or nil
+        if at and by and at <= limit and (key == RESET_ALL or Q.DUNGEON_BY_CODE[key]) then
+            local cur = r[key]
+            local curAt = type(cur) == 'table' and tonumber(cur.at) or 0
+            if at > curAt or (at == curAt and type(cur) == 'table' and by < tostring(cur.by or '')) then
+                local ok
+                if direct then ok = Quintessence.SameName and Quintessence.SameName(by, sender) and officerState(sender) == true
+                else ok = officerState(by) ~= false end
+                if ok then r[key] = { at = math.floor(at), by = by }; changed = changed or at > curAt end
+            end
+        end
+    end
+    return changed
+end
+
+--- Applique les remises à zéro connues à ses propres inscriptions et à celles reçues. Renvoie true si les siennes changent.
+local function applyResets()
+    local p = QuinteGroupDB.myPreferences
+    local mineChanged = false
+    if type(p) == 'table' then
+        local set, changed = liveSignups(p.dungeons, p.signedAt)
+        if changed then
+            local kept = {}
+            for code in pairs(set) do kept[code] = p.signedAt[code] end
+            p.dungeons, p.signedAt = set, kept
+            p.status = next(set) and p.status or 'inactive'
+            mineChanged = true
+        end
+    end
+    for _, m in pairs(QuinteGroupDB.memberPreferences or {}) do
+        if type(m) == 'table' then m.dungeons = (liveSignups(m.dungeons, m.signedAt)) end
+    end
+    return mineChanged
+end
+
+--- Un officier remet à zéro les inscriptions d'un donjon (code) ou de tous (nil) : chez tout le monde, même absent.
+function Q.ResetSignups(code)
+    local A = Quintessence.Announce
+    if not (A and A.IsOfficer and A.IsOfficer()) then return false, 'Réservé aux officiers.' end
+    local key = code and Q.NormalizeDungeonCode(code) or RESET_ALL
+    if key ~= RESET_ALL and not Q.DUNGEON_BY_CODE[key] then return false, 'Donjon inconnu.' end
+    local me = Q.PlayerName()
+    local r = resetTable()
+    local prev = type(r[key]) == 'table' and tonumber(r[key].at) or 0
+    r[key] = { at = math.max(serverNow(), prev + 1), by = me }
+    applyResets()
+    if Q.comm and Q.comm.Send then Q.comm:Send({ t = 'signup_reset', resets = r }) end
+    if Q.UI and Q.UI.RefreshDungeons then Q.UI.RefreshDungeons() end
+    local what = key == RESET_ALL and 'de tous les donjons' or ('de ' .. Q.GetDungeonInfo(key).name)
+    Q.Print('Inscriptions ' .. what .. ' remises à zéro pour toute la guilde.')
+    return true
+end
+
+--- Message d'un officier : remise à zéro tout de suite
+function Q.OnReceiveSignupReset(data, sender)
+    if type(data) ~= 'table' or not sender then return end
+    if mergeResets(data.resets, sender, true) then
+        if applyResets() then Q.BroadcastMyDungeonPreferences(true) end
+        if Q.UI and Q.UI.RefreshDungeons then Q.UI.RefreshDungeons() end
+    end
+end
+
+-- Enregistrer ses préférences de donjon et ses loots ciblés
+function Q.SaveMyDungeonPreferences(role, dungeons, status, note, targetLoots)
+    if not QuinteGroupDB.myPreferences then QuinteGroupDB.myPreferences = {} end
+    local p = QuinteGroupDB.myPreferences
+
+    p.role = role or p.role or 'DAMAGER'
+    p.dungeons = dungeons or p.dungeons or {}
+    -- Date d'inscription de chaque donjon (heure du serveur), pour les remises à zéro des officiers
+    local signedAt = {}
+    for code in pairs(dungeonSet(p.dungeons)) do
+        local at = type(p.signedAt) == 'table' and tonumber(p.signedAt[code])
+        signedAt[code] = at or math.max(serverNow(), resetAt(code) + 1)
+    end
+    p.signedAt = signedAt
+    p.status = status or p.status or 'active'
+    p.note = note or p.note or ''
+    p.targetLoots = targetLoots or p.targetLoots or {}
+    p.updated = Q.Now()
+
+    Q.BroadcastMyDungeonPreferences(true)
+    if Q.UI and Q.UI.RefreshDungeons then Q.UI.RefreshDungeons() end
+end
+
 --- Inscrit sur ce donjon ?
 function Q.IsSignedUp(dungeonCode)
     local p = QuinteGroupDB.myPreferences
     if not p or p.status ~= 'active' then return false end
-    return dungeonSet(p.dungeons)[Q.NormalizeDungeonCode(dungeonCode)] == true
+    return (liveSignups(p.dungeons, p.signedAt))[Q.NormalizeDungeonCode(dungeonCode)] == true
 end
 
 --- Inscription ou désinscription sur UN donjon, sans toucher aux autres (avant, s'inscrire sur un donjon remplaçait
@@ -159,10 +283,12 @@ end
 function Q.ToggleDungeonSignup(dungeonCode, role, note)
     local p = QuinteGroupDB.myPreferences or {}
     QuinteGroupDB.myPreferences = p
-    local set = dungeonSet(p.status == 'active' and p.dungeons or nil)
+    local set = p.status == 'active' and (liveSignups(p.dungeons, p.signedAt)) or {}
     local code = Q.NormalizeDungeonCode(dungeonCode)
     local signed = not set[code]
     set[code] = signed or nil
+    p.signedAt = type(p.signedAt) == 'table' and p.signedAt or {}
+    p.signedAt[code] = signed and math.max(serverNow(), resetAt(code) + 1) or nil
     Q.SaveMyDungeonPreferences(role, set, next(set) and 'active' or 'inactive', note)
     return signed
 end
@@ -172,7 +298,7 @@ function Q.MySignups()
     local p = QuinteGroupDB.myPreferences
     local out = {}
     if p and p.status == 'active' then
-        for code in pairs(dungeonSet(p.dungeons)) do out[#out + 1] = code end
+        for code in pairs((liveSignups(p.dungeons, p.signedAt))) do out[#out + 1] = code end
     end
     table.sort(out)
     return out
@@ -201,7 +327,8 @@ function Q.AddMyTargetLoot(dungeonCode, itemID, itemName)
     p.targetLoots[itemID] = {
         id = itemID,
         dungeon = norm,
-        name = itemName or ('Objet #' .. itemID)
+        name = itemName or ('Objet #' .. itemID),
+        at = serverNow()
     }
     p.updated = Q.Now()
     Q.BroadcastMyDungeonPreferences(true)
@@ -236,6 +363,8 @@ function Q.BroadcastMyDungeonPreferences(force, target)
             t = 'dungeon_pref',
             role = p.role or 'DAMAGER',
             dungeons = p.dungeons or {},
+            signedAt = p.signedAt,
+            resets = next(resetTable()) and resetTable() or nil,
             targetLoots = p.targetLoots or {},
             status = p.status or 'active',
             note = p.note or '',
@@ -257,10 +386,21 @@ function Q.OnReceiveDungeonPref(data, sender)
     if not QuinteGroupDB.memberPreferences then QuinteGroupDB.memberPreferences = {} end
     local key, now = prefKey(sender), Q.Now()
 
+    -- Remises à zéro relayées : on apprend celles qu'on n'avait pas ; s'il lui en manque, on lui répond en privé
+    if mergeResets(data.resets, sender, false) and applyResets() then
+        Q.BroadcastMyDungeonPreferences(true)
+    end
+    local theirs = type(data.resets) == 'table' and data.resets or {}
+    local behind = false
+    for k, e in pairs(resetTable()) do
+        local t = theirs[k]
+        if (type(t) == 'table' and tonumber(t.at) or 0) < (tonumber(e.at) or 0) then behind = true; break end
+    end
+
     -- Membre qui arrive (ou revient) : on lui envoie nos inscriptions en privé, s'il y en a
     local previous = QuinteGroupDB.memberPreferences[key]
     local mine = QuinteGroupDB.myPreferences
-    if not data.r and mine and mine.status == 'active' and (not previous or now - (previous.updated or 0) >= 3600)
+    if not data.r and mine and (behind or (mine.status == 'active' and (not previous or now - (previous.updated or 0) >= 3600)))
         and now - (prefReplied[key] or 0) >= 300 and C_Timer and C_Timer.After then
         prefReplied[key] = now
         C_Timer.After(1 + math.random() * 4, function()
@@ -273,7 +413,8 @@ function Q.OnReceiveDungeonPref(data, sender)
         class = data.class or 'WARRIOR',
         level = data.level or 60,
         role = data.role or 'DAMAGER',
-        dungeons = data.dungeons or {},
+        dungeons = (liveSignups(data.dungeons, data.signedAt)),
+        signedAt = type(data.signedAt) == 'table' and data.signedAt or nil,
         targetLoots = data.targetLoots or {},
         status = data.status or 'active',
         note = data.note or '',
@@ -452,7 +593,7 @@ function Q.GetDungeonNeeds(dungeonCode)
 
         if not matches and type(myP.targetLoots) == 'table' then
             for _, lt in pairs(myP.targetLoots) do
-                if Q.NormalizeDungeonCode(lt.dungeon) == norm then
+                if Q.NormalizeDungeonCode(lt.dungeon) == norm and liveLoot(lt, norm) then
                     matches = true; break
                 end
             end
@@ -491,7 +632,7 @@ function Q.GetDungeonNeeds(dungeonCode)
 
                 if not matches and type(p.targetLoots) == 'table' then
                     for _, lt in pairs(p.targetLoots) do
-                        if Q.NormalizeDungeonCode(lt.dungeon) == norm then
+                        if Q.NormalizeDungeonCode(lt.dungeon) == norm and liveLoot(lt, norm) then
                             matches = true; break
                         end
                     end
@@ -790,6 +931,7 @@ function Q.GetLFGMembers()
 end
 
 function Q.InitDungeons()
+    applyResets()
     -- Anciennes clés (expéditeur brut) remplacées à la prochaine réception
     for key, p in pairs(QuinteGroupDB.memberPreferences or {}) do
         if type(p) ~= 'table' or key ~= prefKey(p.name or key) then QuinteGroupDB.memberPreferences[key] = nil end

@@ -59,7 +59,7 @@ local function showQuestTooltip(owner, q)
         GameTooltip:AddLine('Suite de : ' .. Q.Safe(q.prevTitle or ('quête ' .. q.prev)) .. ' (' .. where .. ')', 1, 1, 1, true)
     end
     if q.start then GameTooltip:AddLine('Donneur : ' .. Q.Safe(q.start), 1, 1, 1, true) end
-    if not q.known then GameTooltip:AddLine('Quête de Forever : classe et suite non vérifiées', 0.6, 0.6, 0.6, true) end
+    if not q.known then GameTooltip:AddLine('Classe et quête précédente non vérifiées', 0.6, 0.6, 0.6, true) end
     if q.state == 'log' then
         GameTooltip:AddLine(q.shareable and 'Partageable avec le groupe' or 'Ne peut pas être partagée', 1, 0.82, 0)
     end
@@ -306,7 +306,8 @@ local dungeonState = {
     selectedDungeon = 'DM',
     dungeonOffset = 0,
     memberOffset = 0,
-    lootOffset = 0
+    lootOffset = 0,
+    showQuests = true -- quêtes du donjon affichées d'abord, les butins au clic
 }
 
 local D_ROWS, M_ROWS, L_ROWS = 9, 4, 4
@@ -488,6 +489,37 @@ local function createDungeonsPanel(parent)
     local mHeading = S.Heading(rightBox, 'Membres intéressés · clic pour chuchoter')
     mHeading:SetPoint('TOPLEFT', 14, -80)
     panel.mHeading = mHeading
+
+    -- Officiers : vider les inscriptions du donjon affiché (Maj-clic : tous les donjons), deuxième clic pour confirmer
+    panel.btnReset = S.Button(rightBox, 'Vider les inscriptions', 132, 18, 'danger')
+    panel.btnReset:SetPoint('TOPRIGHT', -12, -77)
+    panel.btnReset:SetScript('OnClick', function(self)
+        local all = IsShiftKeyDown and IsShiftKeyDown() and true or false
+        local now = GetTime and GetTime() or 0
+        if not (self.armed and now - self.armed < 5 and self.armedAll == all) then
+            self.armed, self.armedAll = now, all
+            self:SetLabel(all and 'Confirmer : tous' or 'Confirmer')
+            if C_Timer and C_Timer.After then
+                C_Timer.After(5, function()
+                    if self.armed == now then self.armed = nil; self:SetLabel('Vider les inscriptions') end
+                end)
+            end
+            return
+        end
+        self.armed = nil
+        self:SetLabel('Vider les inscriptions')
+        local ok, err = Q.ResetSignups(not all and dungeonState.selectedDungeon or nil)
+        if not ok then Q.Print(err) end
+    end)
+    if panel.btnReset.HookScript then panel.btnReset:HookScript('OnEnter', function(self)
+        if not GameTooltip then return end
+        GameTooltip:SetOwner(self, 'ANCHOR_TOP')
+        GameTooltip:AddLine('Vider les inscriptions', 1, 0.82, 0)
+        GameTooltip:AddLine('Retire les inscriptions de ce donjon chez toute la guilde, même les absents.', 1, 1, 1, true)
+        GameTooltip:AddLine('Maj-clic : tous les donjons. Cliquer deux fois pour confirmer.', 0.7, 0.7, 0.7, true)
+        GameTooltip:Show()
+    end)
+    panel.btnReset:HookScript('OnLeave', function() if GameTooltip then GameTooltip:Hide() end end) end
 
     local memberBox = S.Box(rightBox, S.colors.bg, S.colors.line)
     memberBox:SetPoint('TOPLEFT', 14, -96)
@@ -697,6 +729,9 @@ function UI.RefreshDungeons()
         p.bannerDot:SetColorTexture(unpack(S.colors.muted))
         p.bannerText:SetText('|c' .. S.hex.muted .. 'Aucun besoin enregistré sur ce donjon.|r')
     end
+
+    local announce = Quintessence.Announce
+    p.btnReset:SetShown(announce and announce.IsOfficer and announce.IsOfficer() and true or false)
 
     local members = selectedNeeds.members
     p.mHeading:SetText(string.format('Membres intéressés (%d) · clic pour chuchoter', #members))

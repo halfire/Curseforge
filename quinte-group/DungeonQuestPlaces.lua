@@ -26,6 +26,7 @@ Q.DUNGEON_QUEST_PLACES = {
     [1139] = { start = 'Conseiller Belgrum', map = 1426, zone = 'Dun Morogh', x = 63.5, y = 22.7 },
     [1142] = { start = 'Heralath Fallowbrook', at = 'inside', level = 25 },
     [1144] = { start = 'Willix l’Importateur', at = 'inside', level = 22 },
+    [1193] = { start = 'Broken Trap', at = 'inside' },
     [1198] = { start = 'Veilleur de l\'aube Shaedlass', zone = 'Darnassus', level = 18, note = 'Dawnwatcher Shaedlass at the Craftsmen\'s Terrace in Darnassus' },
     [1199] = { start = 'Garde d\'argent Manados', map = 1457, zone = 'Darnassus', x = 55.3, y = 22.7, level = 20 },
     [1200] = { start = 'Garde d’argent Thaelrid', at = 'inside', level = 18 },
@@ -69,6 +70,8 @@ Q.DUNGEON_QUEST_PLACES = {
     [2991] = { start = 'Thadius Grimshade', zone = 'Blasted Lands', note = 'Thadius Grimshade in Blasted Lands' },
     [3042] = { start = 'Trenton Lighthammer', zone = 'Tanaris', note = 'Trenton Lighthammer at Gadgetzan in Tanaris' },
     [3373] = { start = 'Essence of Eranikus', item = true, at = 'inside' },
+    [3444] = { start = 'Marvon Rivetseeker', zone = 'Tanaris', note = 'Marvon Rivetseeker in Tanaris' },
+    [3445] = { start = 'Angelas Moonbreeze', zone = 'Feralas', note = 'Angelas Moonbreeze in Feralas' },
     [3446] = { start = 'Marvon Rivetseeker', zone = 'Tanaris', note = 'Marvon Rivetseeker in Tanaris' },
     [3447] = { start = 'Altar of Hakkar', note = 'Altar of Hakkar in Temple of Atal\'Hakkar' },
     [3523] = { start = 'Belnistrasz', at = 'inside' },
@@ -88,7 +91,9 @@ Q.DUNGEON_QUEST_PLACES = {
     [4286] = { start = 'Oralius', zone = 'Burning Steppes', note = 'Oralius in Burning Steppes' },
     [4341] = { start = 'Roi Magni Bronzebeard', map = 1426, zone = 'Dun Morogh', x = 57.4, y = 30.1 },
     [4342] = { start = 'Kharan Mighthammer', note = 'Kharan Mighthammer in Blackrock Depths' },
+    [4361] = { start = 'Kharan Mighthammer', note = 'Kharan Mighthammer in Blackrock Depths' },
     [4362] = { start = 'Roi Magni Bronzebeard', map = 1426, zone = 'Dun Morogh', x = 57.4, y = 30.1 },
+    [4363] = { start = 'Princess Moira Bronzebeard', note = 'Princess Moira Bronzebeard in Blackrock Depths' },
     [4701] = { start = 'Helendis Riverhorn', zone = 'Burning Steppes', note = 'Helendis Riverhorn at Morgan\'s Vigil in Burning Steppes' },
     [4729] = { start = 'Kibler', map = 1428, zone = 'Burning Steppes', x = 65.9, y = 22.2 },
     [4734] = { start = 'Tinkee Steamboil', zone = 'Burning Steppes', note = 'Tinkee Steamboil at Flame Crest in Burning Steppes' },
@@ -101,6 +106,7 @@ Q.DUNGEON_QUEST_PLACES = {
     [4866] = { start = 'John le Loqueteux', zone = 'Burning Steppes', note = 'Ragged John at Flame Crest in Burning Steppes' },
     [4867] = { start = 'Warosh', at = 'inside' },
     [5001] = { start = 'Bijou', at = 'inside' },
+    [5002] = { start = 'Bijou', at = 'inside' },
     [5081] = { start = 'Marshal Maxwell', zone = 'Burning Steppes', note = 'Marshal Maxwell at Morgan\'s Vigil in Burning Steppes' },
     [5089] = { start = 'General Drakkisath\'s Command ', note = 'General Drakkisath\'s Command , which is looted from Overlord Wyrmthalak in Lower Blackrock Spire' },
     [5122] = { start = 'Aurius', at = 'inside' },
@@ -117,6 +123,7 @@ Q.DUNGEON_QUEST_PLACES = {
     [5384] = { start = 'Eva Sarkhoff', zone = 'Western Plaguelands', note = 'Eva Sarkhoff in Western Plaguelands' },
     [5463] = { start = 'Leonid Barthalomew le Révéré', map = 1420, zone = 'Tirisfal Glades', x = 22.1, y = 44.8 },
     [5466] = { start = 'Magistrate Marduke', zone = 'Western Plaguelands', note = 'Magistrate Marduke in Western Plaguelands' },
+    [5505] = { start = 'Alchimiste Arbington', zone = 'Western Plaguelands', note = 'Alchemist Arbington in Western Plaguelands' },
     [5515] = { start = 'Eva Sarkhoff', zone = 'Western Plaguelands', note = 'Eva Sarkhoff in Western Plaguelands' },
     [5518] = { start = 'Knot Thimblejack', at = 'inside' },
     [5525] = { start = 'Knot Thimblejack', at = 'inside' },
@@ -135,6 +142,7 @@ Q.DUNGEON_QUEST_PLACES = {
     [7070] = { start = 'Archmage Tervosh', zone = 'Dustwallow Marsh', note = 'Archmage Tervosh at Theramore in Dustwallow Marsh' },
     [7441] = { start = 'Azj\'Tordin', zone = 'Feralas', note = 'Azj\'Tordin at Lariss Pavillion in Feralas' },
     [7461] = { start = 'Shen\'dralar Ancient', at = 'inside' },
+    [7462] = { start = 'Shen\'dralar Ancient', note = 'Shen\'dralar Ancient in Dire Maul West' },
     [7463] = { start = 'Lorekeeper Lydros', note = 'Lorekeeper Lydros in Dire Maul' },
     [7482] = { start = 'Scholar Runethorn', zone = 'Feralas', note = 'Scholar Runethorn at Feathermoon Stronghold in Feralas' },
     [7488] = { start = 'Latronicus Moonspear', zone = 'Feralas', note = 'Latronicus Moonspear at Feathermoon Stronghold in Feralas' },
@@ -146,8 +154,8 @@ Q.DUNGEON_QUEST_PLACES = {
     [92458] = { start = 'Image of Archmage Modera', map = 1421, zone = 'Silverpine Forest', x = 68.7, y = 45.2, level = 24, note = 'après An Alarming Request (Emissary Jaques, Southshore)' },
     [92489] = { start = 'Grand sorcier Andromath', map = 1453, zone = 'Stormwind City', x = 48.8, y = 87.8, level = 24 },
     [92753] = { start = 'Alba Lunepâle', map = 1436, zone = 'Westfall', x = 52.5, y = 53.0, level = 9, note = 'fin de la chaîne Testing the Wells' },
+    [95189] = { start = 'Écu de Lordaeron', item = true, at = 'inside', level = 16 },
     [95195] = { start = 'Insigne ensanglanté', item = true, at = 'inside', level = 16 },
-    [95204] = { start = 'Écu de Lordaeron', item = true, at = 'inside', level = 16 },
     [95250] = { start = 'Capitaine Truman', at = 'inside', level = 16 },
     [95646] = { start = 'Rethiel le Gouverneur vert', map = 1437, zone = 'Wetlands', x = 56.3, y = 40.5, level = 24, note = 'après Tramping Paws, Fire Taboo, Blisters on the Land' },
     [95647] = { start = 'Caitlin Grassman', map = 1437, zone = 'Wetlands', x = 11.8, y = 58.8, level = 24 },
@@ -156,6 +164,7 @@ Q.DUNGEON_QUEST_PLACES = {
     [95795] = { start = 'Daewyn', at = 'inside', level = 24 },
     [95809] = { start = 'Ardin', at = 'inside', level = 24 },
     [95810] = { start = 'Relique des Titans', item = true, at = 'inside', level = 24 },
+    [96264] = { start = 'Veyric Hametonne', map = 1417, zone = 'Arathi Highlands', x = 59.8, y = 27.6, level = 30 },
     [96393] = { start = 'Terre-voyant Farsen', map = 1426, zone = 'Dun Morogh', x = 64.8, y = 58.5, level = 9, note = 'Nip \'Em in the Bud, puis la carte du Dark Iron Spy' },
     [96394] = { start = 'Afadra Mur-de-Dun', map = 1455, zone = 'Ironforge', x = 32.9, y = 48.5, level = 10 },
     [96395] = { start = 'Domestique fantomatique', at = 'inside', level = 10 },
@@ -165,20 +174,3 @@ Q.DUNGEON_QUEST_PLACES = {
     [98815] = { start = 'James Halloran', map = 1437, zone = 'Wetlands', x = 8.6, y = 55.7, level = 24, note = 'après Young Crocolisk Skins' },
     [98824] = { start = 'Prospecteur Whelgar', map = 1437, zone = 'Wetlands', x = 38.8, y = 52.3, level = 24, note = 'après Lost Relic Carry' },
 }
--- Quêtes de donjon de la base de Forever absentes de la liste du journal (DungeonQuests.lua) : { numéro, niveau, titre }
-local EXTRA = {
-    { 'ZF', 2769, 40, 'The Brassbolts Brothers' },
-    { 'GNOMER', 2923, 20, 'Tinkmaster Overspark' },
-    { 'GNOMER', 2925, 24, 'Klockmort\'s Essentials' },
-    { 'GNOMER', 2927, 20, 'The Day After' },
-    { 'GNOMER', 2931, 25, 'Castpipe\'s Task' },
-    { 'BRD', 4342, 50, 'Kharan\'s Tale' },
-    { 'UBRS', 4734, 57, 'Egg Freezing' },
-    { 'LBRS', 5081, 55, 'Maxwell\'s Mission' },
-    { 'THANES', 96395, 10, 'An Ancient Grudge' },
-}
-for _, e in ipairs(EXTRA) do
-    local list = Q.DUNGEON_QUESTS[e[1]] or {}
-    Q.DUNGEON_QUESTS[e[1]] = list
-    list[#list + 1] = { e[2], e[3], e[4] }
-end
