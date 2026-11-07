@@ -8,7 +8,7 @@ local _, Q = ...
   - arrivée dans la guilde : première fois que l'addon voit le joueur dans la guilde.
   Chacun ne note que lui-même, personne n'observe les autres. Le journal voyage avec la fiche (champ `pex`), par la synchro
   habituelle : pas de nouveau message, et il n'est copié dans la fiche qu'au passage d'un niveau, une fois par heure et à la
-  déconnexion. Le site ne le lit pas encore.
+  déconnexion. Le site le lit pour la page /statistiques (docs/STATS_PEX.md du dépôt du site).
 
   QuinteCaractDB.pex[clé du perso] = {
     since = arrivée vue dans la guilde, start = niveau au premier relevé, min = minutes de jeu comptées,

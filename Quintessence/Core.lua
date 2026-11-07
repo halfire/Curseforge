@@ -13,7 +13,7 @@ local addonName, Core = ...
   Règle Retail 12+ : aucune écriture dans une table, une fonction ou un cadre de Blizzard.
 ]]
 Quintessence = Core -- seule globale publique de la suite (nom propre, jamais une globale de Blizzard)
-Core.name, Core.version = addonName or 'Quintessence', '1.29.1'
+Core.name, Core.version = addonName or 'Quintessence', '1.30.0'
 Core.modules, Core.syncModules, Core.channels, Core.debug = {}, {}, {}, { errors = {}, slow = {} }
 
 function Core.Call(fn, ...)
@@ -162,6 +162,11 @@ function Core.OnSystemMessage(text)
     if who then return setPresence(who, false) end
     who = onlinePattern and text:match(onlinePattern)
     if who then setPresence(who, true) end
+end
+function Core.Count(t)
+    local n = 0
+    for _ in pairs(t) do n = n + 1 end
+    return n
 end
 --- Nom à utiliser pour chuchoter ou inviter (Forever refuse « Prénom Nom-Royaume »).
 function Core.WhisperTarget(name) return Names.WhisperTarget(name) end

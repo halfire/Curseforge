@@ -8,7 +8,8 @@ local _, Core = ...
   - Notes : une par joueur, 200 caractères, la plus récente gagne. Elles ne partent qu'en chuchotement vers les officiers
     en ligne (canal 'qoff'), jamais sur le canal de guilde que tout membre peut lire. Un message d'un non-officier est jeté.
   - Chat : le canal officier du jeu, avec son historique (200 lignes) ; envoi à un clic ou à la touche Entrée.
-  Rien de tout cela n'est lu par le site.
+  Le site lit seulement le relevé (`roster`, page /statistiques, envoi par un officier) : il couvre les membres sans addon.
+  Notes et chat restent en jeu : le site ne les lit jamais.
 ]]
 local O = {}
 Core.Officers = O
@@ -18,6 +19,7 @@ local A, V = Core.Announce, Core.Versions
 O.PACK_URL = 'quintessence-community.fr/addons/pack-complet'
 local SCAN, ROSTER_WAIT, FIRST_SCAN = 300, 5, 30
 local KEEP_GONE, MAX_SAMPLES, MAX_CHAT, MAX_NOTE = 60 * 86400, 60, 200, 200
+local MAX_LEVELS, MAX_ZONES, MAX_MINUTES = 80, 64, 5000000
 local DAY = 86400
 local W, H, BODY_TOP = 760, 476, 36
 
@@ -42,13 +44,29 @@ local function lastOnline(i, online, at)
     if secret(y) or (y == nil and m == nil and d == nil and h == nil) then return nil end
     return at - ((y or 0) * 365 + (m or 0) * 30 + (d or 0)) * DAY - (h or 0) * 3600
 end
+-- Journal d'un membre, même sans addon : niveaux vus avec leur date et leur zone, minutes en ligne (hors absent) par zone.
+-- La date d'un niveau pris pendant qu'aucun officier n'était là est celle du relevé suivant : ordre de grandeur.
+local function noteJournal(e, level, zone, minutes, at)
+    if type(e.levels) ~= 'table' then e.levels = {} end
+    if type(e.zones) ~= 'table' then e.zones = {} end
+    e.min = math.min((tonumber(e.min) or 0) + minutes, MAX_MINUTES)
+    if zone and minutes > 0 and (e.zones[zone] or Core.Count(e.zones) < MAX_ZONES) then e.zones[zone] = (e.zones[zone] or 0) + minutes end
+    local rows, known = e.levels, false
+    for _, row in ipairs(rows) do if row[1] == level then known = true; break end end
+    if not known and #rows < MAX_LEVELS and (not rows[#rows] or level > rows[#rows][1]) then
+        rows[#rows + 1] = { level, at, zone or '', e.min }
+    end
+end
 --- Lit la liste de guilde (hors ligne compris) ; rend le nombre de membres lus.
 function O.ReadRoster(at)
     at = at or now()
     if not (GetNumGuildMembers and GetGuildRosterInfo) then return 0 end
-    local roster, count, day = db().roster, 0, math.floor(at / DAY)
+    local d = db()
+    local roster, count, day = d.roster, 0, math.floor(at / DAY)
+    -- Temps depuis le relevé précédent, 5 min au plus : un trou (officier déconnecté) ne compte pas comme du jeu
+    local gap = d.scanAt and math.max(0, math.min(at - d.scanAt, SCAN)) / 60 or 0
     for i = 1, GetNumGuildMembers() or 0 do
-        local name, rankName, _, level, _, _, _, _, online, _, class = GetGuildRosterInfo(i)
+        local name, rankName, _, level, _, zone, _, _, online, status, class = GetGuildRosterInfo(i)
         if type(name) == 'string' and not secret(name) and type(level) == 'number' and not secret(level) then
             local key = Core.CanonicalKey(name)
             local e = roster[key]
@@ -66,9 +84,13 @@ function O.ReadRoster(at)
             if list[#list] and list[#list].d == day then list[#list].l = level
             else list[#list + 1] = { d = day, l = level } end
             while #list > MAX_SAMPLES do table.remove(list, 1) end
+            local here = e.online and type(zone) == 'string' and not secret(zone) and zone ~= '' and zone or nil
+            local away = secret(status) or status == 1
+            noteJournal(e, level, here, (e.online and not away) and gap or 0, at)
             count = count + 1
         end
     end
+    if count > 0 then d.scanAt = at end
     -- Parti de la guilde depuis longtemps : oublié, sa note reste jusqu'à ce qu'un officier l'efface
     if count > 0 then
         for key, e in pairs(roster) do
