@@ -1,9 +1,9 @@
 {
- "version": "1.30.0",
+ "version": "1.31.0",
  "addons": [
   [
    "Quintessence",
-   "1.30.0"
+   "1.31.0"
   ],
   [
    "quinte-craft",

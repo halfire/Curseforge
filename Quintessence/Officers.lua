@@ -3,12 +3,15 @@ local _, Core = ...
   Officers.lua : section « Officiers » (rangs de guilde 0 et 1, voir Announce.lua), avec ses onglets :
   Annonces (Announce.lua), Joueurs (notes et vitesse de leveling), Chat (canal officier du jeu), Versions (Versions.lua), Pack.
 
-  - Relevé : toutes les 5 min, la liste de guilde donne le niveau et la dernière connexion de chacun. Un point par jour
-    (60 au plus) sert à la vitesse de leveling. Mémoire locale : un officier n'a que ce que son addon a vu.
+  - Relevé : toutes les 5 min, chez TOUS les joueurs qui ont l'addon, la liste de guilde donne le niveau, la zone et la dernière
+    connexion de chacun, y compris des membres sans addon. Un point par jour (60 au plus) sert à la vitesse de leveling.
+  - Partage : personne n'envoie son relevé toutes les 5 min. Un membre n'est publié (synchro de guilde, groupe 'gscan') qu'à un
+    passage de niveau, ou après 2 h de jeu de plus que la version connue. Le premier qui le voit publie, les autres reçoivent la
+    version et n'ont plus rien à publier ; entre deux versions, les minutes les plus hautes gagnent, sans additionner.
   - Notes : une par joueur, 200 caractères, la plus récente gagne. Elles ne partent qu'en chuchotement vers les officiers
     en ligne (canal 'qoff'), jamais sur le canal de guilde que tout membre peut lire. Un message d'un non-officier est jeté.
   - Chat : le canal officier du jeu, avec son historique (200 lignes) ; envoi à un clic ou à la touche Entrée.
-  Le site lit seulement le relevé (`roster`, page /statistiques, envoi par un officier) : il couvre les membres sans addon.
+  Le site lit seulement le relevé (`roster`, page /statistiques, envoi par un officier).
   Notes et chat restent en jeu : le site ne les lit jamais.
 ]]
 local O = {}
@@ -20,6 +23,7 @@ O.PACK_URL = 'quintessence-community.fr/addons/pack-complet'
 local SCAN, ROSTER_WAIT, FIRST_SCAN = 300, 5, 30
 local KEEP_GONE, MAX_SAMPLES, MAX_CHAT, MAX_NOTE = 60 * 86400, 60, 200, 200
 local MAX_LEVELS, MAX_ZONES, MAX_MINUTES = 80, 64, 5000000
+local PUBLISH_MINUTES, MAX_SHARED = 120, 2000 -- 2 h de jeu de plus qu'à la dernière version connue
 local DAY = 86400
 local W, H, BODY_TOP = 760, 476, 36
 
@@ -65,6 +69,7 @@ function O.ReadRoster(at)
     local roster, count, day = d.roster, 0, math.floor(at / DAY)
     -- Temps depuis le relevé précédent, 5 min au plus : un trou (officier déconnecté) ne compte pas comme du jeu
     local gap = d.scanAt and math.max(0, math.min(at - d.scanAt, SCAN)) / 60 or 0
+    local changed = false
     for i = 1, GetNumGuildMembers() or 0 do
         local name, rankName, _, level, _, zone, _, _, online, status, class = GetGuildRosterInfo(i)
         if type(name) == 'string' and not secret(name) and type(level) == 'number' and not secret(level) then
@@ -84,13 +89,19 @@ function O.ReadRoster(at)
             if list[#list] and list[#list].d == day then list[#list].l = level
             else list[#list + 1] = { d = day, l = level } end
             while #list > MAX_SAMPLES do table.remove(list, 1) end
+            if not e.pubLevel then e.pubLevel, e.pubMin = level, tonumber(e.min) or 0 end -- rien à publier à la première vue
             local here = e.online and type(zone) == 'string' and not secret(zone) and zone ~= '' and zone or nil
             local away = secret(status) or status == 1
             noteJournal(e, level, here, (e.online and not away) and gap or 0, at)
+            if level > e.pubLevel or e.min >= e.pubMin + PUBLISH_MINUTES then
+                e.v, e.pubLevel, e.pubMin = math.max(at, (tonumber(e.v) or 0) + 1), level, e.min
+                changed = true
+            end
             count = count + 1
         end
     end
     if count > 0 then d.scanAt = at end
+    if changed and O.sync then O.sync:NotifyLocal() end
     -- Parti de la guilde depuis longtemps : oublié, sa note reste jusqu'à ce qu'un officier l'efface
     if count > 0 then
         for key, e in pairs(roster) do
@@ -99,6 +110,104 @@ function O.ReadRoster(at)
     end
     return count
 end
+-- ---------------------------------------------------------------------------------------------------------------------
+-- Partage du relevé entre tous les addons (seuls ces champs voyagent : jamais les notes ni le chat)
+-- ---------------------------------------------------------------------------------------------------------------------
+local function cleanRecord(rec, at)
+    if type(rec) ~= 'table' or type(rec.name) ~= 'string' or #rec.name > 100 or rec.name:find('|', 1, true) then return nil end
+    local function number(v, low, high) v = tonumber(v); return v and v >= low and v <= high and v or nil end
+    local out = { name = rec.name, level = number(rec.level, 1, 1000), v = number(rec.v, 1, at + 300), min = number(rec.min, 0, MAX_MINUTES),
+        firstAt = number(rec.firstAt, 1, at + 300), seen = number(rec.seen, 1, at + 300), last = number(rec.last, 1, at + 300),
+        levels = {}, zones = {} }
+    if not (out.level and out.v and out.min) then return nil end
+    if type(rec.class) == 'string' and #rec.class <= 16 then out.class = rec.class end
+    if type(rec.levels) ~= 'table' or type(rec.zones) ~= 'table' or #rec.levels > MAX_LEVELS then return nil end
+    for i, row in ipairs(rec.levels) do
+        local place = type(row) == 'table' and row[3]
+        if type(place) ~= 'string' or #place > 60 or place:find('|', 1, true) then return nil end
+        local lvl, moment, spent = number(row[1], 1, 1000), number(row[2], 1, at + 300), number(row[4], 0, MAX_MINUTES)
+        if not (lvl and moment and spent) then return nil end
+        out.levels[i] = { lvl, moment, place, spent }
+    end
+    local zones = 0
+    for place, minutes in pairs(rec.zones) do
+        zones = zones + 1
+        minutes = number(minutes, 0, MAX_MINUTES)
+        if zones > MAX_ZONES or type(place) ~= 'string' or #place > 60 or place:find('|', 1, true) or not minutes then return nil end
+        out.zones[place] = minutes
+    end
+    return out
+end
+local scanAdapter = {}
+function scanAdapter.Manifest()
+    local batches, batch = {}, {}
+    for key, e in pairs(db().roster) do
+        if type(e) == 'table' and type(e.v) == 'number' then
+            batch[#batch + 1] = { key = key, v = e.v }
+            if #batch == 20 then batches[#batches + 1] = batch; batch = {} end
+        end
+    end
+    if #batch > 0 then batches[#batches + 1] = batch end
+    return batches
+end
+function scanAdapter.Need(_, remote)
+    local out, roster, at = {}, db().roster, now()
+    if type(remote) ~= 'table' or #remote > 20 then return out end
+    for _, row in ipairs(remote) do
+        if type(row) ~= 'table' or type(row.key) ~= 'string' or #row.key > 100 or type(row.v) ~= 'number' then return {} end
+        local e = roster[row.key]
+        if row.v <= at + 300 and row.v > at - KEEP_GONE and not (type(e) == 'table' and (tonumber(e.v) or 0) >= row.v) then
+            out[#out + 1] = { key = row.key }
+        end
+    end
+    return out
+end
+function scanAdapter.Export(_, request)
+    local e = type(request) == 'table' and type(request.key) == 'string' and db().roster[request.key]
+    local rec = type(e) == 'table' and cleanRecord(e, now())
+    return rec and { { key = request.key, rec = rec } } or {}
+end
+function scanAdapter.Merge(_, part, _, at, request)
+    if type(part) ~= 'table' or type(request) ~= 'table' or part.key ~= request.key or type(part.key) ~= 'string' then return false end
+    local rec = cleanRecord(part.rec, at)
+    if not rec or Core.CanonicalKey(rec.name) ~= part.key or not (O.sync and O.sync:Member(rec.name)) then return false end
+    local roster = db().roster
+    local e = roster[part.key]
+    if type(e) ~= 'table' then
+        if Core.Count(roster) >= MAX_SHARED then return false end
+        e = { first = rec.levels[1] and rec.levels[1][1] or rec.level, firstAt = rec.firstAt or at, samples = {}, levels = {}, zones = {}, min = 0 }
+        roster[part.key] = e
+    elseif (tonumber(e.v) or 0) >= rec.v then return false end
+    if type(e.levels) ~= 'table' then e.levels = {} end
+    if type(e.zones) ~= 'table' then e.zones = {} end
+    e.name, e.class, e.v = e.name or rec.name, e.class or rec.class, rec.v
+    e.level = math.max(tonumber(e.level) or 0, rec.level)
+    e.min = math.max(tonumber(e.min) or 0, rec.min)
+    e.firstAt = math.min(tonumber(e.firstAt) or rec.firstAt or at, rec.firstAt or at)
+    e.seen = math.max(tonumber(e.seen) or 0, rec.seen or 0)
+    if rec.last then e.last = math.max(tonumber(e.last) or 0, rec.last) end
+    for place, minutes in pairs(rec.zones) do
+        if e.zones[place] or Core.Count(e.zones) < MAX_ZONES then e.zones[place] = math.max(e.zones[place] or 0, minutes) end
+    end
+    -- Niveaux : réunis, la date la plus ancienne gagne (celui qui l'a vu le plus tôt est le plus près de la vérité)
+    local byLevel = {}
+    for _, row in ipairs(e.levels) do byLevel[row[1]] = row end
+    for _, row in ipairs(rec.levels) do
+        local old = byLevel[row[1]]
+        if not old or row[2] < old[2] then byLevel[row[1]] = row end
+    end
+    local rows = {}
+    for _, row in pairs(byLevel) do rows[#rows + 1] = row end
+    table.sort(rows, function(a, b) return a[1] < b[1] end)
+    while #rows > MAX_LEVELS do table.remove(rows, 1) end
+    e.levels = rows
+    -- Version connue : plus rien à publier tant qu'on n'a pas vu mieux
+    e.pubLevel, e.pubMin = math.max(tonumber(e.pubLevel) or 0, rec.level), math.max(tonumber(e.pubMin) or 0, rec.min)
+    return true
+end
+O.ScanAdapter = scanAdapter
+O.sync = Core:RegisterSync('gscan', {}, scanAdapter)
+
 --- Niveaux gagnés sur 7 jours et niveaux par jour depuis le premier relevé (nil tant qu'il y a moins d'un jour de recul).
 function O.Stats(e, at)
     at = at or now()
@@ -140,10 +249,11 @@ local function ago(at, moment)
 end
 O.Ago = ago
 function O.Scan()
-    if not A.IsOfficer() then return false end
+    -- Seulement dans notre guilde. Tout le monde relève, seuls les officiers demandent aussi les membres hors ligne
+    if Core.GuildStatus() ~= 'ok' then return false end
     if C_GuildInfo and C_GuildInfo.GuildRoster then C_GuildInfo.GuildRoster() elseif GuildRoster then GuildRoster() end
     -- La liste ne donne les absents que si « afficher hors ligne » est coché : remis comme le joueur l'avait laissé
-    local shown = GetGuildRosterShowOffline and GetGuildRosterShowOffline()
+    local shown = A.IsOfficer() and GetGuildRosterShowOffline and GetGuildRosterShowOffline()
     if shown == false and SetGuildRosterShowOffline then SetGuildRosterShowOffline(true) end
     C_Timer.After(ROSTER_WAIT, function()
         Core.Run('officiers', function()
