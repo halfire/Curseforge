@@ -3,7 +3,7 @@
 ## Group: Quintessence
 ## Notes: Module Quintessence - Compagnon de leveling, quêtes partagées, préférences de donjons et Codex secret de WoW Forever (/qgroup).
 ## Author: Quintessence
-## Version: 0.17.0
+## Version: 0.17.1
 ## SavedVariables: QuinteGroupDB
 ## Dependencies: Quintessence
 ## IconTexture: Interface\Icons\INV_Misc_Head_Dragon_01

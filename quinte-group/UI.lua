@@ -60,7 +60,8 @@ local function showQuestTooltip(owner, q)
         local STATE = { done = 'faite', log = 'en cours', todo = 'à faire', locked = 'à faire', low = 'à faire' }
         GameTooltip:AddLine('Chaîne de quêtes :', 1, 0.82, 0)
         for i, step in ipairs(q.chain) do
-            local label = '• ' .. i .. '. ' .. Q.Safe(step.title or ('quête ' .. step.id))
+            -- Chaque étape décalée d'un cran de plus que la précédente
+            local label = string.rep('    ', i - 1) .. '• ' .. Q.Safe(step.title or ('quête ' .. step.id))
             if step.here then
                 GameTooltip:AddLine(label .. ' ← celle-ci', 0.36, 0.82, 0.66, true)
             else
@@ -824,6 +825,7 @@ function UI.RefreshDungeons()
     end
 
     local quests = Q.DungeonQuests and Q.DungeonQuests(selectedNeeds.code) or {}
+    if Q.ChainOrder then quests = Q.ChainOrder(quests) end
     p.questToggle:SetLabel(dungeonState.showQuests and 'Butins' or ('Quêtes (' .. #quests .. ')'))
     p.questToggle:SetActive(dungeonState.showQuests and true or false)
     if dungeonState.showQuests then
@@ -844,7 +846,9 @@ function UI.RefreshDungeons()
             if q then
                 r.frame:Show(); r.frame.itemID = nil; r.frame.quest = q
                 r.icon:SetTexture('Interface\\Icons\\INV_Misc_Note_01')
-                r.itemName:SetText(string.format('|c%s[%d]|r %s%s', S.hex.gold, q.level, Q.Safe(q.title),
+                -- Suite d'une chaîne : décalée d'un cran par étape, sous la précédente
+                local indent = (q.depth or 0) > 0 and (string.rep('   ', q.depth - 1) .. '|c' .. S.hex.muted .. '└|r ') or ''
+                r.itemName:SetText(string.format('%s|c%s[%d]|r %s%s', indent, S.hex.gold, q.level, Q.Safe(q.title),
                     q.tag and (' |c' .. S.hex.muted .. '(' .. q.tag .. ')|r') or ''))
                 r.itemName:SetWidth(285)
                 r.membersList:SetPoint('RIGHT', -182, 0); r.membersList:SetWidth(IW - 506)

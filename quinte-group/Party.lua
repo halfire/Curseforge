@@ -310,6 +310,35 @@ function Q.DungeonQuests(code)
     return out
 end
 
+--- Liste à afficher : les étapes d'une même chaîne se suivent, dans l'ordre de la chaîne, à la place de la première
+--- d'entre elles ; chaque suite est décalée d'un cran de plus (q.depth = 0, 1, 2…). Ne change pas Q.DungeonQuests.
+function Q.ChainOrder(quests)
+    local groups, out, placed = {}, {}, {}
+    for _, q in ipairs(quests) do
+        local first = q.chain and q.chain[1] and q.chain[1].id
+        if first then
+            groups[first] = groups[first] or {}
+            table.insert(groups[first], q)
+        end
+    end
+    local function position(q)
+        for i, step in ipairs(q.chain) do if step.here then return i end end
+        return 0
+    end
+    for _, q in ipairs(quests) do
+        local first = q.chain and q.chain[1] and q.chain[1].id
+        if not first then
+            q.depth = 0; out[#out + 1] = q
+        elseif not placed[first] then
+            placed[first] = true
+            local group = groups[first]
+            table.sort(group, function(a, b) return position(a) < position(b) end)
+            for depth, member in ipairs(group) do member.depth = depth - 1; out[#out + 1] = member end
+        end
+    end
+    return out
+end
+
 -- ---------------------------------------------------------------------------------------------- Annonce au groupe
 local PROGRESS = { ERR_QUEST_ADD_KILL_SII = true, ERR_QUEST_ADD_ITEM_SII = true, ERR_QUEST_ADD_FOUND_SII = true,
     ERR_QUEST_ADD_PLAYER_KILL_SII = true, ERR_QUEST_OBJECTIVE_COMPLETE_S = true }
