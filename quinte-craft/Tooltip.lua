@@ -15,10 +15,11 @@ local function line(id)
         local names=Q.ItemCrafters(id)
         text=false
         if #names>0 then
+            -- 5 noms au plus, après le nombre : « fabriqué par 55 membres dont A, B, C, D, E »
             local display={}
-            for i=1,math.min(10,#names) do display[#display+1]=Q.Colored(names[i]) end
-            if #names>10 then display[#display+1]='+'..(#names-10) end
-            text='Quintessence : fabricable par '..table.concat(display,', ')
+            for i=1,math.min(5,#names) do display[#display+1]=Q.Colored(names[i]) end
+            local count=#names..' membre'..(#names>1 and 's' or '')
+            text='Quintessence : fabriqué par '..count..(#names>5 and ' dont ' or ' : ')..table.concat(display,', ')
         end
         lines[id]=text
     end

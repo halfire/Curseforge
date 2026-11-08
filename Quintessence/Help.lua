@@ -6,7 +6,8 @@ local _, Core = ...
 local H = {}
 Core.Help = H
 local S = Core.Style
-local W, HEIGHT, ROWS = 760, 440, 11
+local W, HEIGHT = 1078, 658 -- toute la zone de contenu (1.39.0), textes de la même taille
+local ROWS = math.floor((HEIGHT - 4) / 33)
 
 H.TOPICS = {
     { id = 'start', title = 'Bien démarrer', text = 'Quintessence réunit les outils de la guilde dans une seule fenêtre. Tape /quinte ou clique sur le bouton près de la mini-carte, puis choisis un onglet à gauche. La taille de la fenêtre se règle sur l\'accueil (carte Interface, de 50 à 200 %) ou par /quinte taille 120.\n\nLe bouton Chemin, à côté de Carte pour les quêtes de donjon, les entrées, les feux de camp, les SOS et la Vendetta, calcule un itinéraire praticable et le montre sur la carte et la mini-carte avec le moteur intégré à Quintessence. En combat, la demande attend la fin du combat. Réglages > Voyages permet de choisir le démarrage manuel ou automatique sur un marqueur et chaque élément affiché (carte, minicarte, flèche, boussole, étapes, transports et sons), ou de tout désactiver. Par défaut, seuls les traits sont visibles et Chemin lance le trajet. /quinte chemin stop arrête le guidage.\n\nTout se partage seul avec les membres connectés qui ont l\'addon : tu n\'as rien à envoyer. Plus il y a de membres connectés, plus les listes sont complètes.\n\nLes addons ne marchent que dans la guilde Quintessence.\n\nToutes les 5 minutes, l\'addon lit aussi la liste de guilde (niveau et zone des membres connectés) pour les statistiques de pex du site.' },
@@ -61,17 +62,17 @@ function H.Select(id)
 end
 local function create(parent)
     panel = CreateFrame('Frame', nil, parent); panel:SetAllPoints(parent)
-    local box = S.Box(panel, S.colors.panel, S.colors.line); box:SetPoint('TOPLEFT', 0, 0); box:SetSize(190, HEIGHT)
+    local box = S.Box(panel, S.colors.panel, S.colors.line); box:SetPoint('TOPLEFT', 0, 0); box:SetSize(260, HEIGHT)
     panel.rows = {}
     for i = 1, #H.TOPICS do
-        local row = S.Row(box, 188, 32); row:SetPoint('TOPLEFT', 1, -2 - (i - 1) * 33)
-        row.label = S.Text(row, 12); row.label:SetPoint('LEFT', 12, 0); row.label:SetWidth(168)
+        local row = S.Row(box, 258, 32); row:SetPoint('TOPLEFT', 1, -2 - (i - 1) * 33)
+        row.label = S.Text(row, 12); row.label:SetPoint('LEFT', 12, 0); row.label:SetWidth(238)
         row:SetScript('OnClick', function(self) if self.topic then H.Select(self.topic) end end)
         panel.rows[i] = row
     end
-    local right = S.Box(panel, S.colors.panel, S.colors.line); right:SetPoint('TOPLEFT', 202, 0); right:SetSize(W - 202, HEIGHT)
+    local right = S.Box(panel, S.colors.panel, S.colors.line); right:SetPoint('TOPLEFT', 272, 0); right:SetSize(W - 272, HEIGHT)
     panel.title = S.Text(right, 16); panel.title:SetPoint('TOPLEFT', 20, -18)
-    panel.text = S.Text(right, 13, S.colors.text); panel.text:SetPoint('TOPLEFT', 20, -50); panel.text:SetWidth(W - 242); panel.text:SetWordWrap(true)
+    panel.text = S.Text(right, 13, S.colors.text); panel.text:SetPoint('TOPLEFT', 20, -50); panel.text:SetWidth(W - 312); panel.text:SetWordWrap(true)
     if panel.text.SetSpacing then panel.text:SetSpacing(3) end
     panel:SetScript('OnShow', function() Core.Run('aide', render) end)
     panel:Hide()

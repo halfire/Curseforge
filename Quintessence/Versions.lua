@@ -254,7 +254,8 @@ end
 -- ---------------------------------------------------------------------------------------------------------------------
 -- Onglet « Versions »
 -- ---------------------------------------------------------------------------------------------------------------------
-local W, H, ROWS = 680, 440, 11
+local W, H = 1078, 622 -- corps de la section Officiers (1.39.0), textes de la même taille
+local ROWS = math.floor((H - 134) / 29) -- 16
 local panel
 local offset = 0
 
@@ -280,17 +281,17 @@ local function create(parent)
     box:EnableMouseWheel(true)
     box:SetScript('OnMouseWheel', function(_, delta) offset = math.max(0, offset - delta * 2); V.Refresh() end)
     local h1 = S.Heading(box, 'Membre'); h1:SetPoint('TOPLEFT', 14, -10)
-    local h2 = S.Heading(box, 'Conteneur'); h2:SetPoint('TOPLEFT', 210, -10)
-    local h3 = S.Heading(box, 'Modules'); h3:SetPoint('TOPLEFT', 300, -10)
+    local h2 = S.Heading(box, 'Conteneur'); h2:SetPoint('TOPLEFT', 250, -10)
+    local h3 = S.Heading(box, 'Modules'); h3:SetPoint('TOPLEFT', 340, -10)
     local h4 = S.Heading(box, 'Vu'); h4:SetPoint('TOPRIGHT', -24, -10)
     panel.rows = {}
     for i = 1, ROWS do
         local r = S.Row(box, W - 16, 28)
         r:SetPoint('TOPLEFT', 1, -28 - (i - 1) * 29)
         r.dot = S.Fill(r, 'ARTWORK', S.colors.mint); r.dot:SetSize(7, 7); r.dot:SetPoint('LEFT', 10, 0)
-        r.name = S.Text(r, 12); r.name:SetPoint('LEFT', 24, 0); r.name:SetWidth(180)
-        r.container = S.Text(r, 12); r.container:SetPoint('LEFT', 210, 0); r.container:SetWidth(84)
-        r.modules = S.Text(r, 11, S.colors.muted); r.modules:SetPoint('LEFT', 300, 0); r.modules:SetWidth(W - 380)
+        r.name = S.Text(r, 12); r.name:SetPoint('LEFT', 24, 0); r.name:SetWidth(220)
+        r.container = S.Text(r, 12); r.container:SetPoint('LEFT', 250, 0); r.container:SetWidth(84)
+        r.modules = S.Text(r, 11, S.colors.muted); r.modules:SetPoint('LEFT', 340, 0); r.modules:SetWidth(W - 420)
         r.seen = S.Text(r, 11, S.colors.muted, 'RIGHT'); r.seen:SetPoint('RIGHT', -10, 0); r.seen:SetWidth(50)
         panel.rows[i] = r
     end

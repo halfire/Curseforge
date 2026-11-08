@@ -8,9 +8,15 @@ local _, Q = ...
 ]]
 local UI = {}
 Q.UI = UI
-local ROWS, ROW_H = 18, 22
-local LEFT_ROWS, LEFT_ROW_H = 14, 24
-local MAX_REAGENTS, MAX_CRAFTERS = 12, 10
+-- Onglet de la grande fenêtre Quintessence (1.38.1+) : 1078 × 658 à l'échelle 1, textes de la même taille qu'avant
+local W, H = 1078, 658
+local ROW_H, LEFT_ROW_H = 22, 24
+local ROWS = math.floor((H - 42) / ROW_H)            -- 28 recettes visibles
+local LEFT_ROWS = math.floor((H - 54 - 44) / LEFT_ROW_H) -- 23 métiers et catégories
+local LEFT_W, LIST_X, LIST_W = 230, 244, 470
+local DETAIL_X = LIST_X + LIST_W + 10
+local DETAIL_W = W - DETAIL_X - 28                    -- 326 : texte du détail (cadre de 354)
+local MAX_REAGENTS, MAX_CRAFTERS = 12, 24
 local QUESTION_MARK = 134400
 
 -- ---------------------------------------------------------------------------
@@ -262,8 +268,10 @@ function renderDetails()
     d.noReagents:SetShown(#reagents == 0)
     local top = -96 - math.max(1, #reagents) * 18
     d.craftersTitle:ClearAllPoints(); d.craftersTitle:SetPoint('TOPLEFT', 0, top - 8)
+    -- Autant d'artisans que la place le permet sous les composants, au-dessus de la quantité et de « Commander »
+    local fit = math.max(3, math.min(MAX_CRAFTERS, math.floor((d.height + top - 26 - 70) / 18)))
     for i = 1, MAX_CRAFTERS do
-        local line, c = d.crafters[i], e.crafters[i]
+        local line, c = d.crafters[i], i <= fit and e.crafters[i]
         if c then
             local online = Q.Online(c.key)
             line.name = shortName(c.key); line.key = c.key
@@ -275,9 +283,9 @@ function renderDetails()
             line:Show()
         else line:Hide() end
     end
-    d.moreCrafters:SetShown(#e.crafters > MAX_CRAFTERS)
-    d.moreCrafters:SetText('+ ' .. (#e.crafters - MAX_CRAFTERS) .. ' autres')
-    d.moreCrafters:ClearAllPoints(); d.moreCrafters:SetPoint('TOPLEFT', 0, top - 26 - MAX_CRAFTERS * 18)
+    d.moreCrafters:SetShown(#e.crafters > fit)
+    d.moreCrafters:SetText('+ ' .. (#e.crafters - fit) .. ' autres')
+    d.moreCrafters:ClearAllPoints(); d.moreCrafters:SetPoint('TOPLEFT', 0, top - 26 - fit * 18)
 end
 
 local function renderRows()
@@ -455,7 +463,7 @@ local function create(parent)
     frame:SetAllPoints(parent)
 
     -- Colonne gauche : recherche + liste déroulante des métiers et de leurs catégories en jeu
-    local search = S.Input(frame, 180, 'Recette, emplacement, élixir…')
+    local search = S.Input(frame, LEFT_W - 6, 'Recette, emplacement, élixir…')
     search:SetPoint('TOPLEFT', 0, 0)
     search:SetMaxLetters(40)
     search:SetScript('OnTextChanged', function(box)
@@ -469,7 +477,7 @@ local function create(parent)
 
     local leftBox = CreateFrame('Frame', nil, frame)
     leftBox:SetPoint('TOPLEFT', 0, -54)
-    leftBox:SetSize(186, LEFT_ROWS * LEFT_ROW_H)
+    leftBox:SetSize(LEFT_W, LEFT_ROWS * LEFT_ROW_H)
     leftBox:EnableMouseWheel(true)
     leftBox:SetScript('OnMouseWheel', function(_, delta)
         state.leftOffset = math.max(0, state.leftOffset - delta * 2)
@@ -478,7 +486,7 @@ local function create(parent)
 
     frame.professions = {}
     for i = 1, LEFT_ROWS do
-        local b = S.Row(leftBox, 174, LEFT_ROW_H - 1)
+        local b = S.Row(leftBox, LEFT_W - 12, LEFT_ROW_H - 1)
         b:SetPoint('TOPLEFT', 0, -(i - 1) * LEFT_ROW_H)
         b.label = S.Text(b, 12, S.colors.muted); b.label:SetPoint('LEFT', 10, 0); b.label:SetPoint('RIGHT', -36, 0)
         b.count = S.Text(b, 11, S.colors.muted, 'RIGHT'); b.count:SetPoint('RIGHT', -6, 0)
@@ -516,35 +524,35 @@ local function create(parent)
     local leftSlider = S.Scrollbar(leftBox, LEFT_ROWS * LEFT_ROW_H, function(offset)
         if offset ~= state.leftOffset then state.leftOffset = offset; Q.Run('défilement métiers', renderProfessions) end
     end)
-    leftSlider:SetPoint('TOPLEFT', 178, 0)
+    leftSlider:SetPoint('TOPLEFT', LEFT_W - 8, 0)
     frame.leftSlider = leftSlider
 
     frame.stats = text(frame, 'GameFontDisableSmall')
     frame.stats:SetPoint('BOTTOMLEFT', 2, 4)
-    frame.stats:SetWordWrap(true)
+    frame.stats:SetWordWrap(true); frame.stats:SetWidth(LEFT_W - 4)
 
     -- Colonne centrale : liste des recettes (pleine hauteur, sans barre de catégories en haut)
     frame.listTitle = text(frame, 'GameFontNormal')
-    frame.listTitle:SetPoint('TOPLEFT', 200, -4); frame.listTitle:SetWidth(170)
+    frame.listTitle:SetPoint('TOPLEFT', LIST_X + 4, -4); frame.listTitle:SetWidth(LIST_W - 200)
     local function setMode(mode)
         state.mode = (state.mode == mode) and 'recipes' or mode
         state.selected, state.offset = nil, 0
         Q.Run('mode', UI.Refresh)
     end
-    frame.ordersButton = S.Button(frame, 'Commandes', 86, 20, 'ghost'); frame.ordersButton:SetPoint('TOPLEFT', 350, -2)
+    frame.ordersButton = S.Button(frame, 'Commandes', 86, 20, 'ghost'); frame.ordersButton:SetPoint('TOPLEFT', LIST_X + LIST_W - 176, -2)
     frame.ordersButton:SetScript('OnClick', function() setMode('orders') end)
-    frame.missingButton = S.Button(frame, 'Manquantes', 86, 20, 'ghost'); frame.missingButton:SetPoint('TOPLEFT', 440, -2)
+    frame.missingButton = S.Button(frame, 'Manquantes', 86, 20, 'ghost'); frame.missingButton:SetPoint('TOPLEFT', LIST_X + LIST_W - 86, -2)
     frame.missingButton:SetScript('OnClick', function() setMode('missing') end)
     local listBg = S.Box(frame, S.colors.panel, S.colors.line)
-    listBg:SetPoint('TOPLEFT', 196, -24); listBg:SetSize(330, ROWS * ROW_H + 12)
+    listBg:SetPoint('TOPLEFT', LIST_X, -24); listBg:SetSize(LIST_W, ROWS * ROW_H + 12)
     frame.rows = {}
     for i = 1, ROWS do
-        local row = S.Row(frame, 310, ROW_H)
-        row:SetPoint('TOPLEFT', 198, -30 - (i - 1) * ROW_H)
+        local row = S.Row(frame, LIST_W - 20, ROW_H)
+        row:SetPoint('TOPLEFT', LIST_X + 2, -30 - (i - 1) * ROW_H)
         row.icon = row:CreateTexture(nil, 'ARTWORK'); row.icon:SetSize(18, 18); row.icon:SetPoint('LEFT', 8, 0)
         row.icon:SetTexCoord(0.08, 0.92, 0.08, 0.92)
-        row.label = text(row, 'GameFontHighlightSmall'); row.label:SetPoint('LEFT', 32, 0); row.label:SetPoint('RIGHT', -92, 0)
-        row.cat = S.Text(row, 10, S.colors.muted, 'RIGHT'); row.cat:SetPoint('RIGHT', -24, 0); row.cat:SetWidth(64)
+        row.label = text(row, 'GameFontHighlightSmall'); row.label:SetPoint('LEFT', 32, 0); row.label:SetPoint('RIGHT', -150, 0)
+        row.cat = S.Text(row, 10, S.colors.muted, 'RIGHT'); row.cat:SetPoint('RIGHT', -30, 0); row.cat:SetWidth(116)
         row.count = text(row, 'GameFontDisableSmall', 'RIGHT'); row.count:SetPoint('RIGHT', -4, 0)
         row:SetScript('OnClick', function(self)
             if not self.entry then return end
@@ -559,7 +567,7 @@ local function create(parent)
     local slider = S.Scrollbar(frame, ROWS * ROW_H, function(offset)
         if offset ~= state.offset then state.offset = offset; Q.Run('défilement', renderRows) end
     end)
-    slider:SetPoint('TOPLEFT', 514, -30)
+    slider:SetPoint('TOPLEFT', LIST_X + LIST_W - 12, -30)
     frame.slider = slider
     frame:EnableMouseWheel(true)
     frame:SetScript('OnMouseWheel', function(_, delta)
@@ -568,14 +576,14 @@ local function create(parent)
     end)
     frame.empty = text(frame, 'GameFontDisable', 'CENTER')
     frame.empty:SetPoint('CENTER', listBg, 'CENTER')
-    frame.empty:SetWordWrap(true); frame.empty:SetWidth(280)
+    frame.empty:SetWordWrap(true); frame.empty:SetWidth(LIST_W - 60)
     frame.empty:SetText('Aucune recette.\nOuvre tes fenêtres de métier pour enregistrer les tiennes, puis synchronise avec la guilde.')
 
     -- Colonne droite : détail de la recette choisie
     local d = CreateFrame('Frame', nil, frame)
     local detailsBg = S.Box(frame, S.colors.panel, S.colors.line)
-    detailsBg:SetPoint('TOPLEFT', 536, -24); detailsBg:SetSize(244, ROWS * ROW_H + 12)
-    d:SetPoint('TOPLEFT', 550, -38); d:SetSize(216, 390)
+    detailsBg:SetPoint('TOPLEFT', DETAIL_X, -24); detailsBg:SetSize(W - DETAIL_X, ROWS * ROW_H + 12)
+    d:SetPoint('TOPLEFT', DETAIL_X + 14, -38); d.height = ROWS * ROW_H - 16; d:SetSize(DETAIL_W, d.height)
     d.icon = d:CreateTexture(nil, 'ARTWORK'); d.icon:SetSize(36, 36); d.icon:SetPoint('TOPLEFT', 0, 0); d.icon:SetTexCoord(0.08, 0.92, 0.08, 0.92)
     local iconButton = CreateFrame('Button', nil, d); iconButton:SetAllPoints(d.icon)
     iconButton:SetScript('OnEnter', function(self) if state.selected then showTooltip(self, state.selected.spell, state.selected.item) end end)
@@ -583,12 +591,12 @@ local function create(parent)
     d.name = text(d, 'GameFontNormal'); d.name:SetPoint('TOPLEFT', 44, -2); d.name:SetPoint('RIGHT', 0, 0); d.name:SetWordWrap(true)
     d.profession = text(d, 'GameFontDisableSmall'); d.profession:SetPoint('TOPLEFT', 44, -24)
     local reagentsTitle = S.Heading(d, 'Composants'); reagentsTitle:SetPoint('TOPLEFT', 0, -56)
-    d.noReagents = text(d, 'GameFontDisableSmall'); d.noReagents:SetPoint('TOPLEFT', 0, -76); d.noReagents:SetWidth(216)
+    d.noReagents = text(d, 'GameFontDisableSmall'); d.noReagents:SetPoint('TOPLEFT', 0, -76); d.noReagents:SetWidth(DETAIL_W)
     d.noReagents:SetText('Non relevés : survole l\'icône pour l\'infobulle du jeu.')
     d.reagents = {}
     for i = 1, MAX_REAGENTS do
         local line = CreateFrame('Button', nil, d)
-        line:SetSize(216, 18); line:SetPoint('TOPLEFT', 0, -76 - (i - 1) * 18)
+        line:SetSize(DETAIL_W, 18); line:SetPoint('TOPLEFT', 0, -76 - (i - 1) * 18)
         line.icon = line:CreateTexture(nil, 'ARTWORK'); line.icon:SetSize(16, 16); line.icon:SetPoint('LEFT', 0, 0)
         line.label = text(line, 'GameFontHighlightSmall'); line.label:SetPoint('LEFT', 22, 0); line.label:SetPoint('RIGHT', 0, 0)
         line:SetScript('OnEnter', function(self) showTooltip(self, nil, self.item) end)
@@ -603,7 +611,7 @@ local function create(parent)
     d.crafters = {}
     for i = 1, MAX_CRAFTERS do
         local line = CreateFrame('Button', nil, d)
-        line:SetSize(216, 18)
+        line:SetSize(DETAIL_W, 18)
         line.dot = line:CreateTexture(nil, 'ARTWORK'); line.dot:SetSize(8, 8); line.dot:SetPoint('LEFT', 2, 0)
         line.label = text(line, 'GameFontHighlightSmall'); line.label:SetPoint('LEFT', 16, 0); line.label:SetPoint('RIGHT', -50, 0)
         line.skill = text(line, 'GameFontDisableSmall', 'RIGHT'); line.skill:SetPoint('RIGHT', 0, 0)
@@ -625,17 +633,17 @@ local function create(parent)
     end)
     d.order = S.Button(d, 'Commander', 118, 20, 'primary'); d.order:SetPoint('BOTTOMRIGHT', 0, 0)
     d.order:SetScript('OnClick', function() UI.Order() end)
-    d.orderStatus = text(d, 'GameFontDisableSmall'); d.orderStatus:SetPoint('BOTTOMLEFT', 0, 24); d.orderStatus:SetWidth(216); d.orderStatus:SetWordWrap(true)
+    d.orderStatus = text(d, 'GameFontDisableSmall'); d.orderStatus:SetPoint('BOTTOMLEFT', 0, 24); d.orderStatus:SetWidth(DETAIL_W); d.orderStatus:SetWordWrap(true)
     frame.details = d
 
     -- Détail d'une commande (mode Commandes)
     local od = CreateFrame('Frame', nil, frame)
-    od:SetPoint('TOPLEFT', 550, -38); od:SetSize(216, 390)
+    od:SetPoint('TOPLEFT', DETAIL_X + 14, -38); od:SetSize(DETAIL_W, ROWS * ROW_H - 16)
     od.icon = od:CreateTexture(nil, 'ARTWORK'); od.icon:SetSize(36, 36); od.icon:SetPoint('TOPLEFT', 0, 0)
-    od.name = text(od, 'GameFontNormal'); od.name:SetPoint('TOPLEFT', 44, -2); od.name:SetWidth(172); od.name:SetWordWrap(true)
-    od.who = text(od, 'GameFontHighlightSmall'); od.who:SetPoint('TOPLEFT', 0, -50); od.who:SetWidth(216)
-    od.status = text(od, 'GameFontDisableSmall'); od.status:SetPoint('TOPLEFT', 0, -70); od.status:SetWidth(216); od.status:SetWordWrap(true)
-    od.note = text(od, 'GameFontHighlightSmall'); od.note:SetPoint('TOPLEFT', 0, -104); od.note:SetWidth(216); od.note:SetWordWrap(true)
+    od.name = text(od, 'GameFontNormal'); od.name:SetPoint('TOPLEFT', 44, -2); od.name:SetWidth(DETAIL_W - 44); od.name:SetWordWrap(true)
+    od.who = text(od, 'GameFontHighlightSmall'); od.who:SetPoint('TOPLEFT', 0, -50); od.who:SetWidth(DETAIL_W)
+    od.status = text(od, 'GameFontDisableSmall'); od.status:SetPoint('TOPLEFT', 0, -70); od.status:SetWidth(DETAIL_W); od.status:SetWordWrap(true)
+    od.note = text(od, 'GameFontHighlightSmall'); od.note:SetPoint('TOPLEFT', 0, -104); od.note:SetWidth(DETAIL_W); od.note:SetWordWrap(true)
     local function act(status)
         return function()
             if state.selected and Q.SetOrderStatus(state.selected.id, status) then Q.Run('commande', UI.Refresh) end
@@ -648,7 +656,7 @@ local function create(parent)
     od:Hide()
     frame.orderDetails = od
     frame.detailsEmpty = text(frame, 'GameFontDisable', 'CENTER')
-    frame.detailsEmpty:SetPoint('TOPLEFT', 550, -180); frame.detailsEmpty:SetWidth(216); frame.detailsEmpty:SetWordWrap(true)
+    frame.detailsEmpty:SetPoint('TOPLEFT', DETAIL_X + 14, -260); frame.detailsEmpty:SetWidth(DETAIL_W); frame.detailsEmpty:SetWordWrap(true)
     frame.detailsEmpty:SetText('Choisis une recette pour voir ses composants et qui sait la fabriquer.')
 
     -- Noms d'objets arrivés du serveur : rafraîchit le détail (uniquement fenêtre ouverte)
@@ -699,7 +707,7 @@ end
 
 -- Onglet « Craft » de la fenêtre Quintessence
 Quintessence:RegisterModule({
-    id = 'craft', title = 'Craft', order = 20, icon = 'Interface\\Icons\\Trade_BlackSmithing', version = Q.version, width = 780, height = 486,
+    id = 'craft', title = 'Craft', order = 20, icon = 'Interface\\Icons\\Trade_BlackSmithing', version = Q.version, width = W, height = H,
     create = function(parent)
         create(parent)
         if state.query ~= '' then frame.search:SetText(state.query) end

@@ -26,10 +26,10 @@ function N.RefreshSettings()
 end
 local function create(parent)
     panel = CreateFrame('Frame', nil, parent)
-    panel:SetSize(780, 486)
+    panel:SetSize(1078, 658) -- toute la zone de contenu (1.39.0), textes de la même taille
     buttons = {}
     local title = S.Text(panel, 20, S.colors.text); title:SetPoint('TOPLEFT', 0, -2); title:SetText('Réglages — Voyages')
-    local hint = S.Text(panel, 12, S.colors.muted); hint:SetPoint('TOPLEFT', 0, -32); hint:SetWidth(770); hint:SetWordWrap(true)
+    local hint = S.Text(panel, 12, S.colors.muted); hint:SetPoint('TOPLEFT', 0, -32); hint:SetWidth(1068); hint:SetWordWrap(true)
     hint:SetText('Choisis les informations visibles. Les changements s’appliquent immédiatement et restent enregistrés.')
     panel.state = S.Text(panel, 12, S.colors.gold); panel.state:SetPoint('TOPLEFT', 0, -72)
     local stop = S.Button(panel, 'Arrêter le trajet', 140, 26, 'ghost'); stop:SetPoint('TOPRIGHT', 0, -65)
@@ -38,18 +38,18 @@ local function create(parent)
         local key = row[1]
         local col, line = (i - 1) % 2, math.floor((i - 1) / 2)
         local box = S.Box(panel, S.colors.panel, S.colors.line)
-        box:SetSize(384, 46); box:SetPoint('TOPLEFT', col * 396, -110 - line * 52)
-        local label = S.Text(box, 12, S.colors.text); label:SetPoint('TOPLEFT', 10, -8); label:SetWidth(265); label:SetText(row[2])
-        local help = S.Text(box, 10, S.colors.muted); help:SetPoint('TOPLEFT', 10, -26); help:SetWidth(365); help:SetText(row[3])
+        box:SetSize(532, 46); box:SetPoint('TOPLEFT', col * 546, -110 - line * 52)
+        local label = S.Text(box, 12, S.colors.text); label:SetPoint('TOPLEFT', 10, -8); label:SetWidth(410); label:SetText(row[2])
+        local help = S.Text(box, 10, S.colors.muted); help:SetPoint('TOPLEFT', 10, -26); help:SetWidth(512); help:SetText(row[3])
         local toggle = S.Button(box, '', 90, 22, 'ghost'); toggle:SetPoint('TOPRIGHT', -8, -4)
         toggle:SetScript('OnClick', function() N.SetOption(key, not N.Options()[key]) end)
         buttons[key] = toggle
     end
-    local note = S.Text(panel, 11, S.colors.muted); note:SetPoint('TOPLEFT', 0, -438); note:SetWidth(775); note:SetWordWrap(true)
+    local note = S.Text(panel, 11, S.colors.muted); note:SetPoint('TOPLEFT', 0, -438); note:SetWidth(1068); note:SetWordWrap(true)
     note:SetText('Chemin utilise les passages du terrain. Bateaux, vols et portails peuvent faire partie du trajet même si leurs icônes sont masquées. Moteur Shortest Path Forever, de cjber, intégré à Quintessence (GPL).')
     N.RefreshSettings()
     return panel
 end
 Core:RegisterModule({ id = 'settings', title = 'Réglages', order = 98,
-    icon = 'Interface\\Icons\\Trade_Engineering', width = 780, height = 486,
+    icon = 'Interface\\Icons\\Trade_Engineering', width = 1078, height = 658,
     create = create, refresh = N.RefreshSettings, summary = function() return 'Voyages : affichage, activation et démarrage automatique.' end })

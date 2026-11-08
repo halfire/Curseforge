@@ -1,6 +1,6 @@
 local _, Q = ...
 --[[
-  UI.lua : Interface utilisateur du module Quinte-group dans la fenêtre Quintessence (760 × 440).
+  UI.lua : Interface utilisateur du module Quinte-group dans la fenêtre Quintessence (1078 × 658).
   Trois sous-onglets :
     1. Quêtes partagées : journal local et regroupement en 1 clic sur les quêtes communes.
     2. Recherche donjons : besoins par donjon, matrice anti-conflit de butin et groupe compatible.
@@ -80,24 +80,31 @@ local activeTab = 'leveling'
 -- ONGLET 1 : COMPAGNON LEVELING & QUÊTES PARTAGÉES
 -- =========================================================================
 
-local QUEST_ROWS = 9
+-- Onglet de la grande fenêtre Quintessence (1.38.1+) : 1078 × 658 à l'échelle 1, textes de la même taille qu'avant.
+-- Chaque sous-onglet occupe PW × PH sous la barre d'onglets.
+local W, H = 1078, 658
+local PW, PH = W, H - 40
+local MY_W = 380                                   -- Quêtes : mes quêtes à gauche, quêtes en commun à droite
+local SHARED_W = PW - MY_W - 12                    -- 686
+local MY_ROWS = math.floor((PH - 154) / 27)        -- 17
+local QUEST_ROWS = math.floor((PH - 76) / 39)      -- 13
 local sharedOpen, sharedOffset = nil, 0 -- quête ouverte dans « Quêtes partagées », décalage de la molette
 
 local function createLevelingPanel(parent)
     local panel = CreateFrame('Frame', nil, parent)
     panel:SetAllPoints()
 
-    -- Colonne gauche : Mes quêtes actives (276 × 400)
+    -- Colonne gauche : Mes quêtes actives
     local leftBox = S.Box(panel, S.colors.panel, S.colors.line)
     leftBox:SetPoint('TOPLEFT', 0, 0)
-    leftBox:SetSize(276, 400)
+    leftBox:SetSize(MY_W, PH)
 
     local myHeading = S.Heading(leftBox, 'Mon journal de quêtes')
     myHeading:SetPoint('TOPLEFT', 14, -12)
 
     panel.myRows = {}
-    for i = 1, 9 do
-        local row = S.Row(leftBox, 274, 26)
+    for i = 1, MY_ROWS do
+        local row = S.Row(leftBox, MY_W - 2, 26)
         row:SetPoint('TOPLEFT', 1, -34 - (i - 1) * 27)
         row.dot = S.Fill(row, 'ARTWORK', S.colors.gold)
         row.dot:SetSize(6, 6); row.dot:SetPoint('LEFT', 12, 0)
@@ -119,14 +126,14 @@ local function createLevelingPanel(parent)
         UI.RefreshLeveling()
     end)
 
-    -- Colonne droite : Quêtes en commun avec la guilde (472 × 400)
+    -- Colonne droite : Quêtes en commun avec la guilde
     local rightBox = S.Box(panel, S.colors.panel, S.colors.line)
-    rightBox:SetPoint('TOPLEFT', 288, 0)
-    rightBox:SetSize(472, 400)
+    rightBox:SetPoint('TOPLEFT', MY_W + 12, 0)
+    rightBox:SetSize(SHARED_W, PH)
 
     local sharedHeading = S.Heading(rightBox, 'Quêtes en commun avec la guilde')
     sharedHeading:SetPoint('TOPLEFT', 16, -12)
-    sharedHeading:SetWidth(270)
+    sharedHeading:SetWidth(SHARED_W - 202)
     panel.sharedHeading = sharedHeading
 
     -- Liste des personnes d'une quête : retour à la liste, inviter tout le monde
@@ -140,11 +147,11 @@ local function createLevelingPanel(parent)
     panel.sharedCount:SetPoint('TOPRIGHT', -16, -12)
     -- XP des membres du groupe (envoyée par leur addon)
     panel.partyXP = S.Text(rightBox, 11, S.colors.muted)
-    panel.partyXP:SetPoint('BOTTOMLEFT', 16, 10); panel.partyXP:SetWidth(440); panel.partyXP:SetWordWrap(true)
+    panel.partyXP:SetPoint('BOTTOMLEFT', 16, 10); panel.partyXP:SetWidth(SHARED_W - 32); panel.partyXP:SetWordWrap(true)
 
     panel.rows = {}
     for i = 1, QUEST_ROWS do
-        local r = S.Row(rightBox, 470, 38)
+        local r = S.Row(rightBox, SHARED_W - 2, 38)
         r:SetPoint('TOPLEFT', 1, -36 - (i - 1) * 39)
 
         local icon = r:CreateTexture(nil, 'ARTWORK')
@@ -154,11 +161,11 @@ local function createLevelingPanel(parent)
 
         local qText = S.Text(r, 13, S.colors.text)
         qText:SetPoint('TOPLEFT', 42, -5)
-        qText:SetWidth(300)
+        qText:SetWidth(SHARED_W - 172)
 
         local mText = S.Text(r, 11, S.colors.muted)
         mText:SetPoint('TOPLEFT', 42, -21)
-        mText:SetWidth(300)
+        mText:SetWidth(SHARED_W - 172)
 
         local count = S.Text(r, 12, S.colors.gold, 'RIGHT')
         count:SetPoint('RIGHT', -14, 0)
@@ -184,7 +191,7 @@ local function createLevelingPanel(parent)
 
     local emptyText = S.Text(rightBox, 12, S.colors.muted, 'CENTER')
     emptyText:SetPoint('CENTER', 0, -10)
-    emptyText:SetWidth(380)
+    emptyText:SetWidth(SHARED_W - 92)
     emptyText:SetWordWrap(true)
     emptyText:SetText('Aucune quête en commun détectée pour l\'instant.\nClique sur « Scanner & diffuser mes quêtes » pour comparer ton journal avec la guilde.')
     panel.emptyText = emptyText
@@ -310,16 +317,22 @@ local dungeonState = {
     showQuests = true -- quêtes du donjon affichées d'abord, les butins au clic
 }
 
-local D_ROWS, M_ROWS, L_ROWS = 9, 4, 4
+local DL_W = 260                                   -- Donjons : liste à gauche, détail à droite
+local DR_W = PW - DL_W - 12                        -- 806
+local IW = DR_W - 28                               -- 778 : largeur intérieure du détail
+local D_ROWS = math.floor((PH - 58) / 38)          -- 14 donjons
+local M_ROWS = 8                                   -- membres inscrits
+local L_ROWS = math.floor((PH - 48 - 96 - (M_ROWS * 26 + 4) - 28 - 18) / 27) -- objets recherchés
+local LOOT_Y = -96 - (M_ROWS * 26 + 4) - 12
 
 local function createDungeonsPanel(parent)
     local panel = CreateFrame('Frame', nil, parent)
     panel:SetAllPoints()
 
-    -- 1. Barre de préférences en haut (760 × 38)
+    -- 1. Barre de préférences en haut
     local prefBox = S.Box(panel, S.colors.panel, S.colors.line)
     prefBox:SetPoint('TOPLEFT', 0, 0)
-    prefBox:SetSize(760, 38)
+    prefBox:SetSize(PW, 38)
 
     local roleLabel = S.Text(prefBox, 11, S.colors.gold)
     roleLabel:SetPoint('LEFT', 12, 0)
@@ -347,7 +360,7 @@ local function createDungeonsPanel(parent)
     end
     panel.roleButtons = roleButtons
 
-    local noteInput = S.Input(prefBox, 286, 'Note (ex. clé UBRS dispo, farm BiS)…')
+    local noteInput = S.Input(prefBox, 286 + PW - 760, 'Note (ex. clé UBRS dispo, farm BiS)…')
     noteInput:SetPoint('LEFT', posX + 8, 0)
     panel.noteInput = noteInput
 
@@ -364,10 +377,10 @@ local function createDungeonsPanel(parent)
     end)
     panel.btnSavePref = btnSavePref
 
-    -- 2. Colonne de gauche : Liste des donjons, noms courts (190 × 352)
+    -- 2. Colonne de gauche : Liste des donjons, noms courts
     local leftBox = S.Box(panel, S.colors.panel, S.colors.line)
     leftBox:SetPoint('TOPLEFT', 0, -48)
-    leftBox:SetSize(190, 352)
+    leftBox:SetSize(DL_W, PH - 48)
     leftBox:EnableMouseWheel(true)
     leftBox:SetScript('OnMouseWheel', function(_, delta)
         dungeonState.dungeonOffset = math.max(0, dungeonState.dungeonOffset - delta * 2)
@@ -376,7 +389,7 @@ local function createDungeonsPanel(parent)
 
     local dungeonRows = {}
     for i = 1, D_ROWS do
-        local row = S.Row(leftBox, 174, 36)
+        local row = S.Row(leftBox, DL_W - 16, 36)
         row:SetPoint('TOPLEFT', 1, -6 - (i - 1) * 38)
 
         row.icon = row:CreateTexture(nil, 'ARTWORK')
@@ -385,14 +398,14 @@ local function createDungeonsPanel(parent)
 
         row.name = S.Text(row, 12, S.colors.text)
         row.name:SetPoint('TOPLEFT', 38, -4)
-        row.name:SetWidth(92)
+        row.name:SetWidth(DL_W - 98)
 
         row.count = S.Text(row, 11, S.colors.mint, 'RIGHT')
         row.count:SetPoint('TOPRIGHT', -8, -4)
 
         row.sub = S.Text(row, 10, S.colors.muted)
         row.sub:SetPoint('TOPLEFT', 38, -20)
-        row.sub:SetWidth(130)
+        row.sub:SetWidth(DL_W - 60)
 
         row:SetScript('OnClick', function()
             if row.dungeonCode then
@@ -413,12 +426,12 @@ local function createDungeonsPanel(parent)
             UI.RefreshDungeons()
         end
     end)
-    panel.dungeonScroll:SetPoint('TOPLEFT', 178, -6)
+    panel.dungeonScroll:SetPoint('TOPLEFT', DL_W - 12, -6)
 
-    -- 3. Colonne de droite : Détails du donjon, membres et matrice de butin (558 × 352)
+    -- 3. Colonne de droite : Détails du donjon, membres et matrice de butin
     local rightBox = S.Box(panel, S.colors.panel, S.colors.line)
-    rightBox:SetPoint('TOPLEFT', 202, -48)
-    rightBox:SetSize(558, 352)
+    rightBox:SetPoint('TOPLEFT', DL_W + 12, -48)
+    rightBox:SetSize(DR_W, PH - 48)
     panel.rightBox = rightBox
 
     local dIcon = rightBox:CreateTexture(nil, 'ARTWORK')
@@ -428,12 +441,12 @@ local function createDungeonsPanel(parent)
 
     local dTitle = S.Text(rightBox, 15, S.colors.text)
     dTitle:SetPoint('TOPLEFT', 50, -11)
-    dTitle:SetWidth(255)
+    dTitle:SetWidth(DR_W - 340)
     panel.dTitle = dTitle
 
     local dSub = S.Text(rightBox, 11, S.colors.muted)
     dSub:SetPoint('TOPLEFT', 50, -29)
-    dSub:SetWidth(255)
+    dSub:SetWidth(DR_W - 340)
     panel.dSub = dSub
 
     local btnInviteComp = S.Button(rightBox, 'Groupe sans conflit', 142, 24, 'primary')
@@ -466,7 +479,7 @@ local function createDungeonsPanel(parent)
     -- Bandeau d'état des conflits de butin
     local banner = S.Box(rightBox, S.colors.bg, S.colors.line)
     banner:SetPoint('TOPLEFT', 14, -48)
-    banner:SetSize(530, 24)
+    banner:SetSize(IW, 24)
     panel.banner = banner
 
     local bannerDot = S.Fill(banner, 'ARTWORK', S.colors.mint)
@@ -475,7 +488,7 @@ local function createDungeonsPanel(parent)
 
     local bannerText = S.Text(banner, 11, S.colors.text)
     bannerText:SetPoint('LEFT', 24, 0)
-    bannerText:SetWidth(196)
+    bannerText:SetWidth(IW - 334)
     panel.bannerText = bannerText
 
     -- Repère, flèche et carte ouverte sur l'entrée du donjon affiché
@@ -533,7 +546,7 @@ local function createDungeonsPanel(parent)
 
     local memberBox = S.Box(rightBox, S.colors.bg, S.colors.line)
     memberBox:SetPoint('TOPLEFT', 14, -96)
-    memberBox:SetSize(530, M_ROWS * 26 + 4)
+    memberBox:SetSize(IW, M_ROWS * 26 + 4)
     memberBox:EnableMouseWheel(true)
     memberBox:SetScript('OnMouseWheel', function(_, delta)
         dungeonState.memberOffset = math.max(0, dungeonState.memberOffset - delta)
@@ -542,7 +555,7 @@ local function createDungeonsPanel(parent)
 
     local memberRows = {}
     for i = 1, M_ROWS do
-        local r = S.Row(memberBox, 528, 25)
+        local r = S.Row(memberBox, IW - 2, 25)
         r:SetPoint('TOPLEFT', 1, -2 - (i - 1) * 26)
 
         local dot = S.Fill(r, 'ARTWORK', S.colors.mint)
@@ -552,10 +565,10 @@ local function createDungeonsPanel(parent)
         roleText:SetPoint('LEFT', 22, 0); roleText:SetWidth(46)
 
         local nameText = S.Text(r, 12, S.colors.text)
-        nameText:SetPoint('LEFT', 70, 0); nameText:SetWidth(155)
+        nameText:SetPoint('LEFT', 70, 0); nameText:SetWidth(255)
 
         local lootSummary = S.Text(r, 11, S.colors.muted)
-        lootSummary:SetPoint('LEFT', 230, 0); lootSummary:SetWidth(221)
+        lootSummary:SetPoint('LEFT', 330, 0); lootSummary:SetWidth(IW - 407)
 
         local invBtn = S.Button(r, 'Inviter', 64, 20, 'ghost')
         invBtn:SetPoint('RIGHT', -6, 0)
@@ -584,7 +597,7 @@ local function createDungeonsPanel(parent)
 
     -- Section 2 : Matrice des butins convoités & anti-conflit
     local lHeading = S.Heading(rightBox, 'Butins convoités & concurrence')
-    lHeading:SetPoint('TOPLEFT', 14, -212)
+    lHeading:SetPoint('TOPLEFT', 14, LOOT_Y)
     panel.lHeading = lHeading
     -- Bascule : butins convoités ↔ quêtes à prendre avant le donjon ; lien vers le butin des boss (quinte-bis)
     panel.questToggle = S.Button(rightBox, 'Quêtes', 76, 20, 'ghost')
@@ -601,8 +614,8 @@ local function createDungeonsPanel(parent)
     end)
 
     local lootBox = S.Box(rightBox, S.colors.bg, S.colors.line)
-    lootBox:SetPoint('TOPLEFT', 14, -228)
-    lootBox:SetSize(530, L_ROWS * 27 + 4)
+    lootBox:SetPoint('TOPLEFT', 14, LOOT_Y - 16)
+    lootBox:SetSize(IW, L_ROWS * 27 + 4)
     lootBox:EnableMouseWheel(true)
     lootBox:SetScript('OnMouseWheel', function(_, delta)
         dungeonState.lootOffset = math.max(0, dungeonState.lootOffset - delta)
@@ -611,7 +624,7 @@ local function createDungeonsPanel(parent)
 
     local lootRows = {}
     for i = 1, L_ROWS do
-        local r = S.Row(lootBox, 528, 26)
+        local r = S.Row(lootBox, IW - 2, 26)
         r:SetPoint('TOPLEFT', 1, -2 - (i - 1) * 27)
 
         local icon = r:CreateTexture(nil, 'ARTWORK')
@@ -619,10 +632,10 @@ local function createDungeonsPanel(parent)
         icon:SetTexCoord(0.08, 0.92, 0.08, 0.92)
 
         local itemName = S.Text(r, 12, S.colors.text)
-        itemName:SetPoint('LEFT', 32, 0); itemName:SetWidth(210)
+        itemName:SetPoint('LEFT', 32, 0); itemName:SetWidth(310)
 
         local membersList = S.Text(r, 11, S.colors.muted, 'RIGHT')
-        membersList:SetPoint('RIGHT', -10, 0); membersList:SetWidth(270)
+        membersList:SetPoint('RIGHT', -10, 0); membersList:SetWidth(IW - 360)
 
         local action = S.Button(r, 'Partager', 64, 20, 'ghost')
         action:SetPoint('RIGHT', -6, 0)
@@ -817,8 +830,8 @@ function UI.RefreshDungeons()
                 r.frame:Show(); r.frame.itemID = nil; r.frame.quest = q
                 r.icon:SetTexture('Interface\\Icons\\INV_Misc_Note_01')
                 r.itemName:SetText(string.format('|c%s[%d]|r %s', S.hex.gold, q.level, Q.Safe(q.title)))
-                r.itemName:SetWidth(185)
-                r.membersList:SetPoint('RIGHT', -182, 0); r.membersList:SetWidth(124)
+                r.itemName:SetWidth(285)
+                r.membersList:SetPoint('RIGHT', -182, 0); r.membersList:SetWidth(IW - 506)
                 r.place:SetShown(q.state ~= 'done' and Q.HasDungeonQuestPlace(q.id))
                 r.place:SetScript('OnClick', function() Q.Run('lieu de quête', Q.ShowDungeonQuestPlace, q.id, q.title, selectedNeeds.code) end)
                 r.route:SetShown(q.state ~= 'done' and Q.HasDungeonQuestPlace(q.id))
@@ -876,8 +889,8 @@ function UI.RefreshDungeons()
             r.action:Hide()
             r.place:Hide()
             r.route:Hide()
-            r.itemName:SetWidth(210)
-            r.membersList:SetPoint('RIGHT', -10, 0); r.membersList:SetWidth(270)
+            r.itemName:SetWidth(310)
+            r.membersList:SetPoint('RIGHT', -10, 0); r.membersList:SetWidth(IW - 360)
             r.icon:SetTexture(lt.icon or 'Interface\\Icons\\INV_Misc_QuestionMark')
             local qHex = QUALITY_HEX[lt.quality or 3] or 'ffffffff'
             r.itemName:SetText('|c' .. qHex .. Q.Safe(lt.name) .. '|r')
@@ -901,14 +914,14 @@ end
 -- ONGLET 3 : LE CODEX SECRET DE QUINTESSENCE
 -- =========================================================================
 
-local CODEX_ROWS = 10
+local CODEX_ROWS = math.floor((PH - 44) / 35) -- 16
 local codexOffset = 0
 
 local function createCodexPanel(parent)
     local panel = CreateFrame('Frame', nil, parent)
     panel:SetAllPoints()
 
-    local searchInput = S.Input(panel, 280, 'Rechercher un objet ou une zone…')
+    local searchInput = S.Input(panel, 420, 'Rechercher un objet ou une zone…')
     searchInput:SetPoint('TOPLEFT', 0, 0)
     searchInput:SetScript('OnTextChanged', function(self)
         if self.placeholder then self.placeholder:SetShown((self:GetText() or '') == '') end
@@ -923,7 +936,7 @@ local function createCodexPanel(parent)
 
     local listBox = S.Box(panel, S.colors.panel, S.colors.line)
     listBox:SetPoint('TOPLEFT', 0, -34)
-    listBox:SetSize(760, 366)
+    listBox:SetSize(PW, PH - 34)
     listBox:EnableMouseWheel(true)
     listBox:SetScript('OnMouseWheel', function(_, delta)
         codexOffset = math.max(0, codexOffset - delta * 2)
@@ -932,7 +945,7 @@ local function createCodexPanel(parent)
 
     local rows = {}
     for i = 1, CODEX_ROWS do
-        local r = S.Row(listBox, 742, 34)
+        local r = S.Row(listBox, PW - 18, 34)
         r:SetPoint('TOPLEFT', 1, -6 - (i - 1) * 35)
 
         local icon = r:CreateTexture(nil, 'ARTWORK')
@@ -941,11 +954,11 @@ local function createCodexPanel(parent)
 
         local nameText = S.Text(r, 13, S.colors.text)
         nameText:SetPoint('TOPLEFT', 42, -3)
-        nameText:SetWidth(420)
+        nameText:SetWidth(640)
 
         local metaText = S.Text(r, 10, S.colors.muted)
         metaText:SetPoint('TOPLEFT', 42, -19)
-        metaText:SetWidth(540)
+        metaText:SetWidth(PW - 220)
 
         local ilvlText = S.Text(r, 11, S.colors.gold, 'RIGHT')
         ilvlText:SetPoint('RIGHT', -14, 0)
@@ -966,11 +979,11 @@ local function createCodexPanel(parent)
             UI.RefreshCodex(searchInput:GetText())
         end
     end)
-    panel.scroll:SetPoint('TOPLEFT', 746, -6)
+    panel.scroll:SetPoint('TOPLEFT', PW - 14, -6)
 
     local emptyText = S.Text(listBox, 12, S.colors.muted, 'CENTER')
     emptyText:SetPoint('CENTER', 0, 0)
-    emptyText:SetWidth(460)
+    emptyText:SetWidth(660)
     emptyText:SetWordWrap(true)
     emptyText:SetText('Le Codex secret est vide pour l\'instant.\nChaque objet rare ou épique ramassé en donjon ou raid par la guilde est automatiquement archivé ici.')
     panel.emptyText = emptyText
@@ -1092,8 +1105,8 @@ Quintessence:RegisterModule({
     order = 45,
     icon = 'Interface\\Icons\\INV_Misc_Book_08',
     version = Q.version,
-    width = 760,
-    height = 440,
+    width = W,
+    height = H,
     create = function(parent)
         create(parent)
         return mainFrame

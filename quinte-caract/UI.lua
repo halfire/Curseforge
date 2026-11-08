@@ -9,7 +9,14 @@ local _, Q = ...
 ]]
 local UI = {}
 Q.UI = UI
-local ROWS, ROW_H = 18, 22
+-- Onglet de la grande fenêtre Quintessence (1.38.1+) : 1078 × 658 à l'échelle 1, textes de la même taille qu'avant
+local W, H = 1078, 658
+local ROW_H = 22
+local ROWS = math.floor((H - 74) / ROW_H)  -- 26 personnages visibles
+local LIST_W = 280
+local DETAIL_X = LIST_W + 12
+local DW, DH = W - DETAIL_X - 32, H - 28   -- 754 × 630 : contenu du détail
+local TRAIN_LINES = math.floor((DH - 44 - 30) / 18)
 local SLOT_NAMES = { [1] = 'Tête', [2] = 'Cou', [3] = 'Épaules', [4] = 'Chemise', [5] = 'Torse', [6] = 'Taille', [7] = 'Jambes',
     [8] = 'Pieds', [9] = 'Poignets', [10] = 'Mains', [11] = 'Doigt 1', [12] = 'Doigt 2', [13] = 'Bijou 1', [14] = 'Bijou 2',
     [15] = 'Dos', [16] = 'Main droite', [17] = 'Main gauche', [18] = 'À distance', [19] = 'Tabard' }
@@ -221,19 +228,19 @@ end
 local function create(parent)
     frame = CreateFrame('Frame', nil, parent)
     frame:SetAllPoints(parent)
-    local search = S.Input(frame, 220, 'Rechercher un personnage…')
+    local search = S.Input(frame, LIST_W, 'Rechercher un personnage…')
     search:SetPoint('TOPLEFT', 0, 0); search:SetMaxLetters(24)
     search:SetScript('OnTextChanged', function(box)
         state.query = box:GetText() or ''; box.placeholder:SetShown(state.query == ''); state.offset = 0
         Q.Run('recherche', UI.Refresh)
     end)
     local listBg = S.Box(frame, S.colors.panel, S.colors.line)
-    listBg:SetPoint('TOPLEFT', 0, -34); listBg:SetSize(220, ROWS * ROW_H + 10)
+    listBg:SetPoint('TOPLEFT', 0, -34); listBg:SetSize(LIST_W, ROWS * ROW_H + 10)
     frame.rows = {}
     for i = 1, ROWS do
-        local row = S.Row(frame, 218, ROW_H)
+        local row = S.Row(frame, LIST_W - 2, ROW_H)
         row:SetPoint('TOPLEFT', 1, -39 - (i - 1) * ROW_H)
-        row.label = text(row, 'GameFontHighlightSmall'); row.label:SetPoint('LEFT', 12, 0); row.label:SetPoint('RIGHT', -64, 0)
+        row.label = text(row, 'GameFontHighlightSmall'); row.label:SetPoint('LEFT', 12, 0); row.label:SetPoint('RIGHT', -110, 0)
         row.info = text(row, 'GameFontDisableSmall', 'RIGHT'); row.info:SetPoint('RIGHT', -10, 0)
         row:SetScript('OnClick', function(self)
             if self.key then state.selected = self.key; Q.Run('sélection', function() renderList(); renderDetails() end) end
@@ -245,9 +252,9 @@ local function create(parent)
     frame.count = text(frame, 'GameFontDisableSmall'); frame.count:SetPoint('BOTTOMLEFT', 2, 4)
 
     local detailsBg = S.Box(frame, S.colors.panel, S.colors.line)
-    detailsBg:SetPoint('TOPLEFT', 232, 0); detailsBg:SetSize(528, 440)
+    detailsBg:SetPoint('TOPLEFT', DETAIL_X, 0); detailsBg:SetSize(W - DETAIL_X, H)
     local d = CreateFrame('Frame', nil, frame)
-    d:SetPoint('TOPLEFT', 248, -14); d:SetSize(496, 414)
+    d:SetPoint('TOPLEFT', DETAIL_X + 16, -14); d:SetSize(DW, DH)
     d.name = text(d, 'GameFontNormalLarge'); d.name:SetPoint('TOPLEFT', 0, 0)
     d.meta = text(d, 'GameFontDisableSmall'); d.meta:SetPoint('TOPLEFT', 0, -24); d.meta:SetPoint('RIGHT', 0, 0)
     d.toggle = S.Button(d, 'Vue liste', 96, 22, 'ghost'); d.toggle:SetPoint('TOPRIGHT', 0, 2)
@@ -258,14 +265,14 @@ local function create(parent)
     end)
     d.train = S.Button(d, 'Entraînement', 104, 22, 'ghost'); d.train:SetPoint('TOPRIGHT', -102, 2)
     d.train:SetScript('OnClick', function() state.training = not state.training; state.trainOffset = 0; Q.Run('entraînement', renderDetails) end)
-    local tv = CreateFrame('Frame', nil, d); tv:SetPoint('TOPLEFT', 0, -44); tv:SetSize(496, 370)
+    local tv = CreateFrame('Frame', nil, d); tv:SetPoint('TOPLEFT', 0, -44); tv:SetSize(DW, DH - 44)
     tv.lines = {}
-    for i = 1, 19 do
-        local fs = S.Text(tv, 11, S.colors.text); fs:SetPoint('TOPLEFT', 0, -(i - 1) * 18); fs:SetWidth(496)
+    for i = 1, TRAIN_LINES do
+        local fs = S.Text(tv, 11, S.colors.text); fs:SetPoint('TOPLEFT', 0, -(i - 1) * 18); fs:SetWidth(DW)
         if fs.SetWordWrap then fs:SetWordWrap(false) end
         tv.lines[i] = fs
     end
-    tv.note = S.Text(tv, 10, S.colors.muted); tv.note:SetPoint('BOTTOMLEFT', 0, 0); tv.note:SetWidth(496)
+    tv.note = S.Text(tv, 10, S.colors.muted); tv.note:SetPoint('BOTTOMLEFT', 0, 0); tv.note:SetWidth(DW)
     tv:EnableMouseWheel(true)
     tv:SetScript('OnMouseWheel', function(_, delta) state.trainOffset = math.max(0, (state.trainOffset or 0) - delta * 3); Q.Run('défilement', renderDetails) end)
     tv:Hide()
@@ -278,7 +285,7 @@ local function create(parent)
     end
     local function untooltip() if GameTooltip then GameTooltip:Hide() end end
     -- Vue fiche : emplacements comme la fenêtre de personnage du jeu
-    local f = CreateFrame('Frame', nil, d); f:SetPoint('TOPLEFT', 0, -44); f:SetSize(496, 370)
+    local f = CreateFrame('Frame', nil, d); f:SetPoint('TOPLEFT', 0, -44); f:SetSize(DW, DH - 44)
     f.slots = {}
     local function slotButton(slot, x, y)
         local b = S.Box(f, S.colors.bg, S.colors.line, 'Button'); b:SetSize(SLOT_SIZE, SLOT_SIZE); b:SetPoint('TOPLEFT', x, y)
@@ -302,7 +309,7 @@ local function create(parent)
     local DOLL_LEFT = SLOT_SIZE + 5
     local RIGHT_COL_X = DOLL_LEFT + DOLL_W + 5
     local STATS_X = RIGHT_COL_X + SLOT_SIZE + 14
-    local STATS_W = 496 - STATS_X
+    local STATS_W = DW - STATS_X
 
     for i, slot in ipairs(SHEET_LEFT) do slotButton(slot, 0, -(i - 1) * (SLOT_SIZE + SLOT_GAP)) end
     for i, slot in ipairs(SHEET_RIGHT) do slotButton(slot, RIGHT_COL_X, -(i - 1) * (SLOT_SIZE + SLOT_GAP)) end
@@ -322,7 +329,7 @@ local function create(parent)
 
     -- Volet latéral droit des caractéristiques (façon panneau de stats Blizzard CharacterFrame)
     local statPanel = S.Box(f, S.colors.panel, S.colors.line)
-    statPanel:SetPoint('TOPLEFT', STATS_X, 0); statPanel:SetSize(STATS_W, DOLL_H + SLOT_SIZE + 6)
+    statPanel:SetPoint('TOPLEFT', STATS_X, 0); statPanel:SetSize(STATS_W, DH - 44)
 
     local h1 = S.Heading(statPanel, 'Attributs'); h1:SetPoint('TOPLEFT', 14, -10)
     f.attributes = S.Text(statPanel, 11, S.colors.muted); f.attributes:SetPoint('TOPLEFT', 14, -26); f.attributes:SetWidth(STATS_W - 28); f.attributes:SetJustifyV('TOP'); f.attributes:SetWordWrap(true)
@@ -340,7 +347,7 @@ local function create(parent)
     for i = 1, 19 do
         local line = CreateFrame('Button', nil, lv)
         line:SetScript('OnClick', function(self) if self.item then Quintessence.LinkItem(self.item) end end)
-        line:SetSize(310, 18); line:SetPoint('TOPLEFT', 0, -66 - (i - 1) * 18)
+        line:SetSize(430, 18); line:SetPoint('TOPLEFT', 0, -66 - (i - 1) * 18)
         line.label = text(line, 'GameFontHighlightSmall'); line.label:SetPoint('LEFT', 0, 0); line.label:SetPoint('RIGHT', 0, 0)
         local hl = S.Fill(line, 'HIGHLIGHT', { 1, 1, 1, 0.05 }); hl:SetAllPoints()
         line:SetScript('OnEnter', tooltip)
@@ -348,12 +355,12 @@ local function create(parent)
         d.gear[i] = line
     end
     d.noGear = text(lv, 'GameFontDisableSmall'); d.noGear:SetPoint('TOPLEFT', 0, -66); d.noGear:SetText('Aucun équipement relevé.')
-    local statsTitle = S.Heading(lv, 'Caractéristiques'); statsTitle:SetPoint('TOPLEFT', 326, -50)
-    d.stats = text(lv, 'GameFontHighlightSmall'); d.stats:SetPoint('TOPLEFT', 326, -66); d.stats:SetWidth(170); d.stats:SetWordWrap(true); d.stats:SetJustifyV('TOP')
-    d.extra = text(lv, 'GameFontHighlightSmall'); d.extra:SetPoint('TOPLEFT', 326, -260); d.extra:SetWidth(170); d.extra:SetWordWrap(true); d.extra:SetJustifyV('TOP')
+    local statsTitle = S.Heading(lv, 'Caractéristiques'); statsTitle:SetPoint('TOPLEFT', 450, -50)
+    d.stats = text(lv, 'GameFontHighlightSmall'); d.stats:SetPoint('TOPLEFT', 450, -66); d.stats:SetWidth(DW - 450); d.stats:SetWordWrap(true); d.stats:SetJustifyV('TOP')
+    d.extra = text(lv, 'GameFontHighlightSmall'); d.extra:SetPoint('TOPLEFT', 450, -300); d.extra:SetWidth(DW - 450); d.extra:SetWordWrap(true); d.extra:SetJustifyV('TOP')
     frame.details = d
     frame.detailsEmpty = text(frame, 'GameFontDisable', 'CENTER')
-    frame.detailsEmpty:SetPoint('TOPLEFT', 248, -190); frame.detailsEmpty:SetWidth(496)
+    frame.detailsEmpty:SetPoint('TOPLEFT', DETAIL_X + 16, -290); frame.detailsEmpty:SetWidth(DW)
     frame.detailsEmpty:SetText('Aucune fiche pour l\'instant : elles arrivent à la connexion et par la synchro de guilde.')
     frame:SetScript('OnShow', function() Q.Run('fenêtre', UI.Refresh) end)
     frame:Hide()
@@ -361,7 +368,7 @@ end
 
 -- Onglet « Fiches » de la fenêtre Quintessence
 Quintessence:RegisterModule({
-    id = 'caract', title = 'Fiches', order = 25, icon = 'Interface\\Icons\\INV_Chest_Chain', version = Q.version, width = 760, height = 440,
+    id = 'caract', title = 'Fiches', order = 25, icon = 'Interface\\Icons\\INV_Chest_Chain', version = Q.version, width = W, height = H,
     create = function(parent) create(parent); return frame end,
     refresh = function() UI.Refresh() end,
     summary = function()

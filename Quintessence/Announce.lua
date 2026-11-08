@@ -415,7 +415,9 @@ end
 -- ---------------------------------------------------------------------------------------------------------------------
 -- Onglet
 -- ---------------------------------------------------------------------------------------------------------------------
-local ROWS = 10
+local ROWS = math.floor((622 - 34) / 39) -- 15 annonces (corps de la section Officiers, 1.39.0)
+local AW, AL = 1078, 380 -- largeur du corps, liste à gauche
+local AE = AW - AL - 12   -- 686 : éditeur à droite
 local panel
 local state = { offset = 0, selected = nil, days = '0000000', confirm = false, enabled = true, every = nil }
 
@@ -465,15 +467,15 @@ local function create(parent)
     panel = CreateFrame('Frame', nil, parent)
     panel:SetAllPoints(parent)
     local heading = S.Heading(panel, 'Annonces en guilde'); heading:SetPoint('TOPLEFT', 0, 0)
-    panel.count = S.Text(panel, 11, S.colors.muted, 'RIGHT'); panel.count:SetPoint('TOPLEFT', 660, -3); panel.count:SetWidth(100)
-    local box = S.Box(panel, S.colors.panel, S.colors.line); box:SetPoint('TOPLEFT', 0, -24); box:SetSize(280, ROWS * 39 + 6)
+    panel.count = S.Text(panel, 11, S.colors.muted, 'RIGHT'); panel.count:SetPoint('TOPLEFT', AW - 100, -3); panel.count:SetWidth(100)
+    local box = S.Box(panel, S.colors.panel, S.colors.line); box:SetPoint('TOPLEFT', 0, -24); box:SetSize(AL, ROWS * 39 + 6)
     box:EnableMouseWheel(true)
     box:SetScript('OnMouseWheel', function(_, delta) state.offset = state.offset - delta; Core.Run('annonces', render) end)
     panel.rows = {}
     for i = 1, ROWS do
-        local row = S.Row(box, 268, 38); row:SetPoint('TOPLEFT', 1, -3 - (i - 1) * 39)
-        row.label = S.Text(row, 12, S.colors.text); row.label:SetPoint('LEFT', 10, 7); row.label:SetWidth(250)
-        row.when = S.Text(row, 10, S.colors.muted); row.when:SetPoint('LEFT', 10, -8); row.when:SetWidth(250)
+        local row = S.Row(box, AL - 12, 38); row:SetPoint('TOPLEFT', 1, -3 - (i - 1) * 39)
+        row.label = S.Text(row, 12, S.colors.text); row.label:SetPoint('LEFT', 10, 7); row.label:SetWidth(AL - 30)
+        row.when = S.Text(row, 10, S.colors.muted); row.when:SetPoint('LEFT', 10, -8); row.when:SetWidth(AL - 30)
         row:SetScript('OnClick', function(self)
             if self.id then fill(self.id); Core.Run('annonces', render) end
         end)
@@ -482,15 +484,15 @@ local function create(parent)
     panel.scroll = S.Scrollbar(box, ROWS * 39, function(offset)
         if offset ~= state.offset then state.offset = offset; Core.Run('annonces', render) end
     end)
-    panel.scroll:SetPoint('TOPLEFT', 272, -3)
-    panel.empty = S.Text(box, 12, S.colors.muted, 'CENTER'); panel.empty:SetPoint('TOPLEFT', 20, -150); panel.empty:SetWidth(240)
+    panel.scroll:SetPoint('TOPLEFT', AL - 8, -3)
+    panel.empty = S.Text(box, 12, S.colors.muted, 'CENTER'); panel.empty:SetPoint('TOPLEFT', 20, -250); panel.empty:SetWidth(AL - 40)
     panel.empty:SetWordWrap(true); panel.empty:SetText('Aucune annonce. Écris la première à droite.')
 
-    local e = S.Box(panel, S.colors.panel, S.colors.line); e:SetPoint('TOPLEFT', 292, -24); e:SetSize(468, ROWS * 39 + 6)
+    local e = S.Box(panel, S.colors.panel, S.colors.line); e:SetPoint('TOPLEFT', AL + 12, -24); e:SetSize(AE, ROWS * 39 + 6)
     panel.title = S.Text(e, 14, S.colors.text); panel.title:SetPoint('TOPLEFT', 16, -12)
     panel.new = S.Button(e, 'Nouvelle', 84, 22, 'ghost'); panel.new:SetPoint('TOPRIGHT', -14, -10)
     panel.new:SetScript('OnClick', function() fill(nil); Core.Run('annonces', render) end)
-    panel.text = S.Input(e, 436, 'Texte envoyé en guilde (255 caractères au plus)'); panel.text:SetPoint('TOPLEFT', 16, -42)
+    panel.text = S.Input(e, AE - 32, 'Texte envoyé en guilde (255 caractères au plus)'); panel.text:SetPoint('TOPLEFT', 16, -42)
     if panel.text.SetMaxBytes then panel.text:SetMaxBytes(255) end
     local daysLabel = S.Text(e, 11, S.colors.muted); daysLabel:SetPoint('TOPLEFT', 16, -78); daysLabel:SetText('Jours')
     panel.dayButtons = {}
@@ -550,9 +552,9 @@ local function create(parent)
             render()
         end)
     end)
-    panel.status = S.Text(e, 11, S.colors.muted); panel.status:SetPoint('TOPLEFT', 16, -262); panel.status:SetWidth(436); panel.status:SetWordWrap(true)
-    panel.note = S.Text(e, 11, S.colors.muted); panel.note:SetPoint('TOPLEFT', 16, -296); panel.note:SetWidth(436); panel.note:SetWordWrap(true)
-    local help = S.Text(e, 10, S.colors.muted); help:SetPoint('BOTTOMLEFT', 16, 12); help:SetWidth(436); help:SetWordWrap(true)
+    panel.status = S.Text(e, 11, S.colors.muted); panel.status:SetPoint('TOPLEFT', 16, -262); panel.status:SetWidth(AE - 32); panel.status:SetWordWrap(true)
+    panel.note = S.Text(e, 11, S.colors.muted); panel.note:SetPoint('TOPLEFT', 16, -296); panel.note:SetWidth(AE - 32); panel.note:SetWordWrap(true)
+    local help = S.Text(e, 10, S.colors.muted); help:SetPoint('BOTTOMLEFT', 16, 12); help:SetWidth(AE - 32); help:SetWordWrap(true)
     help:SetText('Part si un officier avec l\'addon est connecté à l\'heure dite. Une annonce manquée n\'est pas rattrapée.')
     panel:SetScript('OnShow', function() Core.Run('annonces', render) end)
     panel:Hide()

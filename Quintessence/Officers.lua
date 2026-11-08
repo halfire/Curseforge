@@ -31,7 +31,8 @@ local PUBLISH_MINUTES, PUBLISH_LEVELS, MAX_SHARED = 120, 3, 2000 -- 2 h de jeu o
 local PUBLISH_WAIT, EXTRA_SLOTS, EXTRA_DATE = 7200, 3, 1800 -- niveau pas encore envoyé ; 15 min ou une date plus juste de 30 min méritent une republication
 local SLOT, MAX_SPANS, LAST_PEX_LEVEL = 300, 300, 60 -- cases de 5 min, plages gardées par membre, niveau où le relevé s'arrête
 local DAY = 86400
-local W, H, BODY_TOP = 760, 476, 36
+local W, H, BODY_TOP = 1078, 658, 36 -- toute la zone de contenu (1.39.0), textes de la même taille
+local BODY_H = H - BODY_TOP
 
 local function secret(v) return type(issecretvalue) == 'function' and issecretvalue(v) end
 local function now() return (GetServerTime or Core.Now)() end
@@ -452,7 +453,8 @@ local root, active = nil, 'annonces'
 local pages, tabButtons = {}, {}
 local players = { sort = 'last', query = '', offset = 0, selected = nil, confirm = nil }
 local chatOffset = 0
-local P_ROWS, C_ROWS = 11, 17
+local P_ROWS, C_ROWS = math.floor((BODY_H - 98) / 31), math.floor((BODY_H - 64) / 21) -- 16 joueurs, 26 lignes de chat
+local PL_W = 620 -- tableau des joueurs, détail à droite
 
 local function renderPlayers(p)
     local at = now()
@@ -496,7 +498,7 @@ local function createPlayers(parent)
         b:SetScript('OnClick', function() players.sort = choice[1]; Core.Run('officiers', renderPlayers, p) end)
         p.sorts[choice[1]] = b
     end
-    local box = S.Box(p, S.colors.panel, S.colors.line); box:SetPoint('TOPLEFT', 0, -32); box:SetSize(444, P_ROWS * 31 + 30)
+    local box = S.Box(p, S.colors.panel, S.colors.line); box:SetPoint('TOPLEFT', 0, -32); box:SetSize(PL_W, P_ROWS * 31 + 30)
     box:EnableMouseWheel(true)
     box:SetScript('OnMouseWheel', function(_, delta) players.offset = players.offset - delta * 2; Core.Run('officiers', renderPlayers, p) end)
     for _, h in ipairs({ { 'Joueur', 12 }, { 'Niv.', 190 }, { '7 j', 236 }, { 'Niv./j', 282 }, { 'Vu', 342 } }) do
@@ -504,12 +506,12 @@ local function createPlayers(parent)
     end
     p.rows = {}
     for i = 1, P_ROWS do
-        local r = S.Row(box, 428, 30); r:SetPoint('TOPLEFT', 1, -26 - (i - 1) * 31)
-        r.name = S.Text(r, 12); r.name:SetPoint('LEFT', 11, 0); r.name:SetWidth(174)
-        r.level = S.Text(r, 12); r.level:SetPoint('LEFT', 189, 0); r.level:SetWidth(40)
-        r.gain = S.Text(r, 12, S.colors.mint); r.gain:SetPoint('LEFT', 235, 0); r.gain:SetWidth(40)
-        r.rate = S.Text(r, 12); r.rate:SetPoint('LEFT', 281, 0); r.rate:SetWidth(50)
-        r.last = S.Text(r, 11, S.colors.muted); r.last:SetPoint('LEFT', 341, 0); r.last:SetWidth(80)
+        local r = S.Row(box, PL_W - 16, 30); r:SetPoint('TOPLEFT', 1, -26 - (i - 1) * 31)
+        r.name = S.Text(r, 12); r.name:SetPoint('LEFT', 11, 0); r.name:SetWidth(250)
+        r.level = S.Text(r, 12); r.level:SetPoint('LEFT', 269, 0); r.level:SetWidth(40)
+        r.gain = S.Text(r, 12, S.colors.mint); r.gain:SetPoint('LEFT', 335, 0); r.gain:SetWidth(40)
+        r.rate = S.Text(r, 12); r.rate:SetPoint('LEFT', 401, 0); r.rate:SetWidth(50)
+        r.last = S.Text(r, 11, S.colors.muted); r.last:SetPoint('LEFT', 481, 0); r.last:SetWidth(PL_W - 500)
         r:SetScript('OnClick', function(self)
             if not self.key then return end
             players.selected = self.key
@@ -522,17 +524,17 @@ local function createPlayers(parent)
     p.scroll = S.Scrollbar(box, P_ROWS * 31, function(value)
         if value ~= players.offset then players.offset = value; Core.Run('officiers', renderPlayers, p) end
     end)
-    p.scroll:SetPoint('TOPLEFT', 430, -26)
-    p.empty = S.Text(box, 12, S.colors.muted, 'CENTER'); p.empty:SetPoint('TOPLEFT', 20, -150); p.empty:SetWidth(400); p.empty:SetWordWrap(true)
+    p.scroll:SetPoint('TOPLEFT', PL_W - 14, -26)
+    p.empty = S.Text(box, 12, S.colors.muted, 'CENTER'); p.empty:SetPoint('TOPLEFT', 20, -200); p.empty:SetWidth(PL_W - 40); p.empty:SetWordWrap(true)
     p.empty:SetText('Aucun joueur relevé pour l\'instant : le premier relevé arrive 30 secondes après la connexion.')
-    local side = S.Box(p, S.colors.panel, S.colors.line); side:SetPoint('TOPLEFT', 456, 0); side:SetSize(304, P_ROWS * 31 + 62)
-    p.none = S.Text(side, 12, S.colors.muted, 'CENTER'); p.none:SetPoint('TOPLEFT', 20, -150); p.none:SetWidth(264); p.none:SetWordWrap(true)
+    local side = S.Box(p, S.colors.panel, S.colors.line); side:SetPoint('TOPLEFT', PL_W + 12, 0); side:SetSize(W - PL_W - 12, P_ROWS * 31 + 62)
+    p.none = S.Text(side, 12, S.colors.muted, 'CENTER'); p.none:SetPoint('TOPLEFT', 20, -200); p.none:SetWidth(W - PL_W - 52); p.none:SetWordWrap(true)
     p.none:SetText('Clique sur un joueur pour voir son suivi et écrire une note.')
     p.detail = CreateFrame('Frame', nil, side); p.detail:SetAllPoints(side)
-    p.who = S.Text(p.detail, 14); p.who:SetPoint('TOPLEFT', 14, -12); p.who:SetWidth(276)
-    p.info = S.Text(p.detail, 12, S.colors.muted); p.info:SetPoint('TOPLEFT', 14, -36); p.info:SetWidth(276); p.info:SetWordWrap(true)
+    p.who = S.Text(p.detail, 14); p.who:SetPoint('TOPLEFT', 14, -12); p.who:SetWidth(W - PL_W - 40)
+    p.info = S.Text(p.detail, 12, S.colors.muted); p.info:SetPoint('TOPLEFT', 14, -36); p.info:SetWidth(W - PL_W - 40); p.info:SetWordWrap(true)
     local label = S.Heading(p.detail, 'Note des officiers'); label:SetPoint('TOPLEFT', 14, -136)
-    p.note = S.Input(p.detail, 276, 'Note sur ce joueur (200 caractères)'); p.note:SetPoint('TOPLEFT', 14, -156)
+    p.note = S.Input(p.detail, W - PL_W - 40, 'Note sur ce joueur (200 caractères)'); p.note:SetPoint('TOPLEFT', 14, -156)
     if p.note.SetMaxBytes then p.note:SetMaxBytes(MAX_NOTE) end
     p.save = S.Button(p.detail, 'Enregistrer', 110, 24, 'primary'); p.save:SetPoint('TOPLEFT', 14, -190)
     p.save:SetScript('OnClick', function()
@@ -541,7 +543,7 @@ local function createPlayers(parent)
             if e then O.SetNote(players.selected, e.name, p.note:GetText()); renderPlayers(p) end
         end)
     end)
-    p.noteBy = S.Text(p.detail, 11, S.colors.muted); p.noteBy:SetPoint('TOPLEFT', 14, -224); p.noteBy:SetWidth(276); p.noteBy:SetWordWrap(true)
+    p.noteBy = S.Text(p.detail, 11, S.colors.muted); p.noteBy:SetPoint('TOPLEFT', 14, -224); p.noteBy:SetWidth(W - PL_W - 40); p.noteBy:SetWordWrap(true)
     p.refresh = function() renderPlayers(p) end
     return p
 end

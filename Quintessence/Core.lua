@@ -5,7 +5,7 @@ local addonName, Core = ...
   (quinte-craft, quinte-caract, quinte-raid, quinte-ride…) s'y enregistrent comme fonctionnalités :
 
     Quintessence:RegisterModule({ id = 'craft', title = 'Craft', order = 20, version = '0.5.0',
-        width = 780, height = 486, create = function(parent) return frame end, refresh = function() end,
+        width = 1078, height = 658, create = function(parent) return frame end, refresh = function() end,
         summary = function() return 'texte court pour l'accueil' end })
     local sync = Quintessence:RegisterSync('craft', QuinteCraftDB, adapter)      -- enregistrements partagés
     local comm = Quintessence:RegisterChannel('ride', function(data, sender, channel) end) -- messages temps réel
@@ -13,7 +13,7 @@ local addonName, Core = ...
   Règle Retail 12+ : aucune écriture dans une table, une fonction ou un cadre de Blizzard.
 ]]
 Quintessence = Core -- seule globale publique de la suite (nom propre, jamais une globale de Blizzard)
-Core.name, Core.version = addonName or 'Quintessence', '1.38.1'
+Core.name, Core.version = addonName or 'Quintessence', '1.39.0'
 Core.modules, Core.syncModules, Core.channels, Core.debug = {}, {}, {}, { errors = {}, slow = {} }
 
 function Core.Call(fn, ...)

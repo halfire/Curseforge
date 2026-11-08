@@ -10,13 +10,27 @@ local _, Q = ...
 local UI = {}
 Q.UI = UI
 local S = Quintessence.Style
-local SOURCE_ROWS, DUNGEON_ROWS, MEMBER_ROWS = 9, 10, 8
+-- Onglet de la grande fenêtre Quintessence (1.38.1+) : 1078 × 658 à l'échelle 1, textes de la même taille qu'avant.
+-- Chaque vue occupe VW × VH sous les onglets du haut.
+local W, H = 1078, 658
+local VW, VH = W, H - 40
+local SLOTS_W = 440                              -- Ma liste BiS : emplacements à gauche, éditeur à droite
+local EW = VW - SLOTS_W - 12                     -- 626
+local SOURCE_ROWS = math.floor((VH - 238) / 22)  -- 17 sources
+local BOSSES_W = 300                             -- Butin : boss à gauche, butin à droite
+local LW = VW - BOSSES_W - 12                    -- 766
+local NEEDS_W = 380                              -- Besoins : donjons à gauche, membres à droite
+local NW = VW - NEEDS_W - 12                     -- 686
+local DUNGEON_ROWS = math.floor((VH - 8) / 37)   -- 16 donjons
+local MEMBER_ROWS = math.floor((VH - 82) / 35)   -- 15 membres
 local QUALITY_HEX = { [0] = 'ff9d9d9d', 'ffffffff', 'ff1eff00', 'ff0070dd', 'ffa335ee', 'ffff8000', 'ffe6cc80' }
 local frame
 local state = { view = 'list', slot = 1, sourceOffset = 0, dungeonOffset = 0, memberOffset = 0, dungeon = nil, onlineOnly = false, needs = {},
     raid = nil, boss = 1, bossOffset = 0, lootOffset = 0, slotOnly = false, picked = nil, cardOffset = 0, cardsPlaced = false }
-local BOSS_ROWS, LOOT_ROWS = 14, 10
-local CARD_COLUMNS, CARD_ROWS, CARD_W, CARD_H, CARD_GAP = 4, 6, 181, 56, 5
+local BOSS_ROWS, LOOT_ROWS = math.floor((VH - 40) / 26), math.floor((VH - 122) / 29) -- 22 boss, 17 objets
+local CARD_H, CARD_GAP = 56, 5
+local CARD_COLUMNS, CARD_ROWS = 5, math.floor((VH - 27) / (CARD_H + CARD_GAP)) -- 5 × 9 instances
+local CARD_W = math.floor((VW - 22 - (CARD_COLUMNS - 1) * 8) / CARD_COLUMNS)    -- 204
 local CODE_NAMES = { HEAD = 'Tête', NECK = 'Cou', SHOULDER = 'Épaules', CLOAK = 'Dos', CHEST = 'Torse', WRIST = 'Poignets', HAND = 'Mains',
     WAIST = 'Taille', LEGS = 'Jambes', FEET = 'Pieds', FINGER = 'Doigt', TRINKET = 'Bijou', WEAPON = 'Une main', WEAPONMAINHAND = 'Main droite',
     ['2HWEAPON'] = 'Deux mains', WEAPONOFFHAND = 'Main gauche', SHIELD = 'Bouclier', HOLDABLE = 'Tenu en main gauche', RANGED = 'À distance',
@@ -99,15 +113,15 @@ end
 local function createList(parent)
     local v = CreateFrame('Frame', nil, parent)
     v:SetPoint('TOPLEFT', 0, -40); v:SetPoint('BOTTOMRIGHT')
-    local box = S.Box(v, S.colors.panel, S.colors.line); box:SetPoint('TOPLEFT', 0, 0); box:SetSize(330, 400)
+    local box = S.Box(v, S.colors.panel, S.colors.line); box:SetPoint('TOPLEFT', 0, 0); box:SetSize(SLOTS_W, VH)
     v.rows = {}
     for i in ipairs(Q.SLOTS) do
-        local row = S.Row(v, 328, 22); row:SetPoint('TOPLEFT', 1, -4 - (i - 1) * 23)
+        local row = S.Row(v, SLOTS_W - 2, 22); row:SetPoint('TOPLEFT', 1, -4 - (i - 1) * 23)
         row.slotLabel = S.Text(row, 11, S.colors.muted); row.slotLabel:SetPoint('LEFT', 10, 0); row.slotLabel:SetWidth(70)
         row.slotLabel:SetText(Q.SLOT_NAMES[Q.SLOTS[i]])
         row.icon = row:CreateTexture(nil, 'ARTWORK'); row.icon:SetSize(16, 16); row.icon:SetPoint('LEFT', 82, 0); row.icon:SetTexCoord(0.08, 0.92, 0.08, 0.92)
-        row.label = S.Text(row, 12, S.colors.text); row.label:SetPoint('LEFT', 104, 0); row.label:SetWidth(132)
-        row.source = S.Text(row, 10, S.colors.muted, 'RIGHT'); row.source:SetPoint('RIGHT', -8, 0); row.source:SetWidth(90)
+        row.label = S.Text(row, 12, S.colors.text); row.label:SetPoint('LEFT', 104, 0); row.label:SetWidth(SLOTS_W - 240)
+        row.source = S.Text(row, 10, S.colors.muted, 'RIGHT'); row.source:SetPoint('RIGHT', -8, 0); row.source:SetWidth(120)
         row:RegisterForClicks('LeftButtonUp', 'RightButtonUp')
         row:SetScript('OnClick', function(self, button)
             -- Clic droit : retire l'objet de cette ligne
@@ -124,16 +138,16 @@ local function createList(parent)
         v.rows[i] = row
     end
 
-    local e = S.Box(v, S.colors.panel, S.colors.line, 'Button'); e:SetPoint('TOPLEFT', 342, 0); e:SetSize(418, 400)
+    local e = S.Box(v, S.colors.panel, S.colors.line, 'Button'); e:SetPoint('TOPLEFT', SLOTS_W + 12, 0); e:SetSize(EW, VH)
     e:SetScript('OnReceiveDrag', function() Q.Run('glisser', function() dropOn(state.slot); UI.Refresh() end) end)
     e:SetScript('OnClick', function() Q.Run('glisser', function() if dropOn(state.slot) then UI.Refresh() end end) end)
     e.title = S.Heading(e, ''); e.title:SetPoint('TOPLEFT', 16, -14)
     local fromRaid = S.Button(e, 'Choisir chez un boss', 150, 22, 'ghost'); fromRaid:SetPoint('TOPRIGHT', -16, -10)
     fromRaid:SetScript('OnClick', function() state.view = 'loot'; state.lootOffset = 0; state.picked = nil; Q.Run('vue', UI.Refresh) end)
     e.icon = e:CreateTexture(nil, 'ARTWORK'); e.icon:SetSize(36, 36); e.icon:SetPoint('TOPLEFT', 16, -32); e.icon:SetTexCoord(0.08, 0.92, 0.08, 0.92)
-    e.name = S.Text(e, 15, S.colors.text); e.name:SetPoint('TOPLEFT', 60, -34); e.name:SetWidth(340)
-    e.where = S.Text(e, 11, S.colors.muted); e.where:SetPoint('TOPLEFT', 60, -54); e.where:SetWidth(340)
-    e.input = S.Input(e, 278, 'Numéro, lien ou adresse Wowhead'); e.input:SetPoint('TOPLEFT', 16, -82)
+    e.name = S.Text(e, 15, S.colors.text); e.name:SetPoint('TOPLEFT', 60, -34); e.name:SetWidth(EW - 76)
+    e.where = S.Text(e, 11, S.colors.muted); e.where:SetPoint('TOPLEFT', 60, -54); e.where:SetWidth(EW - 76)
+    e.input = S.Input(e, EW - 140, 'Numéro, lien ou adresse Wowhead'); e.input:SetPoint('TOPLEFT', 16, -82)
     local function submit()
         Q.Run('saisie', function()
             local ok, result = Q.SetItem(state.slot, e.input:GetText())
@@ -143,13 +157,13 @@ local function createList(parent)
     end
     e.input:SetScript('OnTextChanged', function(box) box.placeholder:SetShown((box:GetText() or '') == '') end)
     e.input:SetScript('OnEnterPressed', submit)
-    local add = S.Button(e, 'Valider', 100, 26, 'primary'); add:SetPoint('TOPLEFT', 302, -82); add:SetScript('OnClick', submit)
+    local add = S.Button(e, 'Valider', 100, 26, 'primary'); add:SetPoint('TOPLEFT', EW - 116, -82); add:SetScript('OnClick', submit)
     e.sourceHeading = S.Heading(e, 'Où le trouver'); e.sourceHeading:SetPoint('TOPLEFT', 16, -122)
-    e.sourceBox = S.Box(e, S.colors.bg, S.colors.line); e.sourceBox:SetPoint('TOPLEFT', 16, -138); e.sourceBox:SetSize(386, SOURCE_ROWS * 22 + 6)
+    e.sourceBox = S.Box(e, S.colors.bg, S.colors.line); e.sourceBox:SetPoint('TOPLEFT', 16, -138); e.sourceBox:SetSize(EW - 32, SOURCE_ROWS * 22 + 6)
     e.sources = {}
     for i = 1, SOURCE_ROWS do
-        local row = S.Row(e, 370, 21); row:SetPoint('TOPLEFT', 17, -141 - (i - 1) * 22)
-        row.label = S.Text(row, 12, S.colors.text); row.label:SetPoint('LEFT', 10, 0); row.label:SetWidth(280)
+        local row = S.Row(e, EW - 48, 21); row:SetPoint('TOPLEFT', 17, -141 - (i - 1) * 22)
+        row.label = S.Text(row, 12, S.colors.text); row.label:SetPoint('LEFT', 10, 0); row.label:SetWidth(EW - 160)
         row.levels = S.Text(row, 10, S.colors.muted, 'RIGHT'); row.levels:SetPoint('RIGHT', -8, 0)
         row:SetScript('OnClick', function(self)
             Q.Run('source', function()
@@ -161,7 +175,7 @@ local function createList(parent)
         e.sources[i] = row
     end
     e.scroll = S.Scrollbar(e, SOURCE_ROWS * 22, function(offset) if offset ~= state.sourceOffset then state.sourceOffset = offset; Q.Run('défilement', renderList) end end)
-    e.scroll:SetPoint('TOPLEFT', 392, -141)
+    e.scroll:SetPoint('TOPLEFT', EW - 26, -141)
     e.sourceBox:EnableMouseWheel(true)
     e.sourceBox:SetScript('OnMouseWheel', function(_, delta) state.sourceOffset = state.sourceOffset - delta * 3; Q.Run('défilement', renderList) end)
     e.obtained = S.Button(e, 'Marquer obtenu', 150, 28, 'ghost'); e.obtained:SetPoint('BOTTOMLEFT', 16, 14)
@@ -170,7 +184,7 @@ local function createList(parent)
     end)
     e.clear = S.Button(e, 'Retirer', 100, 28, 'danger'); e.clear:SetPoint('BOTTOMRIGHT', -16, 14)
     e.clear:SetScript('OnClick', function() Q.Run('retirer', function() Q.ClearSlot(state.slot); UI.Refresh() end) end)
-    local hint = S.Text(e, 10, S.colors.muted); hint:SetPoint('BOTTOMLEFT', 16, 50); hint:SetWidth(386); hint:SetWordWrap(true)
+    local hint = S.Text(e, 10, S.colors.muted); hint:SetPoint('BOTTOMLEFT', 16, 50); hint:SetWidth(EW - 32); hint:SetWordWrap(true)
     hint:SetText('Les objets portés ou dans tes sacs passent seuls en « obtenu ». Ta liste part à la guilde par la synchro.')
     v.editor = e
     return v
@@ -320,25 +334,25 @@ local function createLoot(parent)
         v.cardButtons[i] = card
     end
     v.cardScroll = S.Scrollbar(v.cards, CARD_ROWS * (CARD_H + CARD_GAP) - CARD_GAP, function(offset) if offset ~= state.cardOffset then state.cardOffset = offset; Q.Run('défilement', renderLoot) end end)
-    v.cardScroll:SetPoint('TOPLEFT', 754, -32)
+    v.cardScroll:SetPoint('TOPLEFT', VW - 14, -32)
 
     -- Une instance : ses boss à gauche, leur butin à droite
     v.detail = CreateFrame('Frame', nil, v); v.detail:SetAllPoints(v)
     v.back = S.Button(v.detail, '< Toutes les instances', 170, 24, 'ghost'); v.back:SetPoint('TOPLEFT', 0, 0)
     v.back:SetScript('OnClick', function() state.raid = nil; state.picked = nil; Q.Run('instances', renderLoot) end)
-    v.dungeonName = S.Text(v.detail, 13, S.colors.text); v.dungeonName:SetPoint('TOPLEFT', 182, -5); v.dungeonName:SetWidth(485)
+    v.dungeonName = S.Text(v.detail, 13, S.colors.text); v.dungeonName:SetPoint('TOPLEFT', 182, -5); v.dungeonName:SetWidth(VW - 270)
     v.map = S.Button(v.detail, 'Plan', 70, 24, 'ghost'); v.map:SetPoint('TOPRIGHT', -6, 0)
     v.map:SetScript('OnClick', function()
         if Quintessence.ShowDungeonMap then Quintessence.ShowDungeonMap(state.raid)
         else Q.Print('Installe quinte-group pour ouvrir le plan du donjon.') end
     end)
-    local box = S.Box(v.detail, S.colors.panel, S.colors.line); box:SetPoint('TOPLEFT', 0, -32); box:SetSize(250, 368)
+    local box = S.Box(v.detail, S.colors.panel, S.colors.line); box:SetPoint('TOPLEFT', 0, -32); box:SetSize(BOSSES_W, VH - 32)
     box:EnableMouseWheel(true)
     box:SetScript('OnMouseWheel', function(_, delta) state.bossOffset = state.bossOffset - delta * 2; Q.Run('défilement', renderLoot) end)
     v.bossRows = {}
     for i = 1, BOSS_ROWS do
-        local row = S.Row(v.detail, 238, 25); row:SetPoint('TOPLEFT', 1, -36 - (i - 1) * 26)
-        row.label = S.Text(row, 12, S.colors.text); row.label:SetPoint('LEFT', 12, 0); row.label:SetWidth(190)
+        local row = S.Row(v.detail, BOSSES_W - 12, 25); row:SetPoint('TOPLEFT', 1, -36 - (i - 1) * 26)
+        row.label = S.Text(row, 12, S.colors.text); row.label:SetPoint('LEFT', 12, 0); row.label:SetWidth(BOSSES_W - 60)
         row.count = S.Text(row, 10, S.colors.muted, 'RIGHT'); row.count:SetPoint('RIGHT', -8, 0)
         row:SetScript('OnClick', function(self)
             if self.index then state.boss = self.index; state.lootOffset = 0; state.picked = nil; Q.Run('boss', renderLoot) end
@@ -346,21 +360,21 @@ local function createLoot(parent)
         v.bossRows[i] = row
     end
     v.bossScroll = S.Scrollbar(v.detail, BOSS_ROWS * 26, function(offset) if offset ~= state.bossOffset then state.bossOffset = offset; Q.Run('défilement', renderLoot) end end)
-    v.bossScroll:SetPoint('TOPLEFT', 242, -36)
+    v.bossScroll:SetPoint('TOPLEFT', BOSSES_W - 8, -36)
 
-    local d = S.Box(v.detail, S.colors.panel, S.colors.line); d:SetPoint('TOPLEFT', 262, -32); d:SetSize(498, 368)
+    local d = S.Box(v.detail, S.colors.panel, S.colors.line); d:SetPoint('TOPLEFT', BOSSES_W + 12, -32); d:SetSize(LW, VH - 32)
     d:EnableMouseWheel(true)
     d:SetScript('OnMouseWheel', function(_, delta) state.lootOffset = state.lootOffset - delta * 2; Q.Run('défilement', renderLoot) end)
-    v.title = S.Text(d, 15, S.colors.text); v.title:SetPoint('TOPLEFT', 16, -12); v.title:SetWidth(300)
+    v.title = S.Text(d, 15, S.colors.text); v.title:SetPoint('TOPLEFT', 16, -12); v.title:SetWidth(LW - 220)
     v.raidName = S.Text(d, 10, S.colors.muted); v.raidName:SetPoint('TOPLEFT', 16, -31)
     v.slotToggle = S.Button(d, '', 168, 24, 'ghost'); v.slotToggle:SetPoint('TOPRIGHT', -14, -12)
     v.slotToggle:SetScript('OnClick', function() state.slotOnly = not state.slotOnly; state.lootOffset = 0; Q.Run('filtre', renderLoot) end)
     v.lootRows = {}
     for i = 1, LOOT_ROWS do
-        local row = S.Row(d, 478, 28); row:SetPoint('TOPLEFT', 1, -50 - (i - 1) * 29)
+        local row = S.Row(d, LW - 20, 28); row:SetPoint('TOPLEFT', 1, -50 - (i - 1) * 29)
         row.icon = row:CreateTexture(nil, 'ARTWORK'); row.icon:SetSize(22, 22); row.icon:SetPoint('LEFT', 12, 0); row.icon:SetTexCoord(0.08, 0.92, 0.08, 0.92)
-        row.label = S.Text(row, 12, S.colors.text); row.label:SetPoint('LEFT', 42, 6); row.label:SetWidth(420)
-        row.slotText = S.Text(row, 10, S.colors.muted); row.slotText:SetPoint('LEFT', 42, -7); row.slotText:SetWidth(420)
+        row.label = S.Text(row, 12, S.colors.text); row.label:SetPoint('LEFT', 42, 6); row.label:SetWidth(LW - 120)
+        row.slotText = S.Text(row, 10, S.colors.muted); row.slotText:SetPoint('LEFT', 42, -7); row.slotText:SetWidth(LW - 120)
         row:RegisterForClicks('LeftButtonUp', 'RightButtonUp')
         row:SetScript('OnClick', function(self, button)
             if not self.item then return end
@@ -390,9 +404,9 @@ local function createLoot(parent)
         v.lootRows[i] = row
     end
     v.lootScroll = S.Scrollbar(d, LOOT_ROWS * 29, function(offset) if offset ~= state.lootOffset then state.lootOffset = offset; Q.Run('défilement', renderLoot) end end)
-    v.lootScroll:SetPoint('TOPLEFT', 486, -50)
-    v.empty = S.Text(d, 12, S.colors.muted, 'CENTER'); v.empty:SetPoint('TOPLEFT', 30, -150); v.empty:SetWidth(438); v.empty:SetWordWrap(true)
-    v.status = S.Text(d, 10, S.colors.muted); v.status:SetPoint('BOTTOMLEFT', 16, 12); v.status:SetWidth(466); v.status:SetWordWrap(true)
+    v.lootScroll:SetPoint('TOPLEFT', LW - 12, -50)
+    v.empty = S.Text(d, 12, S.colors.muted, 'CENTER'); v.empty:SetPoint('TOPLEFT', 30, -220); v.empty:SetWidth(LW - 60); v.empty:SetWordWrap(true)
+    v.status = S.Text(d, 10, S.colors.muted); v.status:SetPoint('BOTTOMLEFT', 16, 12); v.status:SetWidth(LW - 32); v.status:SetWordWrap(true)
     return v
 end
 
@@ -499,34 +513,34 @@ end
 local function createNeeds(parent)
     local v = CreateFrame('Frame', nil, parent)
     v:SetPoint('TOPLEFT', 0, -40); v:SetPoint('BOTTOMRIGHT')
-    local box = S.Box(v, S.colors.panel, S.colors.line); box:SetPoint('TOPLEFT', 0, 0); box:SetSize(300, 400)
+    local box = S.Box(v, S.colors.panel, S.colors.line); box:SetPoint('TOPLEFT', 0, 0); box:SetSize(NEEDS_W, VH)
     box:EnableMouseWheel(true)
     box:SetScript('OnMouseWheel', function(_, delta) state.dungeonOffset = state.dungeonOffset - delta * 2; Q.Run('défilement', renderNeeds) end)
     v.rows = {}
     for i = 1, DUNGEON_ROWS do
-        local row = S.Row(v, 298, 36); row:SetPoint('TOPLEFT', 1, -4 - (i - 1) * 37)
-        row.title = S.Text(row, 12, S.colors.text); row.title:SetPoint('TOPLEFT', 12, -5); row.title:SetWidth(276)
-        row.sub = S.Text(row, 10, S.colors.muted); row.sub:SetPoint('TOPLEFT', 12, -21); row.sub:SetWidth(276)
+        local row = S.Row(v, NEEDS_W - 2, 36); row:SetPoint('TOPLEFT', 1, -4 - (i - 1) * 37)
+        row.title = S.Text(row, 12, S.colors.text); row.title:SetPoint('TOPLEFT', 12, -5); row.title:SetWidth(NEEDS_W - 24)
+        row.sub = S.Text(row, 10, S.colors.muted); row.sub:SetPoint('TOPLEFT', 12, -21); row.sub:SetWidth(NEEDS_W - 24)
         row:SetScript('OnClick', function(self)
             if self.key then state.dungeon = self.key; state.memberOffset = 0; Q.Run('donjon', renderNeeds) end
         end)
         v.rows[i] = row
     end
-    v.empty = S.Text(v, 12, S.colors.muted, 'CENTER'); v.empty:SetPoint('TOPLEFT', 12, -160); v.empty:SetWidth(276); v.empty:SetWordWrap(true)
+    v.empty = S.Text(v, 12, S.colors.muted, 'CENTER'); v.empty:SetPoint('TOPLEFT', 12, -260); v.empty:SetWidth(NEEDS_W - 24); v.empty:SetWordWrap(true)
     v.empty:SetText('Aucun besoin pour l\'instant. Remplis ta liste BiS : celles des autres arrivent par la synchro.')
 
-    local d = S.Box(v, S.colors.panel, S.colors.line); d:SetPoint('TOPLEFT', 312, 0); d:SetSize(448, 400)
+    local d = S.Box(v, S.colors.panel, S.colors.line); d:SetPoint('TOPLEFT', NEEDS_W + 12, 0); d:SetSize(NW, VH)
     d:EnableMouseWheel(true)
     d:SetScript('OnMouseWheel', function(_, delta) state.memberOffset = state.memberOffset - delta * 2; Q.Run('défilement', renderNeeds) end)
-    d.title = S.Text(d, 17, S.colors.text); d.title:SetPoint('TOPLEFT', 16, -14); d.title:SetWidth(300)
+    d.title = S.Text(d, 17, S.colors.text); d.title:SetPoint('TOPLEFT', 16, -14); d.title:SetWidth(NW - 32)
     d.levels = S.Text(d, 11, S.colors.muted); d.levels:SetPoint('TOPLEFT', 16, -36)
     local heading = S.Heading(d, 'Qui y cherche encore un objet · clic pour chuchoter'); heading:SetPoint('TOPLEFT', 16, -58)
     d.rows = {}
     for i = 1, MEMBER_ROWS do
-        local row = S.Row(d, 446, 34); row:SetPoint('TOPLEFT', 1, -72 - (i - 1) * 35)
+        local row = S.Row(d, NW - 2, 34); row:SetPoint('TOPLEFT', 1, -72 - (i - 1) * 35)
         row.dot = S.Fill(row, 'ARTWORK', { 1, 1, 1, 1 }); row.dot:SetSize(7, 7); row.dot:SetPoint('TOPLEFT', 14, -9)
-        row.name = S.Text(row, 12, S.colors.text); row.name:SetPoint('TOPLEFT', 28, -4); row.name:SetWidth(400)
-        row.items = S.Text(row, 10, S.colors.muted); row.items:SetPoint('TOPLEFT', 28, -19); row.items:SetWidth(404)
+        row.name = S.Text(row, 12, S.colors.text); row.name:SetPoint('TOPLEFT', 28, -4); row.name:SetWidth(NW - 48)
+        row.items = S.Text(row, 10, S.colors.muted); row.items:SetPoint('TOPLEFT', 28, -19); row.items:SetWidth(NW - 44)
         row:SetScript('OnClick', function(self)
             local m = self.member
             if m and not Quintessence.SameName(m.key, Q.Key()) then Quintessence.Whisper(m.key) end
@@ -642,7 +656,7 @@ end
 
 -- Onglet « BiS & donjons » de la fenêtre Quintessence
 Quintessence:RegisterModule({
-    id = 'bis', title = 'BiS & donjons', order = 35, icon = 'Interface\\Icons\\INV_Misc_Book_11', version = Q.version, width = 760, height = 440,
+    id = 'bis', title = 'BiS & donjons', order = 35, icon = 'Interface\\Icons\\INV_Misc_Book_11', version = Q.version, width = W, height = H,
     create = function(parent) create(parent); return frame end,
     refresh = function() UI.Refresh() end,
     summary = function()

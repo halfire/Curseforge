@@ -1,6 +1,6 @@
 local _, Q = ...
 --[[
-  UI.lua : Interface utilisateur du module Quinte-map dans la fenêtre Quintessence (760 × 440).
+  UI.lua : Interface utilisateur du module Quinte-map dans la fenêtre Quintessence (1078 × 658).
   Deux sous-onglets :
     1. SOS PvP sauvage : appel aux armes en 1 clic et alertes des membres agressés.
     2. Feux de campement : carte et suivi des campements sociaux de la guilde.
@@ -41,16 +41,20 @@ local activeTab = 'sos'
 -- ONGLET 1 : SOS PVP SAUVAGE
 -- =========================================================================
 
-local LIST_ROWS = 7
+-- Onglet de la grande fenêtre Quintessence (1.38.1+) : 1078 × 658 à l'échelle 1, textes de la même taille qu'avant.
+-- Chaque sous-onglet occupe PW × PH sous la barre d'onglets.
+local W, H = 1078, 658
+local PW, PH = W, H - 40
+local LIST_ROWS = math.floor((PH - 106) / 41) -- 12
 
 local function createSOSPanel(parent)
     local panel = CreateFrame('Frame', nil, parent)
     panel:SetAllPoints()
 
-    -- Bandeau d'action principal (760 × 56)
+    -- Bandeau d'action principal
     local actionBox = S.Box(panel, S.colors.panel, S.colors.line)
     actionBox:SetPoint('TOPLEFT', 0, 0)
-    actionBox:SetSize(760, 56)
+    actionBox:SetSize(PW, 56)
 
     local bannerIcon = actionBox:CreateTexture(nil, 'ARTWORK')
     bannerIcon:SetSize(34, 34); bannerIcon:SetPoint('LEFT', 14, 0)
@@ -73,17 +77,17 @@ local function createSOSPanel(parent)
     btnTriggerSOS:SetPoint('RIGHT', btnClearSOS, 'LEFT', -8, 0)
     btnTriggerSOS:SetScript('OnClick', function() Q.SendSOS() end)
 
-    -- Conteneur des alertes en cours (760 × 334)
+    -- Conteneur des alertes en cours
     local listBox = S.Box(panel, S.colors.panel, S.colors.line)
     listBox:SetPoint('TOPLEFT', 0, -66)
-    listBox:SetSize(760, 334)
+    listBox:SetSize(PW, PH - 66)
 
     local listHeading = S.Heading(listBox, 'Membres en détresse · Carte ouvre la carte du monde sur leur position')
     listHeading:SetPoint('TOPLEFT', 16, -12)
 
     local rows = {}
     for i = 1, LIST_ROWS do
-        local r = S.Row(listBox, 758, 40)
+        local r = S.Row(listBox, PW - 2, 40)
         r:SetPoint('TOPLEFT', 1, -34 - (i - 1) * 41)
 
         local icon = r:CreateTexture(nil, 'ARTWORK')
@@ -92,11 +96,11 @@ local function createSOSPanel(parent)
 
         local nameText = S.Text(r, 13, S.colors.text)
         nameText:SetPoint('TOPLEFT', 48, -5)
-        nameText:SetWidth(370)
+        nameText:SetWidth(PW - 390)
 
         local posText = S.Text(r, 11, S.colors.muted)
         posText:SetPoint('TOPLEFT', 48, -22)
-        posText:SetWidth(370)
+        posText:SetWidth(PW - 390)
 
         local helpBtn = S.Button(r, 'Inviter en renfort', 130, 26, 'primary')
         helpBtn:SetPoint('RIGHT', -194, 0)
@@ -125,7 +129,7 @@ local function createSOSPanel(parent)
 
     local emptyText = S.Text(listBox, 12, S.colors.muted, 'CENTER')
     emptyText:SetPoint('CENTER', 0, -10)
-    emptyText:SetWidth(460)
+    emptyText:SetWidth(660)
     emptyText:SetWordWrap(true)
     emptyText:SetText('Aucun membre de Quintessence n\'est actuellement en détresse.\nUtilise le bouton « Déclencher le SOS PvP » ou /qsos si tu es attaqué ou campé.')
     panel.emptyText = emptyText
@@ -193,7 +197,7 @@ end
 -- ONGLET 2 : VENDETTA PVP (QUI NOUS A TUÉS · VENGEANCE DE LA GUILDE)
 -- =========================================================================
 
-local VENDETTA_ROWS = 7
+local VENDETTA_ROWS = math.floor((PH - 110) / 41) -- 12
 local vendettaState = {
     mode = 'all',
     query = '',
@@ -204,10 +208,10 @@ local function createVendettaPanel(parent)
     local panel = CreateFrame('Frame', nil, parent)
     panel:SetAllPoints()
 
-    -- Bandeau supérieur d'action et filtres (760 × 56)
+    -- Bandeau supérieur d'action et filtres
     local topBox = S.Box(panel, S.colors.panel, S.colors.line)
     topBox:SetPoint('TOPLEFT', 0, 0)
-    topBox:SetSize(760, 56)
+    topBox:SetSize(PW, 56)
 
     local vIcon = topBox:CreateTexture(nil, 'ARTWORK')
     vIcon:SetSize(34, 34); vIcon:SetPoint('LEFT', 14, 0)
@@ -256,10 +260,10 @@ local function createVendettaPanel(parent)
     addBtn:SetScript('OnClick', doAddVendetta)
     enemyInput:SetScript('OnEnterPressed', function(self) doAddVendetta(); self:ClearFocus() end)
 
-    -- Conteneur de la liste des ennemis (760 × 334)
+    -- Conteneur de la liste des ennemis
     local listBox = S.Box(panel, S.colors.panel, S.colors.line)
     listBox:SetPoint('TOPLEFT', 0, -66)
-    listBox:SetSize(760, 334)
+    listBox:SetSize(PW, PH - 66)
     listBox:EnableMouseWheel(true)
     listBox:SetScript('OnMouseWheel', function(_, delta)
         vendettaState.offset = math.max(0, vendettaState.offset - delta * 2)
@@ -287,7 +291,7 @@ local function createVendettaPanel(parent)
     end
     panel.modeBtns = modeBtns
 
-    local searchInput = S.Input(listBox, 220, 'Rechercher ennemi, victime, zone…')
+    local searchInput = S.Input(listBox, 320, 'Rechercher ennemi, victime, zone…')
     searchInput:SetPoint('TOPRIGHT', -14, -6)
     searchInput:SetScript('OnTextChanged', function(box)
         vendettaState.query = box:GetText() or ''
@@ -298,7 +302,7 @@ local function createVendettaPanel(parent)
 
     local rows = {}
     for i = 1, VENDETTA_ROWS do
-        local r = S.Row(listBox, 740, 39)
+        local r = S.Row(listBox, PW - 20, 39)
         r:SetPoint('TOPLEFT', 1, -38 - (i - 1) * 41)
 
         local icon = r:CreateTexture(nil, 'ARTWORK')
@@ -307,11 +311,11 @@ local function createVendettaPanel(parent)
 
         local enemyText = S.Text(r, 13, S.colors.text)
         enemyText:SetPoint('TOPLEFT', 44, -4)
-        enemyText:SetWidth(365)
+        enemyText:SetWidth(PW - 395)
 
         local metaText = S.Text(r, 11, S.colors.muted)
         metaText:SetPoint('TOPLEFT', 44, -21)
-        metaText:SetWidth(365)
+        metaText:SetWidth(PW - 395)
 
         local avengeBtn = S.Button(r, 'Vengé !', 88, 24, 'primary')
         avengeBtn:SetPoint('RIGHT', -224, 0)
@@ -344,11 +348,11 @@ local function createVendettaPanel(parent)
             UI.RefreshVendetta()
         end
     end)
-    panel.scroll:SetPoint('TOPLEFT', 746, -38)
+    panel.scroll:SetPoint('TOPLEFT', PW - 14, -38)
 
     local emptyText = S.Text(listBox, 12, S.colors.muted, 'CENTER')
     emptyText:SetPoint('CENTER', 0, -14)
-    emptyText:SetWidth(480)
+    emptyText:SetWidth(660)
     emptyText:SetWordWrap(true)
     emptyText:SetText('Aucun tueur PvP enregistré.\nDès qu\'un joueur ennemi tue un membre de Quintessence, son nom, sa position et son layer apparaissent ici pour organiser la vengeance !')
     panel.emptyText = emptyText
@@ -433,10 +437,10 @@ local function createCampPanel(parent)
     local panel = CreateFrame('Frame', nil, parent)
     panel:SetAllPoints()
 
-    -- Bandeau de contrôle supérieur (760 × 56)
+    -- Bandeau de contrôle supérieur
     local topBox = S.Box(panel, S.colors.panel, S.colors.line)
     topBox:SetPoint('TOPLEFT', 0, 0)
-    topBox:SetSize(760, 56)
+    topBox:SetSize(PW, 56)
 
     local campIcon = topBox:CreateTexture(nil, 'ARTWORK')
     campIcon:SetSize(34, 34); campIcon:SetPoint('LEFT', 14, 0)
@@ -459,17 +463,17 @@ local function createCampPanel(parent)
     deployBtn:SetPoint('RIGHT', removeBtn, 'LEFT', -8, 0)
     deployBtn:SetScript('OnClick', function() Q.DeployCamp() end)
 
-    -- Conteneur des campements actifs (760 × 334)
+    -- Conteneur des campements actifs
     local listBox = S.Box(panel, S.colors.panel, S.colors.line)
     listBox:SetPoint('TOPLEFT', 0, -66)
-    listBox:SetSize(760, 334)
+    listBox:SetSize(PW, PH - 66)
 
     local listHeading = S.Heading(listBox, 'Campements actifs sur les layers')
     listHeading:SetPoint('TOPLEFT', 16, -12)
 
     local rows = {}
     for i = 1, LIST_ROWS do
-        local r = S.Row(listBox, 758, 40)
+        local r = S.Row(listBox, PW - 2, 40)
         r:SetPoint('TOPLEFT', 1, -34 - (i - 1) * 41)
 
         local icon = r:CreateTexture(nil, 'ARTWORK')
@@ -479,11 +483,11 @@ local function createCampPanel(parent)
 
         local nameText = S.Text(r, 13, S.colors.text)
         nameText:SetPoint('TOPLEFT', 48, -5)
-        nameText:SetWidth(370)
+        nameText:SetWidth(PW - 390)
 
         local posText = S.Text(r, 11, S.colors.muted)
         posText:SetPoint('TOPLEFT', 48, -22)
-        posText:SetWidth(370)
+        posText:SetWidth(PW - 390)
 
         local joinBtn = S.Button(r, 'Rejoindre', 130, 26, 'primary')
         joinBtn:SetPoint('RIGHT', -164, 0)
@@ -507,7 +511,7 @@ local function createCampPanel(parent)
 
     local emptyText = S.Text(listBox, 12, S.colors.muted, 'CENTER')
     emptyText:SetPoint('CENTER', 0, -10)
-    emptyText:SetWidth(460)
+    emptyText:SetWidth(660)
     emptyText:SetWordWrap(true)
     emptyText:SetText('Aucun feu de campement de guilde actuellement actif.\nPose le tien pour offrir repos et buffs sociaux aux membres de passage.')
     panel.emptyText = emptyText
@@ -568,7 +572,7 @@ local function createRarePanel(parent)
     local panel = CreateFrame('Frame', nil, parent)
     panel:SetAllPoints()
     local topBox = S.Box(panel, S.colors.panel, S.colors.line)
-    topBox:SetPoint('TOPLEFT', 0, 0); topBox:SetSize(760, 56)
+    topBox:SetPoint('TOPLEFT', 0, 0); topBox:SetSize(PW, 56)
     local icon = topBox:CreateTexture(nil, 'ARTWORK')
     icon:SetSize(34, 34); icon:SetPoint('LEFT', 14, 0); icon:SetTexture('Interface\\Icons\\Ability_Hunter_SniperShot'); icon:SetTexCoord(0.08, 0.92, 0.08, 0.92)
     local title = S.Text(topBox, 14, S.colors.text); title:SetPoint('TOPLEFT', 58, -10); title:SetText('Monstres rares repérés par la guilde')
@@ -580,18 +584,18 @@ local function createRarePanel(parent)
         UI.RefreshRares()
     end)
     local listBox = S.Box(panel, S.colors.panel, S.colors.line)
-    listBox:SetPoint('TOPLEFT', 0, -66); listBox:SetSize(760, 334)
+    listBox:SetPoint('TOPLEFT', 0, -66); listBox:SetSize(PW, PH - 66)
     local heading = S.Heading(listBox, 'Rares vus récemment'); heading:SetPoint('TOPLEFT', 16, -12)
     panel.rows = {}
     for i = 1, LIST_ROWS do
-        local r = S.Row(listBox, 758, 40); r:SetPoint('TOPLEFT', 1, -34 - (i - 1) * 41)
-        local nameText = S.Text(r, 13, S.colors.text); nameText:SetPoint('TOPLEFT', 16, -5); nameText:SetWidth(600)
-        local posText = S.Text(r, 11, S.colors.muted); posText:SetPoint('TOPLEFT', 16, -22); posText:SetWidth(600)
+        local r = S.Row(listBox, PW - 2, 40); r:SetPoint('TOPLEFT', 1, -34 - (i - 1) * 41)
+        local nameText = S.Text(r, 13, S.colors.text); nameText:SetPoint('TOPLEFT', 16, -5); nameText:SetWidth(PW - 160)
+        local posText = S.Text(r, 11, S.colors.muted); posText:SetPoint('TOPLEFT', 16, -22); posText:SetWidth(PW - 160)
         local mapBtn = S.Button(r, 'Carte', 70, 26, 'ghost'); mapBtn:SetPoint('RIGHT', -14, 0)
         panel.rows[i] = { frame = r, name = nameText, pos = posText, mapBtn = mapBtn }
     end
     local emptyText = S.Text(listBox, 12, S.colors.muted, 'CENTER')
-    emptyText:SetPoint('CENTER', 0, -10); emptyText:SetWidth(460); emptyText:SetWordWrap(true)
+    emptyText:SetPoint('CENTER', 0, -10); emptyText:SetWidth(660); emptyText:SetWordWrap(true)
     emptyText:SetText('Aucun rare repéré depuis 30 minutes.')
     panel.emptyText = emptyText
     return panel
@@ -700,8 +704,8 @@ Quintessence:RegisterModule({
     order = 55,
     icon = 'Interface\\Icons\\INV_BannerPVP_02',
     version = Q.version,
-    width = 760,
-    height = 440,
+    width = W,
+    height = H,
     create = function(parent)
         create(parent)
         return mainFrame
