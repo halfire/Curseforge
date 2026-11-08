@@ -188,7 +188,8 @@ end
 
 --- Quêtes du donjon : { id, logId, level, title, state = 'log' | 'done' | 'todo', complete, shareable,
 --- holders = { inscrits ou membres du groupe qui l'ont }, groupHas, groupMissing = { membres du groupe qui l'ont, qui ne l'ont pas },
---- known (conditions connues), classes (réservée à), minLevel, prev, prevTitle, prevState ('log' | 'done' | 'todo'), start }.
+--- known (conditions connues), classes (réservée à), minLevel, prev, prevTitle, prevState ('log' | 'done' | 'todo'), start,
+--- tag ('suite' | 'prérequis' | 'suite hors du donjon' | nil), chain = { { id, title, state, here, step } } (Wowhead Forever) }.
 --- Une quête réservée à une autre classe n'est pas listée, sauf si elle est dans mon journal.
 --- state vaut aussi 'locked' (quête précédente pas faite) ou 'low' (niveau trop bas) : le jeu ne la proposerait pas.
 --- Une quête est « en cours » si son numéro est dans le journal, même zone repliée, ou si une quête du journal porte le même titre.
@@ -229,6 +230,8 @@ function Q.DungeonQuests(code)
         end
     end
     table.sort(logs, function(a, b) return tostring(a.name) < tostring(b.name) end)
+    local inList = {}
+    for _, q in ipairs(list) do inList[q[1]] = true end
     local out = {}
     for _, q in ipairs(list) do
         local id = q[1]
@@ -259,6 +262,33 @@ function Q.DungeonQuests(code)
                 if state == 'todo' and prevState ~= 'done' then state = 'locked' end
             end
             if state == 'todo' and minLevel and level and level < minLevel then state = 'low' end
+            -- Chaîne de Wowhead Forever : chaque étape (titre du jeu si connu), ce qui vient avant (prérequis) et après (suite)
+            local chain, here
+            if info and type(info.chain) == 'table' then
+                chain = {}
+                for i, step in ipairs(info.chain) do
+                    local sid = step[1]
+                    if sid == id then here = i end
+                    chain[i] = { id = sid, title = questTitle(sid, step[2]), here = sid == id, inDungeon = inList[sid] or false,
+                        state = (sid == id and state) or ((Q.IsOnQuest(sid) and 'log') or (done(sid) and 'done') or 'todo') }
+                end
+                for i, step in ipairs(chain) do
+                    step.step = here and ((i < here and 'prérequis') or (i > here and 'suite')) or nil
+                end
+            end
+            -- Entre parenthèses : une étape qui n'est pas la quête du donjon elle-même
+            local tag
+            if info and info.outside and chain and here then
+                local later = false
+                for i, step in ipairs(chain) do
+                    local other = Q.DUNGEON_QUEST_INFO[step.id]
+                    if i > here and inList[step.id] and not (other and other.outside) then later = true end
+                end
+                -- Hors du donjon : avant une quête du donjon = prérequis ; après = suite ; début d'une chaîne qui reste dehors = rien
+                tag = (later and 'prérequis') or (here > 1 and 'suite hors du donjon') or nil
+            elseif prev then
+                tag = 'suite'
+            end
             out[#out + 1] = { id = id, logId = logId, level = q[2], title = title, state = state,
                 complete = logId and complete(logId) or false,
                 shareable = logId and Q.CanShareQuest(logId) or false,
@@ -266,7 +296,8 @@ function Q.DungeonQuests(code)
                 known = info ~= nil or q[6] ~= nil, classes = classMask and classNames(classMask) or nil,
                 minLevel = minLevel, start = (place and place.start) or (info and info.start),
                 prev = prev, prevState = prevState,
-                prevTitle = prev and questTitle(prev, (info and info.prevTitle) or knownTitle(prev)) or nil }
+                prevTitle = prev and questTitle(prev, (info and info.prevTitle) or knownTitle(prev)) or nil,
+                tag = tag, chain = chain }
         end
     end
     -- Ce que je peux faire d'abord : mes quêtes, puis celles à prendre, puis celles déjà faites.

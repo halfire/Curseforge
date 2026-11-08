@@ -54,7 +54,22 @@ local function showQuestTooltip(owner, q)
     if GameTooltip.NumLines and GameTooltip:NumLines() == 0 then GameTooltip:AddLine(Q.Safe(q.title)) end
     if q.classes then GameTooltip:AddLine('Réservée à : ' .. q.classes, 1, 0.82, 0) end
     if q.minLevel then GameTooltip:AddLine('Niveau requis : ' .. q.minLevel, 1, 1, 1) end
-    if q.prev then
+    if q.tag then GameTooltip:AddLine('(' .. q.tag .. ')', 1, 0.82, 0) end
+    if q.chain then
+        -- Chaîne complète en puces : prérequis, cette quête, suites (Wowhead Forever)
+        local STATE = { done = 'faite', log = 'en cours', todo = 'à faire', locked = 'à faire', low = 'à faire' }
+        GameTooltip:AddLine('Chaîne de quêtes :', 1, 0.82, 0)
+        for i, step in ipairs(q.chain) do
+            local label = '• ' .. i .. '. ' .. Q.Safe(step.title or ('quête ' .. step.id))
+            if step.here then
+                GameTooltip:AddLine(label .. ' ← celle-ci', 0.36, 0.82, 0.66, true)
+            else
+                local where = step.inDungeon and 'dans ce donjon' or nil
+                local note = (step.step or 'étape') .. (where and (', ' .. where) or '') .. ', ' .. (STATE[step.state] or 'à faire')
+                GameTooltip:AddLine(label .. ' (' .. note .. ')', 1, 1, 1, true)
+            end
+        end
+    elseif q.prev then
         local where = q.prevState == 'done' and 'faite' or (q.prevState == 'log' and 'en cours' or 'pas faite')
         GameTooltip:AddLine('Suite de : ' .. Q.Safe(q.prevTitle or ('quête ' .. q.prev)) .. ' (' .. where .. ')', 1, 1, 1, true)
     end
@@ -829,7 +844,8 @@ function UI.RefreshDungeons()
             if q then
                 r.frame:Show(); r.frame.itemID = nil; r.frame.quest = q
                 r.icon:SetTexture('Interface\\Icons\\INV_Misc_Note_01')
-                r.itemName:SetText(string.format('|c%s[%d]|r %s', S.hex.gold, q.level, Q.Safe(q.title)))
+                r.itemName:SetText(string.format('|c%s[%d]|r %s%s', S.hex.gold, q.level, Q.Safe(q.title),
+                    q.tag and (' |c' .. S.hex.muted .. '(' .. q.tag .. ')|r') or ''))
                 r.itemName:SetWidth(285)
                 r.membersList:SetPoint('RIGHT', -182, 0); r.membersList:SetWidth(IW - 506)
                 r.place:SetShown(q.state ~= 'done' and Q.HasDungeonQuestPlace(q.id))
@@ -849,7 +865,6 @@ function UI.RefreshDungeons()
                     r.action:SetScript('OnClick', function() Q.ShareQuest(q.logId, q.title) end)
                 elseif q.state == 'todo' then
                     text = '|c' .. S.hex.gold .. 'à prendre|r'
-                    if q.prev then text = text .. ' · suite' end
                     if #q.groupHas > 0 then text = text .. ' · ' .. Q.Safe(table.concat(q.groupHas, ', ')) .. ' l\'a'
                     elseif #q.holders > 0 then text = text .. ' · ' .. Q.Safe(table.concat(q.holders, ', ')) end
                     r.action:SetLabel('Demander')
