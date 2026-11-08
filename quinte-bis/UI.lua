@@ -326,7 +326,12 @@ local function createLoot(parent)
     v.detail = CreateFrame('Frame', nil, v); v.detail:SetAllPoints(v)
     v.back = S.Button(v.detail, '< Toutes les instances', 170, 24, 'ghost'); v.back:SetPoint('TOPLEFT', 0, 0)
     v.back:SetScript('OnClick', function() state.raid = nil; state.picked = nil; Q.Run('instances', renderLoot) end)
-    v.dungeonName = S.Text(v.detail, 13, S.colors.text); v.dungeonName:SetPoint('TOPLEFT', 182, -5); v.dungeonName:SetWidth(570)
+    v.dungeonName = S.Text(v.detail, 13, S.colors.text); v.dungeonName:SetPoint('TOPLEFT', 182, -5); v.dungeonName:SetWidth(485)
+    v.map = S.Button(v.detail, 'Plan', 70, 24, 'ghost'); v.map:SetPoint('TOPRIGHT', -6, 0)
+    v.map:SetScript('OnClick', function()
+        if Quintessence.ShowDungeonMap then Quintessence.ShowDungeonMap(state.raid)
+        else Q.Print('Installe quinte-group pour ouvrir le plan du donjon.') end
+    end)
     local box = S.Box(v.detail, S.colors.panel, S.colors.line); box:SetPoint('TOPLEFT', 0, -32); box:SetSize(250, 368)
     box:EnableMouseWheel(true)
     box:SetScript('OnMouseWheel', function(_, delta) state.bossOffset = state.bossOffset - delta * 2; Q.Run('défilement', renderLoot) end)
@@ -601,12 +606,39 @@ end
 function UI.Toggle() Quintessence.UI.Toggle('bis') end
 
 --- Ouvre le butin des boss sur ce donjon ou ce raid (clé du site), par exemple depuis l'onglet Donjons.
-function UI.ShowLoot(key)
-    state.raid = lootOf(key) and key or nil; state.boss = 1; state.bossOffset = 0; state.lootOffset = 0; state.picked = nil
+function UI.ShowLoot(key, bossName)
+    local raid = lootOf(key)
+    local index = 1
+    if bossName then
+        local wanted = bossName:lower():gsub('[%s%p]', '')
+        index = nil
+        for i, boss in ipairs(raid and Q.LootBosses(raid) or {}) do
+            if boss.name:lower():gsub('[%s%p]', '') == wanted then index = i; break end
+        end
+        if not index then return false end
+    end
+    state.raid = raid and key or nil; state.boss = index; state.bossOffset = math.max(0, index - 1)
+    state.lootOffset = 0; state.picked = nil
     UI.Open('loot')
+    return true
 end
--- Pont pour les autres modules (onglet Donjons de quinte-group : bouton « Butin des boss »)
-function Quintessence.ShowBossLoot(key) Q.Run('butin des boss', UI.ShowLoot, key) end
+-- Ponts des autres modules : une icône du plan ouvre le boss demandé, jamais le premier par défaut.
+function Quintessence.ShowBossLoot(key, bossName)
+    local ok, result = Q.Run('butin des boss', UI.ShowLoot, key, bossName)
+    return ok and result
+end
+function Quintessence.GetDungeonBosses(key)
+    local raid = lootOf(key)
+    local out = {}
+    if raid then
+        for _, boss in ipairs(Q.LootBosses(raid)) do
+            if not boss.name:find('Trash', 1, true) and boss.name ~= 'Vu en jeu par la guilde' then
+                out[#out + 1] = { name = boss.name }
+            end
+        end
+    end
+    return out
+end
 
 -- Onglet « BiS & donjons » de la fenêtre Quintessence
 Quintessence:RegisterModule({

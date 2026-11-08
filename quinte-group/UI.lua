@@ -442,6 +442,11 @@ local function createDungeonsPanel(parent)
         Q.InviteCompatibleGroup(dungeonState.selectedDungeon)
     end)
     panel.btnInviteComp = btnInviteComp
+    panel.btnDungeonMap = S.Button(rightBox, 'Plan', 70, 24, 'ghost')
+    panel.btnDungeonMap:SetPoint('RIGHT', btnInviteComp, 'LEFT', -6, 0)
+    panel.btnDungeonMap:SetScript('OnClick', function()
+        Q.Run('plan du donjon', Q.ShowDungeonMap, dungeonState.selectedDungeon)
+    end)
 
     local btnInviteAll = S.Button(rightBox, 'Inviter tous', 88, 24, 'ghost')
     btnInviteAll:SetPoint('RIGHT', btnInviteComp, 'LEFT', -6, 0)
@@ -470,13 +475,18 @@ local function createDungeonsPanel(parent)
 
     local bannerText = S.Text(banner, 11, S.colors.text)
     bannerText:SetPoint('LEFT', 24, 0)
-    bannerText:SetWidth(270)
+    bannerText:SetWidth(196)
     panel.bannerText = bannerText
 
     -- Repère, flèche et carte ouverte sur l'entrée du donjon affiché
     panel.btnEntrance = S.Button(banner, 'Afficher l\'entrée', 108, 20, 'ghost')
-    panel.btnEntrance:SetPoint('RIGHT', -2, 0)
+    panel.btnEntrance:SetPoint('RIGHT', -68, 0)
     panel.btnEntrance:SetScript('OnClick', function() Q.Run('entrée', Q.ShowDungeonEntrance, dungeonState.selectedDungeon) end)
+    panel.btnEntranceRoute = S.Button(banner, 'Chemin', 60, 20, 'ghost')
+    panel.btnEntranceRoute:SetPoint('RIGHT', -2, 0)
+    panel.btnEntranceRoute:SetScript('OnClick', function()
+        Q.Run('chemin entrée', Q.ShowDungeonEntrance, dungeonState.selectedDungeon, true)
+    end)
     -- Où prendre les quêtes : ouvre leur liste (bouton « Carte » sur chaque ligne) et écrit les lieux dans le chat
     panel.btnQuestPlaces = S.Button(banner, 'Lieux des quêtes', 112, 20, 'ghost')
     panel.btnQuestPlaces:SetPoint('RIGHT', panel.btnEntrance, 'LEFT', -6, 0)
@@ -622,6 +632,9 @@ local function createDungeonsPanel(parent)
         local place = S.Button(r, 'Carte', 46, 20, 'ghost')
         place:SetPoint('RIGHT', -74, 0)
         place:Hide()
+        local route = S.Button(r, 'Chemin', 54, 20, 'ghost')
+        route:SetPoint('RIGHT', -124, 0)
+        route:Hide()
 
         r:SetScript('OnEnter', function(self)
             if self.quest then showQuestTooltip(self, self.quest) else showItemTooltip(self, self.itemID) end
@@ -635,6 +648,7 @@ local function createDungeonsPanel(parent)
             itemName = itemName,
             membersList = membersList,
             action = action,
+            route = route,
             place = place
         }
     end
@@ -731,6 +745,7 @@ function UI.RefreshDungeons()
     end
 
     local announce = Quintessence.Announce
+    p.btnEntranceRoute:SetShown(Q.ENTRANCES[dungeonState.selectedDungeon] ~= nil)
     p.btnReset:SetShown(announce and announce.IsOfficer and announce.IsOfficer() and true or false)
 
     local members = selectedNeeds.members
@@ -802,9 +817,14 @@ function UI.RefreshDungeons()
                 r.frame:Show(); r.frame.itemID = nil; r.frame.quest = q
                 r.icon:SetTexture('Interface\\Icons\\INV_Misc_Note_01')
                 r.itemName:SetText(string.format('|c%s[%d]|r %s', S.hex.gold, q.level, Q.Safe(q.title)))
-                r.membersList:SetPoint('RIGHT', -124, 0); r.membersList:SetWidth(160)
+                r.itemName:SetWidth(185)
+                r.membersList:SetPoint('RIGHT', -182, 0); r.membersList:SetWidth(124)
                 r.place:SetShown(q.state ~= 'done' and Q.HasDungeonQuestPlace(q.id))
                 r.place:SetScript('OnClick', function() Q.Run('lieu de quête', Q.ShowDungeonQuestPlace, q.id, q.title, selectedNeeds.code) end)
+                r.route:SetShown(q.state ~= 'done' and Q.HasDungeonQuestPlace(q.id))
+                r.route:SetScript('OnClick', function()
+                    Q.Run('chemin quête', Q.ShowDungeonQuestPlace, q.id, q.title, selectedNeeds.code, true)
+                end)
                 local text
                 if q.state == 'log' then
                     text = q.complete and ('|c' .. S.hex.gold .. 'à rendre|r') or ('|c' .. S.hex.mint .. 'en cours|r')
@@ -855,6 +875,8 @@ function UI.RefreshDungeons()
             r.frame.quest = nil
             r.action:Hide()
             r.place:Hide()
+            r.route:Hide()
+            r.itemName:SetWidth(210)
             r.membersList:SetPoint('RIGHT', -10, 0); r.membersList:SetWidth(270)
             r.icon:SetTexture(lt.icon or 'Interface\\Icons\\INV_Misc_QuestionMark')
             local qHex = QUALITY_HEX[lt.quality or 3] or 'ffffffff'

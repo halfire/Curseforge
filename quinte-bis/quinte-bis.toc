@@ -1,10 +1,12 @@
 ## Interface: 16001, 110207, 120000, 120001, 120005, 120007, 120100, 120105, 120200
-## Title: quinte-bis
+## Title: |cff4a54e8Quintessence|r : BiS & donjons
+## Group: Quintessence
 ## Notes: Module Quintessence - Listes BiS de la guilde et besoins par donjon pour monter les groupes (onglet BiS & donjons, /qbis). Nécessite l'addon Quintessence.
 ## Author: Quintessence
-## Version: 0.6.1
+## Version: 0.7.0
 ## SavedVariables: QuinteBisDB
 ## Dependencies: Quintessence
+## IconTexture: Interface\Icons\INV_Misc_Head_Dragon_01
 Core.lua
 Dungeons.lua
 RaidLoot.lua

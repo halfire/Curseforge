@@ -1,10 +1,12 @@
 ## Interface: 16001, 110207, 120000, 120001, 120005, 120007, 120100, 120105, 120200
-## Title: Quinte-map
+## Title: |cff4a54e8Quintessence|r : SOS & Camps
+## Group: Quintessence
 ## Notes: Module Quintessence - Carte tactique de guilde : SOS PvP sauvage, position des feux de campement (/qmap, /qsos).
 ## Author: Quintessence
-## Version: 0.5.0
+## Version: 0.7.0
 ## SavedVariables: QuinteMapDB
 ## Dependencies: Quintessence
+## IconTexture: Interface\Icons\INV_Misc_Head_Dragon_01
 Core.lua
 SOS.lua
 Vendetta.lua

@@ -1,0 +1,8 @@
+{
+  "name": "ShortestPathForever",
+  "version": "1.22.48",
+  "url": "https://github.com/cjber/shortest-path-forever/releases/download/v1.22.48/ShortestPathForever-v1.22.48-forever.zip",
+  "sha256": "912d5ddc5f5ad541131a385baf3a98318ff2ca572adbd8f78808fe619b621121",
+  "license": "GPL-3.0-or-later",
+  "source": "https://github.com/cjber/shortest-path-forever/tree/v1.22.48"
+}

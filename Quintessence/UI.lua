@@ -1,37 +1,85 @@
 local _, Core = ...
 --[[
   Fenêtre commune « Quintessence » : en-tête, barre latérale de navigation (Accueil + un élément par module)
-  et zone de contenu qui prend la taille du panneau du module. Style : Quintessence.Style, interface moderne (sombre,
-  plate) ou WoW Classic (cadre de dialogue, bannière de titre et boutons du jeu), choisie sur l'accueil.
+  et zone de contenu. Style : Quintessence.Style, interface moderne (sombre, plate) ou WoW Classic (cadre de dialogue,
+  bannière de titre et boutons du jeu), choisie sur l'accueil.
+  Taille : la fenêtre garde la même taille sur tous les onglets. Chaque module garde sa mise en page (width × height
+  déclarés) et son panneau est mis à l'échelle pour remplir la zone de contenu, en haut et centré. Le tout est agrandi
+  pour qu'à 100 % la fenêtre ait la largeur de celle de Naowh Forever à 100 % (1440 points), réglable de 50 à 200 %
+  (QuintessenceDB.windowScale, accueil ou /quinte taille), sans jamais dépasser l'écran.
   Règle Retail 12+ : uniquement nos propres cadres, aucune écriture dans les objets de Blizzard.
 ]]
 local UI = {}
 Core.UI = UI
 local S = Core.Style
 local SIDE_W, HEADER_H, PAD, NAV_H = 176, 52, 18, 32
-local HOME_W, HOME_H = 680, 600
+-- Zone de contenu commune : celle de Craft, la plus grande des pages ordinaires
+local CONTENT_W, CONTENT_H = 780, 486
+local HOME_W = CONTENT_W
+local TOTAL_W, TOTAL_H = SIDE_W + PAD + CONTENT_W + PAD, HEADER_H + PAD + CONTENT_H + PAD
+local REFERENCE_W = 1440 -- largeur de la fenêtre de Naowh Forever à 100 %
+local SCALE_MIN, SCALE_MAX, SCALE_STEP, SCALE_DEFAULT = 50, 200, 10, 100
+local SCREEN_MARGIN, MIN_FIT = 32, 0.25
 local HOME_ICON = 'Interface\\Icons\\INV_Misc_Note_01'
+UI.CONTENT_W, UI.CONTENT_H, UI.REFERENCE_W = CONTENT_W, CONTENT_H, REFERENCE_W
 
 local frame, content, home, sidebar, locked
 local nav, panels = {}, {}
 local current
 
-local function moduleSize(id)
-    if id == 'home' then return HOME_W, HOME_H end
-    local m = Core.modules[id]
-    return (m and m.width) or HOME_W, (m and m.height) or HOME_H
+--- Taille choisie, en pour cent (50 à 200 par pas de 10, 100 par défaut).
+function UI.ScalePercent()
+    local pct = tonumber(QuintessenceDB and QuintessenceDB.windowScale) or SCALE_DEFAULT
+    pct = math.floor(pct / SCALE_STEP + 0.5) * SCALE_STEP
+    return math.max(SCALE_MIN, math.min(SCALE_MAX, pct))
 end
 
-local function fit(width, height)
-    local totalW, totalH = SIDE_W + PAD + width + PAD, HEADER_H + PAD + height + PAD
-    frame:SetSize(totalW, totalH)
-    content:SetSize(width, height)
-    local screenW = UIParent.GetWidth and UIParent:GetWidth() or totalW
-    local screenH = UIParent.GetHeight and UIParent:GetHeight() or totalH
+--- Échelle de la fenêtre : la taille choisie, réduite si la fenêtre ne tient pas à l'écran.
+function UI.WindowScale()
+    local scale = REFERENCE_W / TOTAL_W * UI.ScalePercent() / 100
+    local screenW = UIParent.GetWidth and UIParent:GetWidth()
+    local screenH = UIParent.GetHeight and UIParent:GetHeight()
     if type(screenW) == 'number' and type(screenH) == 'number' and screenW > 0 and screenH > 0 then
-        frame:SetScale(math.min(1, (screenW - 40) / totalW, (screenH - 40) / totalH))
+        local room = math.min((screenW - SCREEN_MARGIN) / TOTAL_W, (screenH - SCREEN_MARGIN) / TOTAL_H)
+        scale = math.min(scale, math.max(MIN_FIT, room))
     end
+    return scale
 end
+
+local function fit()
+    frame:SetSize(TOTAL_W, TOTAL_H)
+    content:SetSize(CONTENT_W, CONTENT_H)
+    frame:SetScale(UI.WindowScale())
+end
+
+-- Panneau d'un module : sa mise en page d'origine (width × height déclarés), à l'échelle de la zone de contenu
+local function place(id, panel)
+    local m = Core.modules[id]
+    local w = tonumber(m and m.width) or CONTENT_W
+    local h = tonumber(m and m.height) or CONTENT_H
+    if w <= 0 or h <= 0 then w, h = CONTENT_W, CONTENT_H end
+    panel:ClearAllPoints()
+    panel:SetSize(w, h)
+    panel:SetScale(math.min(CONTENT_W / w, CONTENT_H / h))
+    panel:SetPoint('TOP', content, 'TOP', 0, 0)
+end
+
+--- Change la taille (pour cent) ; la fenêtre ouverte est redessinée et recentrée.
+function UI.SetScalePercent(pct)
+    pct = tonumber(pct)
+    if not pct then return false end
+    QuintessenceDB = QuintessenceDB or {}
+    QuintessenceDB.windowScale = math.max(SCALE_MIN, math.min(SCALE_MAX, math.floor(pct / SCALE_STEP + 0.5) * SCALE_STEP))
+    if QuintessenceDB.windowScale == SCALE_DEFAULT then QuintessenceDB.windowScale = nil end
+    if frame then
+        fit()
+        frame:ClearAllPoints(); frame:SetPoint('CENTER')
+        if home and home.sizeValue then home.sizeValue:SetText(UI.ScalePercent() .. ' %') end
+    end
+    return true
+end
+
+function UI.StepScale(delta) return UI.SetScalePercent(UI.ScalePercent() + delta * SCALE_STEP) end
 
 local function syncText()
     local state = Core.sync and Core.sync:Status()
@@ -90,6 +138,7 @@ local function renderHome()
     home.toggle:SetLabel(QuintessenceDB and QuintessenceDB.syncEnabled == false and 'Activer la synchro' or 'Couper la synchro')
     local chosen = QuintessenceDB and S.ThemeName(QuintessenceDB.theme) or S.theme
     for name, button in pairs(home.themes) do button:SetActive(name == chosen) end
+    if home.sizeValue then home.sizeValue:SetText(UI.ScalePercent() .. ' %') end
     renderSidebar()
 end
 
@@ -107,11 +156,13 @@ local function createHome()
 
     local heading = S.Heading(home, 'Modules installés'); heading:SetPoint('TOPLEFT', 0, -82)
     home.cards = {}
-    for i = 1, 14 do
-        local col, line = (i - 1) % 2, math.floor((i - 1) / 2)
+    -- Trois colonnes : 12 onglets au plus (10 modules, Officiers, Aide) sur 4 lignes, au-dessus des cartes du bas
+    local cardW = (HOME_W - 24) / 3
+    for i = 1, 15 do
+        local col, line = (i - 1) % 3, math.floor((i - 1) / 3)
         local card = S.Box(home, S.colors.panel, S.colors.line, 'Button')
-        card:SetSize((HOME_W - 12) / 2, 54)
-        card:SetPoint('TOPLEFT', col * ((HOME_W - 12) / 2 + 12), -100 - line * 60)
+        card:SetSize(cardW, 54)
+        card:SetPoint('TOPLEFT', col * (cardW + 12), -100 - line * 60)
         card.icon = card:CreateTexture(nil, 'ARTWORK'); card.icon:SetSize(26, 26); card.icon:SetPoint('TOPLEFT', 10, -10)
         card.icon:SetTexCoord(0.08, 0.92, 0.08, 0.92)
         card.title = S.Text(card, 13, S.colors.text); card.title:SetPoint('TOPLEFT', 46, -9)
@@ -139,8 +190,18 @@ local function createHome()
     local themeCard = S.Box(home, S.colors.panel, S.colors.line)
     themeCard:SetPoint('BOTTOMLEFT', 0, 72); themeCard:SetSize(HOME_W, 64)
     local themeHeading = S.Heading(themeCard, 'Interface'); themeHeading:SetPoint('TOPLEFT', 14, -10)
-    local themeHint = S.Text(themeCard, 11, S.colors.muted); themeHint:SetPoint('TOPLEFT', 14, -30); themeHint:SetWidth(300)
-    themeHint:SetWordWrap(true); themeHint:SetText('Change l’apparence de toutes les fenêtres (l’interface se recharge).')
+    local themeHint = S.Text(themeCard, 11, S.colors.muted); themeHint:SetPoint('TOPLEFT', 14, -30); themeHint:SetWidth(220)
+    themeHint:SetWordWrap(true); themeHint:SetText('Apparence (l’interface se recharge).')
+    -- Taille de la fenêtre : 100 % = la taille de la fenêtre de Naowh Forever à 100 %
+    local sizeHeading = S.Heading(themeCard, 'Taille'); sizeHeading:SetPoint('TOPLEFT', 250, -10)
+    local smaller = S.Button(themeCard, '−', 26, 24, 'ghost'); smaller:SetPoint('TOPLEFT', 250, -30)
+    smaller:SetScript('OnClick', function() UI.StepScale(-1) end)
+    home.sizeValue = S.Text(themeCard, 12, S.colors.text, 'CENTER'); home.sizeValue:SetWidth(56)
+    home.sizeValue:SetPoint('LEFT', smaller, 'RIGHT', 2, 0)
+    local larger = S.Button(themeCard, '+', 26, 24, 'ghost'); larger:SetPoint('LEFT', home.sizeValue, 'RIGHT', 2, 0)
+    larger:SetScript('OnClick', function() UI.StepScale(1) end)
+    local reset = S.Button(themeCard, '100 %', 56, 24, 'ghost'); reset:SetPoint('LEFT', larger, 'RIGHT', 8, 0)
+    reset:SetScript('OnClick', function() UI.SetScalePercent(SCALE_DEFAULT) end)
     home.themes = {}
     local right = -14
     for i = #S.THEME_ORDER, 1, -1 do
@@ -286,7 +347,7 @@ local function showLocked(reason, guildName)
     current = 'locked'
     for key, panel in pairs(panels) do if key ~= 'locked' then panel:Hide() end end
     for _, item in pairs(nav) do item:Hide() end
-    fit(HOME_W, 320)
+    fit()
     renderSidebar()
     frame:Show()
     locked:Show()
@@ -308,7 +369,8 @@ function UI.Open(id)
     current = id
     if QuintessenceDB then QuintessenceDB.lastTab = id end
     for key, panel in pairs(panels) do if key ~= id then panel:Hide() end end
-    fit(moduleSize(id))
+    fit()
+    if id ~= 'home' then place(id, panels[id]) end
     layoutNav()
     renderSidebar()
     frame:Show()

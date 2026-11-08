@@ -13,7 +13,7 @@ local addonName, Core = ...
   Règle Retail 12+ : aucune écriture dans une table, une fonction ou un cadre de Blizzard.
 ]]
 Quintessence = Core -- seule globale publique de la suite (nom propre, jamais une globale de Blizzard)
-Core.name, Core.version = addonName or 'Quintessence', '1.33.1'
+Core.name, Core.version = addonName or 'Quintessence', '1.37.0'
 Core.modules, Core.syncModules, Core.channels, Core.debug = {}, {}, {}, { errors = {}, slow = {} }
 
 function Core.Call(fn, ...)
@@ -343,7 +343,14 @@ SlashCmdList.QUINTESSENCE = function(message)
         elseif command == 'test' then Core.Test()
         elseif command == 'versions' or command == 'version' then
             if Core.Versions then Core.Versions.Check(); if Core.Officers then Core.Officers.Open('versions') end end
+        elseif command == 'chemin' then Core.Navigation.Command(value)
         elseif command == 'minimap' then Core.MinimapToggle()
+        elseif command == 'taille' or command == 'size' or command == 'scale' then
+            local pct = tonumber((value:gsub('%%', '')))
+            if value == '+' then Core.UI.StepScale(1) elseif value == '-' then Core.UI.StepScale(-1)
+            elseif pct then Core.UI.SetScalePercent(pct)
+            elseif value ~= '' then return Core.Print('/quinte taille 50 à 200 (100 = taille de la fenêtre de Naowh Forever) · /quinte taille + ou -') end
+            Core.Print('Taille de la fenêtre : ' .. Core.UI.ScalePercent() .. ' % · /quinte taille 50 à 200, + ou -')
         elseif command == 'interface' or command == 'theme' then
             if value == '' then
                 return Core.Print('Interface : ' .. Core.Style.THEMES[Core.Style.theme].label .. ' · /quinte interface moderne|classique')
@@ -351,7 +358,7 @@ SlashCmdList.QUINTESSENCE = function(message)
             Core.SetTheme(value)
         elseif Core.modules[command] then Core.UI.Open(command)
         else
-            Core.Print('/quinte : ouvrir la fenêtre · /quinte <module> · /quinte versions · /quinte sync on|off|now · /quinte test · /quinte debug · /quinte minimap · /quinte interface moderne|classique')
+            Core.Print('/quinte : ouvrir la fenêtre · /quinte <module> · /quinte versions · /quinte sync on|off|now · /quinte test · /quinte debug · /quinte minimap · /quinte taille 50-200 · /quinte interface moderne|classique')
         end
     end)
 end

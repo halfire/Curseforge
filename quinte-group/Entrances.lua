@@ -106,7 +106,15 @@ function Q.EntranceMap(zoneKey)
     if not zone then return nil end
     return findMap(zone.fr, zone.en, zone.id)
 end
-local function placeWaypoint(mapID, x, y)
+local function placeWaypoint(mapID, x, y, title, route, kind)
+    local navigation = Quintessence and Quintessence.Navigation
+    if route then
+        if not navigation then Q.Print('Mets à jour le conteneur Quintessence pour utiliser les itinéraires.'); return false end
+        local placed, reason = navigation.Start('group', mapID, x, y, title, kind)
+        Q.Print(navigation.Message(reason))
+        return placed
+    end
+    if navigation then navigation.Clear(nil, true) end
     if not (C_Map and C_Map.SetUserWaypoint and UiMapPoint and UiMapPoint.CreateFromCoordinates) then return false end
     if C_Map.CanSetUserWaypointOnMap then
         local ok, can = pcall(C_Map.CanSetUserWaypointOnMap, mapID)
@@ -119,7 +127,7 @@ local function placeWaypoint(mapID, x, y)
     return ok
 end
 --- Un clic : repère, flèche et carte ouverte sur l'entrée ; la position est toujours écrite dans le chat.
-function Q.ShowDungeonEntrance(code)
+function Q.ShowDungeonEntrance(code, route)
     local e = Q.ENTRANCES[code]
     local d = Q.DUNGEON_BY_CODE and Q.DUNGEON_BY_CODE[code]
     local name = d and d.name or tostring(code)
@@ -127,7 +135,7 @@ function Q.ShowDungeonEntrance(code)
     local zone = ZONES[e.zone]
     local text = string.format('%s : %s (%s, %s)%s. %s', name, zone.fr, e.x, e.y, e.approx and ', position approximative' or '', e.note)
     local mapID = Q.EntranceMap(e.zone)
-    local placed = mapID and placeWaypoint(mapID, e.x, e.y)
+    local placed = mapID and placeWaypoint(mapID, e.x, e.y, name, route, 'dungeon')
     if mapID and C_Map and C_Map.OpenWorldMap then pcall(C_Map.OpenWorldMap, mapID) end
     Q.Print(text .. (placed and '' or ' Repère impossible sur cette carte.'))
     return placed and true or false
@@ -170,15 +178,15 @@ local function placeText(p)
     return text
 end
 --- Un clic sur « Carte » : repère et carte sur le donneur ; quête prise dans le donjon, repère sur son entrée.
-function Q.ShowDungeonQuestPlace(questId, title, code)
+function Q.ShowDungeonQuestPlace(questId, title, code, route)
     local p = Q.DUNGEON_QUEST_PLACES and Q.DUNGEON_QUEST_PLACES[questId]
     local name = Q.Safe(title or ('quête ' .. tostring(questId)))
     if not (p and p.start) then Q.Print('Lieu inconnu pour ' .. name .. '.'); return false end
     Q.Print(name .. ' : ' .. placeText(p) .. '.')
-    if p.at then return code ~= nil and Q.ShowDungeonEntrance(code) end
+    if p.at then return code ~= nil and Q.ShowDungeonEntrance(code, route) end
     if not p.x then return false end
     local mapID = findMap(ZONE_FR[p.zone], p.zone, p.map)
-    local placed = mapID and placeWaypoint(mapID, p.x, p.y)
+    local placed = mapID and placeWaypoint(mapID, p.x, p.y, title, route, 'pickup')
     if mapID and C_Map and C_Map.OpenWorldMap then pcall(C_Map.OpenWorldMap, mapID) end
     if not placed then Q.Print('Repère impossible sur cette carte.') end
     return placed and true or false

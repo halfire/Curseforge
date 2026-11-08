@@ -92,17 +92,20 @@ local function createSOSPanel(parent)
 
         local nameText = S.Text(r, 13, S.colors.text)
         nameText:SetPoint('TOPLEFT', 48, -5)
-        nameText:SetWidth(460)
+        nameText:SetWidth(370)
 
         local posText = S.Text(r, 11, S.colors.muted)
         posText:SetPoint('TOPLEFT', 48, -22)
-        posText:SetWidth(460)
+        posText:SetWidth(370)
 
         local helpBtn = S.Button(r, 'Inviter en renfort', 130, 26, 'primary')
-        helpBtn:SetPoint('RIGHT', -124, 0)
+        helpBtn:SetPoint('RIGHT', -194, 0)
 
         local mapBtn = S.Button(r, 'Carte', 70, 26, 'ghost')
         mapBtn:SetPoint('RIGHT', -46, 0)
+
+        local routeBtn = S.Button(r, 'Chemin', 64, 26, 'ghost')
+        routeBtn:SetPoint('RIGHT', -122, 0)
 
         -- Masquer l'alerte d'un autre chez soi (ou lever la sienne)
         local hideBtn = S.Button(r, '×', 26, 26, 'ghost')
@@ -113,6 +116,7 @@ local function createSOSPanel(parent)
             name = nameText,
             pos = posText,
             helpBtn = helpBtn,
+            routeBtn = routeBtn,
             mapBtn = mapBtn,
             hideBtn = hideBtn
         }
@@ -175,6 +179,9 @@ function UI.RefreshSOS()
 
             r.mapBtn:SetScript('OnClick', function()
                 Q.ShowOnWorldMap(a.mapID, a.x, a.y, 'SOS ' .. a.name)
+            end)
+            r.routeBtn:SetScript('OnClick', function()
+                Q.ShowRoute(a.mapID, a.x, a.y, 'SOS ' .. a.name)
             end)
         else
             r.frame:Hide()
@@ -300,20 +307,23 @@ local function createVendettaPanel(parent)
 
         local enemyText = S.Text(r, 13, S.colors.text)
         enemyText:SetPoint('TOPLEFT', 44, -4)
-        enemyText:SetWidth(450)
+        enemyText:SetWidth(365)
 
         local metaText = S.Text(r, 11, S.colors.muted)
         metaText:SetPoint('TOPLEFT', 44, -21)
-        metaText:SetWidth(450)
+        metaText:SetWidth(365)
 
         local avengeBtn = S.Button(r, 'Vengé !', 88, 24, 'primary')
-        avengeBtn:SetPoint('RIGHT', -154, 0)
+        avengeBtn:SetPoint('RIGHT', -224, 0)
 
         local hopBtn = S.Button(r, 'Layer', 68, 24, 'ghost')
-        hopBtn:SetPoint('RIGHT', -80, 0)
+        hopBtn:SetPoint('RIGHT', -150, 0)
 
         local mapBtn = S.Button(r, 'Carte', 64, 24, 'ghost')
         mapBtn:SetPoint('RIGHT', -10, 0)
+
+        local routeBtn = S.Button(r, 'Chemin', 64, 24, 'ghost')
+        routeBtn:SetPoint('RIGHT', -80, 0)
 
         rows[i] = {
             frame = r,
@@ -322,6 +332,7 @@ local function createVendettaPanel(parent)
             meta = metaText,
             avengeBtn = avengeBtn,
             hopBtn = hopBtn,
+            routeBtn = routeBtn,
             mapBtn = mapBtn,
         }
     end
@@ -405,6 +416,9 @@ function UI.RefreshVendetta()
             r.mapBtn:SetScript('OnClick', function()
                 Q.ShowOnWorldMap(e.mapID, e.x, e.y, 'Vendetta : ' .. e.enemy)
             end)
+            r.routeBtn:SetScript('OnClick', function()
+                Q.ShowRoute(e.mapID, e.x, e.y, 'Vendetta : ' .. e.enemy)
+            end)
         else
             r.frame:Hide()
         end
@@ -465,23 +479,27 @@ local function createCampPanel(parent)
 
         local nameText = S.Text(r, 13, S.colors.text)
         nameText:SetPoint('TOPLEFT', 48, -5)
-        nameText:SetWidth(460)
+        nameText:SetWidth(370)
 
         local posText = S.Text(r, 11, S.colors.muted)
         posText:SetPoint('TOPLEFT', 48, -22)
-        posText:SetWidth(460)
+        posText:SetWidth(370)
 
         local joinBtn = S.Button(r, 'Rejoindre', 130, 26, 'primary')
-        joinBtn:SetPoint('RIGHT', -92, 0)
+        joinBtn:SetPoint('RIGHT', -164, 0)
 
         local mapBtn = S.Button(r, 'Carte', 70, 26, 'ghost')
         mapBtn:SetPoint('RIGHT', -14, 0)
+
+        local routeBtn = S.Button(r, 'Chemin', 64, 26, 'ghost')
+        routeBtn:SetPoint('RIGHT', -92, 0)
 
         rows[i] = {
             frame = r,
             name = nameText,
             pos = posText,
             joinBtn = joinBtn,
+            routeBtn = routeBtn,
             mapBtn = mapBtn
         }
     end
@@ -532,6 +550,9 @@ function UI.RefreshCamps()
 
             r.mapBtn:SetScript('OnClick', function()
                 Q.ShowOnWorldMap(c.mapID, c.x, c.y, 'Campement ' .. c.owner)
+            end)
+            r.routeBtn:SetScript('OnClick', function()
+                Q.ShowRoute(c.mapID, c.x, c.y, 'Campement ' .. c.owner)
             end)
         else
             r.frame:Hide()

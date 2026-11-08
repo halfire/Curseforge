@@ -30,7 +30,7 @@ end
 
 --- Place un repère Waypoint Blizzard (flèche 3D de suivi + repère diamant sur la carte) ou TomTom
 --- open : ouvre aussi la carte du monde sur ce repère
-function Q.SetWaypoint(mapID, x, y, title, open)
+function Q.SetWaypoint(mapID, x, y, title, open, route)
     local mID = tonumber(mapID) or getBestMapID()
     x = tonumber(x)
     y = tonumber(y)
@@ -40,8 +40,19 @@ function Q.SetWaypoint(mapID, x, y, title, open)
     local normY = math.max(0.001, math.min(0.999, y / 100))
     local waypointSet = false
 
+    if route then
+        local navigation = Quintessence and Quintessence.Navigation
+        if not navigation then Q.Print('Mets à jour le conteneur Quintessence pour utiliser les itinéraires.'); return false end
+        local accepted, reason = navigation.Start('map', mID, normX * 100, normY * 100, title)
+        Q.Print(navigation.Message(reason))
+        if not accepted then return false end
+        waypointSet = true
+    else
+        if Quintessence and Quintessence.Navigation then Quintessence.Navigation.Clear(nil, true) end
+    end
+
     -- Waypoint natif Blizzard (C_Map + C_SuperTrack) sans toucher WorldMapFrame
-    if mID and C_Map and C_Map.SetUserWaypoint and UiMapPoint and UiMapPoint.CreateFromCoordinates then
+    if not route and mID and C_Map and C_Map.SetUserWaypoint and UiMapPoint and UiMapPoint.CreateFromCoordinates then
         pcall(function()
             local canSet = true
             if C_Map.CanSetUserWaypointOnMap then
@@ -61,7 +72,7 @@ function Q.SetWaypoint(mapID, x, y, title, open)
     end
 
     -- Compatibilité TomTom si installé
-    if mID and TomTom and TomTom.AddWaypoint then
+    if not route and not (ShortestPathForever and ShortestPathForever.API) and mID and TomTom and TomTom.AddWaypoint then
         pcall(TomTom.AddWaypoint, TomTom, mID, normX, normY, { title = title or 'Quintessence' })
     end
 
@@ -88,6 +99,11 @@ end
 --- Bouton Carte : repère + carte du monde ouverte en un clic (jamais WorldMapFrame directement)
 function Q.ShowOnWorldMap(mapID, x, y, title)
     Q.SetWaypoint(mapID, x, y, title, true)
+end
+
+--- Option explicite : même destination que Carte, avec le trait sur carte et minicarte.
+function Q.ShowRoute(mapID, x, y, title)
+    return Q.SetWaypoint(mapID, x, y, title, true, true)
 end
 
 --- Conservé par compatibilité interne (n'attache aucun cadre à WorldMapFrame pour éviter tout taint Midnight 12.0)
