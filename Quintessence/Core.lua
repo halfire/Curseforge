@@ -349,7 +349,7 @@ SlashCmdList.QUINTESSENCE = function(message)
             local pct = tonumber((value:gsub('%%', '')))
             if value == '+' then Core.UI.StepScale(1) elseif value == '-' then Core.UI.StepScale(-1)
             elseif pct then Core.UI.SetScalePercent(pct)
-            elseif value ~= '' then return Core.Print('/quinte taille 50 à 200 (100 = taille de la fenêtre de Naowh Forever) · /quinte taille + ou -') end
+            elseif value ~= '' then return Core.Print('/quinte taille 50 à 200 (100 = taille normale) · /quinte taille + ou -') end
             Core.Print('Taille de la fenêtre : ' .. Core.UI.ScalePercent() .. ' % · /quinte taille 50 à 200, + ou -')
         elseif command == 'interface' or command == 'theme' then
             if value == '' then

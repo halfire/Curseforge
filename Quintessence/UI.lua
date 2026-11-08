@@ -5,7 +5,7 @@ local _, Core = ...
   bannière de titre et boutons du jeu), choisie sur l'accueil.
   Taille : la fenêtre garde la même taille sur tous les onglets. Chaque module garde sa mise en page (width × height
   déclarés) et son panneau est mis à l'échelle pour remplir la zone de contenu, en haut et centré. Le tout est agrandi
-  pour qu'à 100 % la fenêtre ait la largeur de celle de Naowh Forever à 100 % (1440 points), réglable de 50 à 200 %
+  pour qu'à 100 % la fenêtre fasse 864 points de large (60 % de celle de Naowh Forever, 1440 points), réglable de 50 à 200 %
   (QuintessenceDB.windowScale, accueil ou /quinte taille), sans jamais dépasser l'écran.
   Règle Retail 12+ : uniquement nos propres cadres, aucune écriture dans les objets de Blizzard.
 ]]
@@ -17,7 +17,7 @@ local SIDE_W, HEADER_H, PAD, NAV_H = 176, 52, 18, 32
 local CONTENT_W, CONTENT_H = 780, 486
 local HOME_W = CONTENT_W
 local TOTAL_W, TOTAL_H = SIDE_W + PAD + CONTENT_W + PAD, HEADER_H + PAD + CONTENT_H + PAD
-local REFERENCE_W = 1440 -- largeur de la fenêtre de Naowh Forever à 100 %
+local REFERENCE_W = 864 -- largeur à 100 % : 60 % de la fenêtre de Naowh Forever (1440 points), textes moins gros
 local SCALE_MIN, SCALE_MAX, SCALE_STEP, SCALE_DEFAULT = 50, 200, 10, 100
 local SCREEN_MARGIN, MIN_FIT = 32, 0.25
 local HOME_ICON = 'Interface\\Icons\\INV_Misc_Note_01'
@@ -192,7 +192,7 @@ local function createHome()
     local themeHeading = S.Heading(themeCard, 'Interface'); themeHeading:SetPoint('TOPLEFT', 14, -10)
     local themeHint = S.Text(themeCard, 11, S.colors.muted); themeHint:SetPoint('TOPLEFT', 14, -30); themeHint:SetWidth(220)
     themeHint:SetWordWrap(true); themeHint:SetText('Apparence (l’interface se recharge).')
-    -- Taille de la fenêtre : 100 % = la taille de la fenêtre de Naowh Forever à 100 %
+    -- Taille de la fenêtre : 100 % = 864 points de large (60 % de la fenêtre de Naowh Forever)
     local sizeHeading = S.Heading(themeCard, 'Taille'); sizeHeading:SetPoint('TOPLEFT', 250, -10)
     local smaller = S.Button(themeCard, '−', 26, 24, 'ghost'); smaller:SetPoint('TOPLEFT', 250, -30)
     smaller:SetScript('OnClick', function() UI.StepScale(-1) end)
