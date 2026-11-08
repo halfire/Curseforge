@@ -4,11 +4,11 @@
 Usage : curseforge_upload.py <dossier de pack.json>
 Environnement :
   CF_API_KEY        jeton d'API de l'auteur (secret GitHub, jamais affiché)
-  CF_PROJECT_ID     numéro du projet CurseForge
+  CF_PROJECT_ID     numéro du projet CurseForge (variable ou secret)
   CF_GAME_VERSIONS  facultatif : noms exacts des versions du jeu, séparés par des virgules.
                     Sans lui, on prend la version la plus récente dont le nom ou le type contient « forever ».
   CF_API_BASE       facultatif, pour les tests (https://wow.curseforge.com par défaut)
-Sans jeton ni projet, rien n'est envoyé (le dépôt reste utilisable avant la création du projet).
+Sans jeton ou sans projet, l'envoi échoue en disant lequel manque (avant il restait vert sans rien envoyer).
 """
 import io
 import json
@@ -87,9 +87,13 @@ def main():
     folder = Path(sys.argv[1])
     token = os.environ.get('CF_API_KEY', '').strip()
     project = os.environ.get('CF_PROJECT_ID', '').strip()
-    if not token or not project:
-        print('::warning title=CurseForge::CF_API_KEY ou CF_PROJECT_ID absent : rien envoyé.')
-        return
+    missing = [name for name, value in (('secret CF_API_KEY', token), ('variable CF_PROJECT_ID', project)) if not value]
+    if missing:
+        # En échec (croix rouge et courriel de GitHub) : avant, l'envoi restait vert sans rien envoyer.
+        print('::error title=CurseForge::Rien envoyé, absent de ce dépôt : ' + ' et '.join(missing)
+              + '. Settings → Secrets and variables → Actions, onglets Secrets et Variables du dépôt halfire/Curseforge '
+              "(pas un secret d'environnement, ni un autre dépôt).")
+        raise SystemExit(1)
     if not project.isdigit():
         raise SystemExit('CF_PROJECT_ID doit être un numéro.')
     base = os.environ.get('CF_API_BASE', 'https://wow.curseforge.com').rstrip('/')
