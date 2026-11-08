@@ -21,3 +21,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 
 Third-party libraries in Libs retain their upstream licenses and notices.
+
+Distribution with Navigation/Engine forms a combined work under GPL-3.0-or-later (see COPYING).
+The original Quintessence code above remains separately available under MIT.
+Shortest Path Forever copyright and licensing notices are retained in Navigation/Engine.

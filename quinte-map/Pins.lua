@@ -71,8 +71,10 @@ function Q.SetWaypoint(mapID, x, y, title, open, route)
         end)
     end
 
-    -- Compatibilité TomTom si installé
-    if not route and not (ShortestPathForever and ShortestPathForever.API) and mID and TomTom and TomTom.AddWaypoint then
+    -- Carte reste neutre avec le moteur intégré (ou son ancien addon autonome).
+    local navigation = Quintessence and Quintessence.Navigation
+    local integrated = navigation and navigation.Available and navigation.Available()
+    if not route and not integrated and not (ShortestPathForever and ShortestPathForever.API) and mID and TomTom and TomTom.AddWaypoint then
         pcall(TomTom.AddWaypoint, TomTom, mID, normX, normY, { title = title or 'Quintessence' })
     end
 
