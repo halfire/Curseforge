@@ -25,6 +25,9 @@ for p in out.rglob('*'):
   text=text.replace('QuintessenceTravelDB = QuintessenceTravelDB or {}\n\tns.db = QuintessenceTravelDB','QuintessenceDB = QuintessenceDB or {}\n\tif type(QuintessenceDB.travelEngine) ~= \"table\" then QuintessenceDB.travelEngine = {} end\n\tns.db = QuintessenceDB.travelEngine\n\tif ns.ConfigureDefaults then ns.ConfigureDefaults(DEFAULTS) end')
   text=text.replace('print(NORMAL_FONT_COLOR:WrapTextInColorCode("Shortest Path Forever:") .. " " .. message)','QC.Print(message)')
  if rel=='Transport/Taxi.lua':text=text.replace('QuintessenceTravelCharDB = QuintessenceTravelCharDB or {}\n\tns.charDB = QuintessenceTravelCharDB','ns.charDB = ns.CharacterDB()')
+ if rel=='UI/Tracker.lua':
+  # L'intégration RestedXP n'est pas chargée : ne pas proposer une action vers une fonction absente.
+  text=text.replace('\t\t\t\troot:CreateButton(L["Resume RestedXP guide"], function()\n\t\t\t\t\tns.ResumeRestedXP()\n\t\t\t\tend)\n','')
  if rel=='Core/API.lua':text=text.replace('QuintessenceTravel.API = API','QuintessenceTravel.API = API\nns.API = API')
  if rel=='Core/SafeCall.lua':text=text.replace('local rawMessage = tostring(message)','local rawMessage = tostring(message)\n\tif QC.Error then QC.Error("voyages : " .. tostring(label), rawMessage) end')
  if rel=='Journey/JourneyInput.lua':text=text[:text.index('ns.Init(function()')]+'-- Quintessence : les gestes carte/minicarte et menus autonomes sont remplacés par le service commun.\n'

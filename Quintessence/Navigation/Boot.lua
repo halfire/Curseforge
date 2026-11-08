@@ -3,7 +3,10 @@ local addonName, Core = ...
 local E = {}
 Core.TravelEngine = E
 E.Share = function() end
-E.FamilyHints = { AddQuestMenu = function() end }
+-- Les suggestions externes restent désactivées ; les consommateurs attendent cette interface complète.
+local function noHint() end
+E.FamilyHints = { AddQuestMenu = noHint, AddEntranceLine = noHint, Footer = noHint,
+    OpenFooter = noHint, Version = function() return 0 end }
 local defaults = { enabled = true, automatic = false, worldMap = true, minimap = true,
     arrow = false, compass = false, steps = false, destination = false,
     transportPins = false, transportTimes = false, alerts = false, sound = false }

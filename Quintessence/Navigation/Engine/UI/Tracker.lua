@@ -62,9 +62,6 @@ function ModuleMixin:OnBlockHeaderClick(block, button)
 			ns.ContextMenu(block, function(_, root)
 				root:CreateCheckbox(L["Guide me"], ns.IsJourneyGuided, ns.ToggleJourneyGuide)
 				root:CreateButton(L["Show on map"], ns.ShowJourneyMap)
-				root:CreateButton(L["Resume RestedXP guide"], function()
-					ns.ResumeRestedXP()
-				end)
 				-- A corpse run ends only when you live again.
 				if not ns.Corpse.Active() then
 					root:CreateButton(L["Clear journey"], ns.ClearJourney)
