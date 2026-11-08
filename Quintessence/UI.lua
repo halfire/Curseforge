@@ -4,8 +4,9 @@ local _, Core = ...
   et zone de contenu. Style : Quintessence.Style, interface moderne (sombre, plate) ou WoW Classic (cadre de dialogue,
   bannière de titre et boutons du jeu), choisie sur l'accueil.
   Taille : la fenêtre garde la même taille sur tous les onglets. Chaque module garde sa mise en page (width × height
-  déclarés) et son panneau est mis à l'échelle pour remplir la zone de contenu, en haut et centré. Le tout est agrandi
-  pour qu'à 100 % la fenêtre fasse 864 points de large (60 % de celle de Naowh Forever, 1440 points), réglable de 50 à 200 %
+  déclarés), mise à l'échelle de la zone des modules (780 × 486, celle de Craft), centrée dans la zone de contenu.
+  Depuis 1.38.1 la fenêtre est 30 % plus grande (1290 × 746) sans que les textes grossissent : l'échelle reste celle de
+  la 1.37.2 (fenêtre de 992 points ramenée à 864 points de large), réglable de 50 à 200 %
   (QuintessenceDB.windowScale, accueil ou /quinte taille), sans jamais dépasser l'écran.
   Règle Retail 12+ : uniquement nos propres cadres, aucune écriture dans les objets de Blizzard.
 ]]
@@ -13,15 +14,18 @@ local UI = {}
 Core.UI = UI
 local S = Core.Style
 local SIDE_W, HEADER_H, PAD, NAV_H = 176, 52, 18, 32
--- Zone de contenu commune : celle de Craft, la plus grande des pages ordinaires
-local CONTENT_W, CONTENT_H = 780, 486
+-- Zone des modules : celle de Craft, la plus grande des pages ordinaires ; chaque onglet y est mis à l'échelle
+local MODULE_W, MODULE_H = 780, 486
+-- Fenêtre 30 % plus grande que 992 × 574 (1.37.2), à la même échelle : plus de place, textes de la même taille
+local TOTAL_W, TOTAL_H = 1290, 746
+local CONTENT_W, CONTENT_H = TOTAL_W - SIDE_W - 2 * PAD, TOTAL_H - HEADER_H - 2 * PAD -- 1078 × 658
 local HOME_W = CONTENT_W
-local TOTAL_W, TOTAL_H = SIDE_W + PAD + CONTENT_W + PAD, HEADER_H + PAD + CONTENT_H + PAD
-local REFERENCE_W = 864 -- largeur à 100 % : 60 % de la fenêtre de Naowh Forever (1440 points), textes moins gros
+local BASE_SCALE = 864 / 992 -- échelle à 100 % : celle de la 1.37.2, où les textes ont la bonne taille
+local REFERENCE_W = TOTAL_W * BASE_SCALE -- largeur à 100 % : 1123 points
 local SCALE_MIN, SCALE_MAX, SCALE_STEP, SCALE_DEFAULT = 50, 200, 10, 100
 local SCREEN_MARGIN, MIN_FIT = 32, 0.25
 local HOME_ICON = 'Interface\\Icons\\INV_Misc_Note_01'
-UI.CONTENT_W, UI.CONTENT_H, UI.REFERENCE_W = CONTENT_W, CONTENT_H, REFERENCE_W
+UI.CONTENT_W, UI.CONTENT_H, UI.MODULE_W, UI.MODULE_H, UI.REFERENCE_W = CONTENT_W, CONTENT_H, MODULE_W, MODULE_H, REFERENCE_W
 
 local frame, content, home, sidebar, locked
 local nav, panels = {}, {}
@@ -36,7 +40,7 @@ end
 
 --- Échelle de la fenêtre : la taille choisie, réduite si la fenêtre ne tient pas à l'écran.
 function UI.WindowScale()
-    local scale = REFERENCE_W / TOTAL_W * UI.ScalePercent() / 100
+    local scale = BASE_SCALE * UI.ScalePercent() / 100
     local screenW = UIParent.GetWidth and UIParent:GetWidth()
     local screenH = UIParent.GetHeight and UIParent:GetHeight()
     if type(screenW) == 'number' and type(screenH) == 'number' and screenW > 0 and screenH > 0 then
@@ -52,16 +56,17 @@ local function fit()
     frame:SetScale(UI.WindowScale())
 end
 
--- Panneau d'un module : sa mise en page d'origine (width × height déclarés), à l'échelle de la zone de contenu
+-- Panneau d'un module : sa mise en page d'origine (width × height déclarés), à l'échelle de la zone des modules,
+-- centré dans la zone de contenu (plus grande : les onglets ne sont pas encore étirés)
 local function place(id, panel)
     local m = Core.modules[id]
-    local w = tonumber(m and m.width) or CONTENT_W
-    local h = tonumber(m and m.height) or CONTENT_H
-    if w <= 0 or h <= 0 then w, h = CONTENT_W, CONTENT_H end
+    local w = tonumber(m and m.width) or MODULE_W
+    local h = tonumber(m and m.height) or MODULE_H
+    if w <= 0 or h <= 0 then w, h = MODULE_W, MODULE_H end
     panel:ClearAllPoints()
     panel:SetSize(w, h)
-    panel:SetScale(math.min(CONTENT_W / w, CONTENT_H / h))
-    panel:SetPoint('TOP', content, 'TOP', 0, 0)
+    panel:SetScale(math.min(MODULE_W / w, MODULE_H / h))
+    panel:SetPoint('CENTER', content, 'CENTER', 0, 0)
 end
 
 --- Change la taille (pour cent) ; la fenêtre ouverte est redessinée et recentrée.
@@ -192,7 +197,7 @@ local function createHome()
     local themeHeading = S.Heading(themeCard, 'Interface'); themeHeading:SetPoint('TOPLEFT', 14, -10)
     local themeHint = S.Text(themeCard, 11, S.colors.muted); themeHint:SetPoint('TOPLEFT', 14, -30); themeHint:SetWidth(220)
     themeHint:SetWordWrap(true); themeHint:SetText('Apparence (l’interface se recharge).')
-    -- Taille de la fenêtre : 100 % = 864 points de large (60 % de la fenêtre de Naowh Forever)
+    -- Taille de la fenêtre : 100 % = 1123 points de large, textes à la taille de la 1.37.2
     local sizeHeading = S.Heading(themeCard, 'Taille'); sizeHeading:SetPoint('TOPLEFT', 250, -10)
     local smaller = S.Button(themeCard, '−', 26, 24, 'ghost'); smaller:SetPoint('TOPLEFT', 250, -30)
     smaller:SetScript('OnClick', function() UI.StepScale(-1) end)
