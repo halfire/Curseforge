@@ -825,20 +825,21 @@ function UI.RefreshDungeons()
     end
 
     local quests = Q.DungeonQuests and Q.DungeonQuests(selectedNeeds.code) or {}
+    local questCount = #quests
     if Q.ChainOrder then quests = Q.ChainOrder(quests) end
-    p.questToggle:SetLabel(dungeonState.showQuests and 'Butins' or ('Quêtes (' .. #quests .. ')'))
+    p.questToggle:SetLabel(dungeonState.showQuests and 'Butins' or ('Quêtes (' .. questCount .. ')'))
     p.questToggle:SetActive(dungeonState.showQuests and true or false)
     if dungeonState.showQuests then
         local todo, toShare = 0, 0
         local grouped = IsInGroup and IsInGroup() and true or false
         for _, q in ipairs(quests) do
-            if q.state == 'todo' then todo = todo + 1 end
+            if q.state == 'todo' and not q.virtual then todo = todo + 1 end
             if q.shareable then toShare = toShare + 1 end
         end
-        p.lHeading:SetText(string.format('Quêtes (%d) · %d à prendre · %d à partager', #quests, todo, toShare))
+        p.lHeading:SetText(string.format('Quêtes (%d) · %d à prendre · %d à partager', questCount, todo, toShare))
         p.bossLoot:SetLabel('Dire au groupe')
         p.bossLoot:SetEnabled(grouped and todo > 0)
-        p.lootEmpty:SetShown(#quests == 0)
+        p.lootEmpty:SetShown(questCount == 0)
         p.lootEmpty:SetText('Aucune quête connue pour ce donjon.')
         dungeonState.lootOffset = math.max(0, math.min(dungeonState.lootOffset, math.max(0, #quests - L_ROWS)))
         for i = 1, L_ROWS do
@@ -846,8 +847,17 @@ function UI.RefreshDungeons()
             if q then
                 r.frame:Show(); r.frame.itemID = nil; r.frame.quest = q
                 r.icon:SetTexture('Interface\\Icons\\INV_Misc_Note_01')
-                -- Suite d'une chaîne : décalée d'un cran par étape, sous la précédente
-                local indent = (q.depth or 0) > 0 and (string.rep('   ', q.depth - 1) .. '|c' .. S.hex.muted .. '└|r ') or ''
+                -- Suite d'une chaîne : décalée d'un cran par étape (6 crans au plus), sous la précédente
+                local depth = math.min(q.depth or 0, 6)
+                local indent = depth > 0 and (string.rep('   ', depth - 1) .. '|c' .. S.hex.muted .. '└|r ') or ''
+                if q.virtual then
+                    -- Étape de la chaîne faite hors de ce donjon : ligne d'information, sans action
+                    r.itemName:SetText(string.format('%s|c%s%s (%s)|r', indent, S.hex.muted, Q.Safe(q.title or ('quête ' .. q.id)), q.tag))
+                    r.itemName:SetWidth(285)
+                    r.membersList:SetPoint('RIGHT', -182, 0); r.membersList:SetWidth(IW - 506)
+                    r.place:Hide(); r.route:Hide(); r.action:Hide()
+                    r.membersList:SetText('|c' .. (q.state == 'done' and S.hex.mint or S.hex.muted) .. q.stateText .. '|r')
+                else
                 r.itemName:SetText(string.format('%s|c%s[%d]|r %s%s', indent, S.hex.gold, q.level, Q.Safe(q.title),
                     q.tag and (' |c' .. S.hex.muted .. '(' .. q.tag .. ')|r') or ''))
                 r.itemName:SetWidth(285)
@@ -886,6 +896,7 @@ function UI.RefreshDungeons()
                     r.action:Hide()
                 end
                 r.membersList:SetText(text)
+                end
             else r.frame:Hide(); r.frame.quest = nil end
         end
         return

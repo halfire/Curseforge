@@ -311,14 +311,17 @@ function Q.DungeonQuests(code)
 end
 
 --- Liste à afficher : les étapes d'une même chaîne se suivent, dans l'ordre de la chaîne, à la place de la première
---- d'entre elles ; chaque suite est décalée d'un cran de plus (q.depth = 0, 1, 2…). Ne change pas Q.DungeonQuests.
+--- d'entre elles ; chaque étape est décalée d'un cran de plus (q.depth = 0, 1, 2…). Les étapes de la chaîne qui ne sont
+--- pas des quêtes de ce donjon (prérequis faits dehors, étapes entre deux quêtes du donjon) sont ajoutées comme lignes
+--- d'information (q.virtual = true) : tout le chemin jusqu'à la dernière quête du donjon. Ne change pas Q.DungeonQuests.
+local STEP_STATE = { done = 'faite', log = 'en cours', todo = 'à faire' }
 function Q.ChainOrder(quests)
     local groups, out, placed = {}, {}, {}
     for _, q in ipairs(quests) do
         local first = q.chain and q.chain[1] and q.chain[1].id
         if first then
             groups[first] = groups[first] or {}
-            table.insert(groups[first], q)
+            groups[first][#groups[first] + 1] = q
         end
     end
     local function position(q)
@@ -331,9 +334,35 @@ function Q.ChainOrder(quests)
             q.depth = 0; out[#out + 1] = q
         elseif not placed[first] then
             placed[first] = true
-            local group = groups[first]
-            table.sort(group, function(a, b) return position(a) < position(b) end)
-            for depth, member in ipairs(group) do member.depth = depth - 1; out[#out + 1] = member end
+            local group, byId, firstPos, lastPos = groups[first], {}, math.huge, 0
+            for _, member in ipairs(group) do
+                local pos = position(member)
+                byId[member.id] = member
+                if pos > 0 then firstPos = math.min(firstPos, pos); lastPos = math.max(lastPos, pos) end
+            end
+            local chain = group[1].chain
+            if lastPos == 0 then
+                for depth, member in ipairs(group) do member.depth = depth - 1; out[#out + 1] = member end
+            else
+                for i = 1, lastPos do
+                    local step = chain[i]
+                    local member = byId[step.id]
+                    if member then
+                        member.depth = i - 1; out[#out + 1] = member
+                    else
+                        -- Étape hors de ce donjon : son état, sa place, et la chaîne vue depuis elle (infobulle)
+                        local view = {}
+                        for k, s in ipairs(chain) do
+                            view[k] = { id = s.id, title = s.title, state = s.state, inDungeon = s.inDungeon, here = k == i,
+                                step = (k < i and 'prérequis') or (k > i and 'suite') or nil }
+                        end
+                        out[#out + 1] = { virtual = true, id = step.id, title = step.title, state = step.state,
+                            stateText = STEP_STATE[step.state] or 'à faire', depth = i - 1,
+                            tag = (i < firstPos) and 'prérequis, hors du donjon' or 'étape hors du donjon',
+                            chain = view, holders = {}, groupHas = {}, groupMissing = {}, known = true }
+                    end
+                end
+            end
         end
     end
     return out
