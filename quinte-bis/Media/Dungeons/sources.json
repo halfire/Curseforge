@@ -1,0 +1,175 @@
+{
+  "copyright": "Blizzard Entertainment",
+  "revision": "312a6e61bab69370c65ccc0a08f1075d62196294",
+  "images": {
+    "BlackfathomDeeps": {
+      "url": "https://raw.githubusercontent.com/Gethe/wow-ui-textures/312a6e61bab69370c65ccc0a08f1075d62196294/EncounterJournal/UI-EJ-DUNGEONBUTTON-BlackfathomDeeps.PNG",
+      "source_sha256": "2cd808477edaeb2cb161f302ed15fea94351bef48dd6ed650d15fa294cb1d926",
+      "sha256": "6dd507e40619d7f43945c9460042ed321d816b4d391eac685904184ac33b3a86"
+    },
+    "BlackrockDepths": {
+      "url": "https://raw.githubusercontent.com/Gethe/wow-ui-textures/312a6e61bab69370c65ccc0a08f1075d62196294/EncounterJournal/UI-EJ-DUNGEONBUTTON-BlackrockDepths.PNG",
+      "source_sha256": "4aab35c7bdaa2b1c5295fcfbad39df89719759a24ef5f8576ce57efff7546bcf",
+      "sha256": "e6cb1f9045880afb66f93fee17cf03807d43df9d0c021795a2c62d59d54deed7"
+    },
+    "BlackrockSpire": {
+      "url": "https://raw.githubusercontent.com/Gethe/wow-ui-textures/312a6e61bab69370c65ccc0a08f1075d62196294/EncounterJournal/UI-EJ-DUNGEONBUTTON-BlackrockSpire.PNG",
+      "source_sha256": "49869e3c73b6ece708e62aa4331ff6a124925113ebf9ce33edef90c7f59c68fe",
+      "sha256": "c5f2047989fe51f6b2292d37d21e67a8371f694f6da51d8de726d6dea7f45dcf"
+    },
+    "BlackwingLair": {
+      "url": "https://raw.githubusercontent.com/Gethe/wow-ui-textures/312a6e61bab69370c65ccc0a08f1075d62196294/EncounterJournal/UI-EJ-DUNGEONBUTTON-BlackwingLair.PNG",
+      "source_sha256": "be433d9a4932e8e53429a24130663fb18bdaee5e32f1eb175bf9495e9fe02058",
+      "sha256": "4c4a6e4066b4efe0e477d38208c22f75599c3b690771b51e55a14644c49ceea3"
+    },
+    "Deadmines": {
+      "url": "https://raw.githubusercontent.com/Gethe/wow-ui-textures/312a6e61bab69370c65ccc0a08f1075d62196294/EncounterJournal/UI-EJ-DUNGEONBUTTON-Deadmines.PNG",
+      "source_sha256": "933cff128f1d138a5a98ff8ee2ec67291fff3d9a3fe7d73799a018f9d5d93b00",
+      "sha256": "e736a23dfd5a585aacaa4d6b950a53254582ee410379380de1573f8f42557bd1"
+    },
+    "Default": {
+      "url": "https://raw.githubusercontent.com/Gethe/wow-ui-textures/312a6e61bab69370c65ccc0a08f1075d62196294/EncounterJournal/UI-EJ-DUNGEONBUTTON-Default.PNG",
+      "source_sha256": "38b3515669e495e83377632236079f92879d2aec8150986ee9a0442c0a7e4778",
+      "sha256": "72f6720390de95df62b2d2a5e61ed890fe1f50c01079bb08178d8a93df894ccd"
+    },
+    "DireMaul": {
+      "url": "https://raw.githubusercontent.com/Gethe/wow-ui-textures/312a6e61bab69370c65ccc0a08f1075d62196294/EncounterJournal/UI-EJ-DUNGEONBUTTON-DireMaul.PNG",
+      "source_sha256": "7ef61e6ea91a174ebe3398b0a1dd6c75deed203963788dbdf860d29937263adc",
+      "sha256": "ef3b485bb0b583d7fb0425087630b91d500fa9ba97844c865ec5a0d1f01e0309"
+    },
+    "Gnomeregan": {
+      "url": "https://raw.githubusercontent.com/Gethe/wow-ui-textures/312a6e61bab69370c65ccc0a08f1075d62196294/EncounterJournal/UI-EJ-DUNGEONBUTTON-Gnomeregan.PNG",
+      "source_sha256": "8769273bce887415b4ff6f02244e029a7f4a2632e2236016a4e94e3dcdf5f011",
+      "sha256": "445562c4676051dcd85f5825c8cf5aea14d51f1f396a9d44ff6e4ad5abf5ca60"
+    },
+    "Maraudon": {
+      "url": "https://raw.githubusercontent.com/Gethe/wow-ui-textures/312a6e61bab69370c65ccc0a08f1075d62196294/EncounterJournal/UI-EJ-DUNGEONBUTTON-Maraudon.PNG",
+      "source_sha256": "634bc78d6fb6629eb3f21c18125e49a2b6b94cb7cb7c96708da65eafa64c5ee7",
+      "sha256": "35c7e3a834568969662f749b9ffbb956387a51dacf1fd6496bea5b173b1978d9"
+    },
+    "MoltenCore": {
+      "url": "https://raw.githubusercontent.com/Gethe/wow-ui-textures/312a6e61bab69370c65ccc0a08f1075d62196294/EncounterJournal/UI-EJ-DUNGEONBUTTON-MoltenCore.PNG",
+      "source_sha256": "10d4914bda870945a22a62b5dfcde58abcbb4c2840edebfbdb3573abf33f86fd",
+      "sha256": "9c076b6c685e5883ad933d38a9687d96ae13e75ef6ebbbd0f2af4857c123d913"
+    },
+    "Naxxramas": {
+      "url": "https://raw.githubusercontent.com/Gethe/wow-ui-textures/312a6e61bab69370c65ccc0a08f1075d62196294/EncounterJournal/UI-EJ-DUNGEONBUTTON-Naxxramas.PNG",
+      "source_sha256": "502e74d6fcddc0d804033aadb2a5350341ea126b9258028b0a89c3b5c5e92635",
+      "sha256": "0e5fc4868284b371c7cbc3b671fdc7a00f9f754c859d330ab1d892da5b3a3ed3"
+    },
+    "Onyxia": {
+      "url": "https://raw.githubusercontent.com/Gethe/wow-ui-textures/312a6e61bab69370c65ccc0a08f1075d62196294/EncounterJournal/UI-EJ-DUNGEONBUTTON-Onyxia.PNG",
+      "source_sha256": "b50d112a12d05840ace0ed99f03854d949cc5b74b8813de791ac62786effe8e8",
+      "sha256": "96cbd9cf7c7c75ee1ba65a6ce325663eed895f0918092adb2697821f9dbf281d"
+    },
+    "RagefireChasm": {
+      "url": "https://raw.githubusercontent.com/Gethe/wow-ui-textures/312a6e61bab69370c65ccc0a08f1075d62196294/EncounterJournal/UI-EJ-DUNGEONBUTTON-RagefireChasm.PNG",
+      "source_sha256": "c26ea6b67e913270e742fb0543471d54ceb32532d95d9b74f5eacd1995545c65",
+      "sha256": "afedb2fed4b0ab188e35ac615c1322d4a9368479d6193689fdd45542f6e958a2"
+    },
+    "RazorfenDowns": {
+      "url": "https://raw.githubusercontent.com/Gethe/wow-ui-textures/312a6e61bab69370c65ccc0a08f1075d62196294/EncounterJournal/UI-EJ-DUNGEONBUTTON-RazorfenDowns.PNG",
+      "source_sha256": "48884c7a069362af005a3eae55aff27bf7d4a89c3892ca5c0a8149f900df06c6",
+      "sha256": "387ab6166dae2bb218836251a7bdcb246353232f47f62a9b05d13779e7d2ec56"
+    },
+    "RazorfenKraul": {
+      "url": "https://raw.githubusercontent.com/Gethe/wow-ui-textures/312a6e61bab69370c65ccc0a08f1075d62196294/EncounterJournal/UI-EJ-DUNGEONBUTTON-RazorfenKraul.PNG",
+      "source_sha256": "05cac66b67e5e9494ba68264876e6ff1577414230d4aaf908b67c9c8d60cd052",
+      "sha256": "e390ac2327c927f0e721ce2177ad38c27afa36a84136b750459520eda4f83f95"
+    },
+    "RuinsofAhnQiraj": {
+      "url": "https://raw.githubusercontent.com/Gethe/wow-ui-textures/312a6e61bab69370c65ccc0a08f1075d62196294/EncounterJournal/UI-EJ-DUNGEONBUTTON-RuinsofAhnQiraj.PNG",
+      "source_sha256": "a0bffbfe4ac95d04fdd7d30e44b16c6eb719a8fb75310c9db9f1ab0f6da2bd33",
+      "sha256": "a9c62def023804c0c1670127719e9c45372ea2a1b42f386ee2fd3279157028d9"
+    },
+    "ScarletMonastery": {
+      "url": "https://raw.githubusercontent.com/Gethe/wow-ui-textures/312a6e61bab69370c65ccc0a08f1075d62196294/EncounterJournal/UI-EJ-DUNGEONBUTTON-ScarletMonastery.PNG",
+      "source_sha256": "1eb80824a5f32568a66c12f0df7a25228bc4d198e1f234cbc6667eb5182af695",
+      "sha256": "6ab455082f889686d50951381c85c3010e0895faedfdc9de90401c8af5a5fe96"
+    },
+    "Scholomance": {
+      "url": "https://raw.githubusercontent.com/Gethe/wow-ui-textures/312a6e61bab69370c65ccc0a08f1075d62196294/EncounterJournal/UI-EJ-DUNGEONBUTTON-Scholomance.PNG",
+      "source_sha256": "60ad606d7589a9a95d23ecc6a8e27e6b8dcea810d44593e37113424242bf11fe",
+      "sha256": "d574254f83d7642121b95d5899a8f26b0e6349b0ed6d447976b4cd970f095702"
+    },
+    "ShadowFangKeep": {
+      "url": "https://raw.githubusercontent.com/Gethe/wow-ui-textures/312a6e61bab69370c65ccc0a08f1075d62196294/EncounterJournal/UI-EJ-DUNGEONBUTTON-ShadowFangKeep.PNG",
+      "source_sha256": "938773c01f082f241022549ef9dc20ad078ddc45bbafe645621fafaf5ad98a68",
+      "sha256": "41a4f27f68983ca9caa6be96f7b624e015273044352ee192e994bc7c5b89c1fa"
+    },
+    "Stratholme": {
+      "url": "https://raw.githubusercontent.com/Gethe/wow-ui-textures/312a6e61bab69370c65ccc0a08f1075d62196294/EncounterJournal/UI-EJ-DUNGEONBUTTON-Stratholme.PNG",
+      "source_sha256": "3ad172cc67f349f2255e90308599aed3a408bb0a8887e72c3ff81eeb65c9faf0",
+      "sha256": "96e955774b0d5675daab9e1e04dc542e9132341bffcc8ed98b6ec7e644e40202"
+    },
+    "SunkenTemple": {
+      "url": "https://raw.githubusercontent.com/Gethe/wow-ui-textures/312a6e61bab69370c65ccc0a08f1075d62196294/EncounterJournal/UI-EJ-DUNGEONBUTTON-SunkenTemple.PNG",
+      "source_sha256": "80853bfd01389cd91b441cb25324d760310b1b4d80f411cc2bb4e1659c607344",
+      "sha256": "6f986944128cdf78a39e2f37e4eb5721e1c96a7ff336d64b01d82429a9653fb2"
+    },
+    "TempleofAhnQiraj": {
+      "url": "https://raw.githubusercontent.com/Gethe/wow-ui-textures/312a6e61bab69370c65ccc0a08f1075d62196294/EncounterJournal/UI-EJ-DUNGEONBUTTON-TempleofAhnQiraj.PNG",
+      "source_sha256": "4dfc5a176d870d39b859b4902374bb07f04a7211584935328444d6e3a6eb19b7",
+      "sha256": "4317b8c77ee2ad41a7509266ef0bfdc0601dc346feba8ea22e2ba08341d03e0b"
+    },
+    "TheStockade": {
+      "url": "https://raw.githubusercontent.com/Gethe/wow-ui-textures/312a6e61bab69370c65ccc0a08f1075d62196294/EncounterJournal/UI-EJ-DUNGEONBUTTON-TheStockade.PNG",
+      "source_sha256": "3982311dd7a17e57e028ede8cc2551c68e6b8aad36e1507bcc717631162e4051",
+      "sha256": "4ace16a4c5fec442e86ddc53c7531a0e5c28b8149220299bcc1fa6062ab26a70"
+    },
+    "Uldaman": {
+      "url": "https://raw.githubusercontent.com/Gethe/wow-ui-textures/312a6e61bab69370c65ccc0a08f1075d62196294/EncounterJournal/UI-EJ-DUNGEONBUTTON-Uldaman.PNG",
+      "source_sha256": "d094c28c8cfdfb468c0a0bc40df3aba32096ed4e427faa78c340f64f19903939",
+      "sha256": "8efb498a441d44714cb0c368869d29a8bccd10cbebc9b3ae8fd674d666fa9c91"
+    },
+    "WailingCaverns": {
+      "url": "https://raw.githubusercontent.com/Gethe/wow-ui-textures/312a6e61bab69370c65ccc0a08f1075d62196294/EncounterJournal/UI-EJ-DUNGEONBUTTON-WailingCaverns.PNG",
+      "source_sha256": "2070ccfb06e6d46eceb639e4b67b47bd8d577dd8259ae22006513743bde12dc6",
+      "sha256": "82efe4bf570f4d2875d244a3dfa74b0ac796411be8264240ced54b97b7f636aa"
+    },
+    "ZulFarrak": {
+      "url": "https://raw.githubusercontent.com/Gethe/wow-ui-textures/312a6e61bab69370c65ccc0a08f1075d62196294/EncounterJournal/UI-EJ-DUNGEONBUTTON-ZulFarrak.PNG",
+      "source_sha256": "f19380acf295db2e75d1b43c6f07e220e8aaf112910bce6bdfcaf3c49cbf54b5",
+      "sha256": "4a83ffe8c9ed2a0d8f57f8cb90a87126134001a8963fa2dae246b8fb62a4cae4"
+    },
+    "ZulGurub": {
+      "url": "https://raw.githubusercontent.com/Gethe/wow-ui-textures/312a6e61bab69370c65ccc0a08f1075d62196294/EncounterJournal/UI-EJ-DUNGEONBUTTON-ZulGurub.PNG",
+      "source_sha256": "368d58b1c012669e6e8fffa9e4ef2dbe0ec32ed3842ec67090b22201bc5dcdd5",
+      "sha256": "e1f96ac53ee5c69ec1829084753da9eed3f0307f7d119d50c96e4e2c03858ff0"
+    }
+  },
+  "instances": {
+    "RFC": "RagefireChasm",
+    "WC": "WailingCaverns",
+    "DM": "Deadmines",
+    "SFK": "ShadowFangKeep",
+    "STOCKS": "TheStockade",
+    "BFD": "BlackfathomDeeps",
+    "GNOMER": "Gnomeregan",
+    "RFK": "RazorfenKraul",
+    "RFD": "RazorfenDowns",
+    "ULDA": "Uldaman",
+    "ZF": "ZulFarrak",
+    "MARA": "Maraudon",
+    "ST": "SunkenTemple",
+    "BRD": "BlackrockDepths",
+    "LBRS": "BlackrockSpire",
+    "UBRS": "BlackrockSpire",
+    "STRAT": "Stratholme",
+    "SCHOLO": "Scholomance",
+    "ONY": "Onyxia",
+    "MC": "MoltenCore",
+    "BWL": "BlackwingLair",
+    "ZG": "ZulGurub",
+    "AQ20": "RuinsofAhnQiraj",
+    "AQ40": "TempleofAhnQiraj",
+    "NAXX": "Naxxramas",
+    "SM_GY": "ScarletMonastery",
+    "SM_LIB": "ScarletMonastery",
+    "SM_ARM": "ScarletMonastery",
+    "SM_CATH": "ScarletMonastery",
+    "DME": "DireMaul",
+    "DMW": "DireMaul",
+    "DMN": "DireMaul"
+  }
+}

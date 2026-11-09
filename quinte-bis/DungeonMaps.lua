@@ -5,8 +5,6 @@ local Core = Quintessence
 local S = Core.Style
 local M = {}
 Q.DungeonMaps = M
-local window, selected, floorAt, offset = nil, nil, 1, 0
-local ROWS, MAP_W, MAP_H = 16, 700, 525
 local function readable(v) return not (issecretvalue and issecretvalue(v)) end
 local function number(v) return readable(v) and type(v) == 'number' and v == v and math.abs(v) < math.huge end
 local function plain(s)
@@ -19,7 +17,7 @@ local function call(fn, ...)
 end
 local function nativeMap(code)
     if not (C_Map and C_Map.GetMapChildrenInfo) then return nil end
-    local d = Q.DUNGEON_BY_CODE[code]
+    local d = Q.DUNGEON_BY_KEY[code]
     if not d then return nil end
     local target = plain(d.name)
     for _, root in ipairs({ 947, 946 }) do
@@ -134,25 +132,6 @@ function M.Data(code)
     end
     return data
 end
-local function openLoot(boss)
-    if not Core.ShowBossLoot then Q.Print('Installe quinte-bis pour consulter le butin de ce boss.'); return end
-    local ok, found = pcall(Core.ShowBossLoot, selected.code, boss.name)
-    if not ok then Q.Error('butin du plan', found)
-    elseif found == false then Q.Print('Butin non répertorié pour ' .. Q.Safe(boss.name) .. '.')
-    else
-        -- La fiche BiS s'ouvre dans la fenêtre principale : ne pas la masquer sous le plan en DIALOG.
-        window:Hide()
-        if GameTooltip then GameTooltip:Hide() end
-    end
-end
-local draw
-local function pick(boss, loot)
-    if not boss then return end
-    window.picked = boss
-    if boss.floor then floorAt = boss.floor end
-    draw()
-    if loot then openLoot(boss) end
-end
 local function tooltip(pin)
     if not (GameTooltip and pin.boss) then return end
     GameTooltip:SetOwner(pin, 'ANCHOR_RIGHT')
@@ -160,11 +139,6 @@ local function tooltip(pin)
     GameTooltip:AddLine('Clic : voir le butin de ce boss.', S.colors.muted[1], S.colors.muted[2], S.colors.muted[3], true)
     if pin.classic then GameTooltip:AddLine('Position Classic indicative sur Forever.', S.colors.gold[1], S.colors.gold[2], S.colors.gold[3], true) end
     GameTooltip:Show()
-end
-local function clearTextures()
-    for _, texture in ipairs(window.tiles) do texture:Hide() end
-    for _, pin in ipairs(window.pins) do pin:Hide() end
-    for _, pin in ipairs(window.questPins or {}) do pin:Hide() end
 end
 local function paintArt(view, floor, mapW, mapH)
     local art = floor.art or { width = 1024, height = 768, tw = 256, th = 256 }
@@ -212,7 +186,7 @@ local function drawPins(view, data, level, w, h, onPick)
                 pin:SetSize(30, 30)
                 pin.icon = pin:CreateTexture(nil, 'OVERLAY'); pin.icon:SetAllPoints()
                 pin.icon:SetTexture('Interface\\TargetingFrame\\UI-RaidTargetingIcon_8')
-                pin.number = S.Text(pin, 10, S.colors.text, 'CENTER'); pin.number:SetPoint('TOP', pin, 'BOTTOM', 0, 1)
+                pin.number = pin:CreateFontString(nil, 'OVERLAY', 'GameFontNormalSmall'); pin.number:SetJustifyH('CENTER'); pin.number:SetPoint('TOP', pin, 'BOTTOM', 0, 1)
                 pin:SetScript('OnClick', function(self) if self.onPick then self.onPick(self.boss) end end)
                 pin:SetScript('OnEnter', tooltip)
                 pin:SetScript('OnLeave', function() if GameTooltip then GameTooltip:Hide() end end)
@@ -227,92 +201,96 @@ local function drawPins(view, data, level, w, h, onPick)
                 pcall(SetPortraitTextureFromCreatureDisplayID, pin.icon, boss.display)
             end
             pin.icon:SetVertexColor(1, 1, 1, 1)
-            pin.number:SetTextColor(unpack(view.picked == boss and S.colors.gold or S.colors.text))
+            pin.number:SetTextColor(unpack(view.picked == boss and {1,0.82,0} or {1,1,1}))
             pin.number:SetText(i); pin:Show()
         end
     end
 end
 M.PaintArt, M.DrawPins = paintArt, drawPins
-function M.Draw()
-    if not window or not selected then return end
-    clearTextures()
-    floorAt = math.max(1, math.min(floorAt, #selected.floors))
-    local floor = selected.floors[floorAt]
-    local loaded, w, h
-    if floor then loaded, w, h = paintArt(window, floor, MAP_W, MAP_H) end
-    window.empty:SetShown(not loaded)
-    window.empty:SetText('Carte intérieure non disponible dans cette version du client.\nLes boss connus restent dans la liste.')
+
+-- Commandes natives pour la carte du jeu, indépendantes du thème Quintessence.
+function M.NativeText(parent, size, color, justify)
+    local text = parent:CreateFontString(nil, 'OVERLAY', 'GameFontNormalSmall')
+    text:SetJustifyH(justify or 'LEFT')
+    if color then text:SetTextColor(unpack(color)) end
+    return text
+end
+function M.NativeButton(parent, label, width, height)
+    local button = CreateFrame('Button', nil, parent, 'UIPanelButtonTemplate')
+    button:SetSize(width, height); button:SetText(label)
+    function button:SetLabel(value) self:SetText(value) end
+    function button:SetActive(active)
+        -- Une aile sélectionnée reste identifiable sans couleur du thème de la guilde.
+        self:SetButtonState(active and 'PUSHED' or 'NORMAL', active)
+    end
+    return button
+end
+function M.Clear(view)
+    for _, field in ipairs({ 'tiles', 'pins', 'questPins' }) do
+        for _, object in ipairs(view[field] or {}) do object:Hide() end
+    end
+end
+local embedded
+function M.CreateEmbedded(parent, width, height, onPick)
+    local view = CreateFrame('Frame', nil, parent)
+    view:SetSize(width, height); view.artX, view.artY = 0, -30
+    view.canvas = CreateFrame('Frame', nil, view)
+    view.controls = CreateFrame('Frame', nil, view); view.controls:SetAllPoints(view)
+    view.controls:SetFrameLevel(view:GetFrameLevel() + 10)
+    view.tiles, view.pins, view.floor = {}, {}, 1
+    view.previous = S.Button(view.controls, '<', 26, 22, 'ghost'); view.previous:SetPoint('TOPLEFT')
+    view.next = S.Button(view.controls, '>', 26, 22, 'ghost'); view.next:SetPoint('LEFT', view.previous, 'RIGHT', 4, 0)
+    view.title = S.Text(view.controls, 11); view.title:SetPoint('TOPLEFT', 66, -6); view.title:SetWidth(width - 190)
+    view.quests = S.Button(view.controls, 'Quêtes', 110, 22, 'ghost'); view.quests:SetPoint('TOPRIGHT')
+    view.quests:SetScript('OnClick', function() if M.ToggleQuestList then M.ToggleQuestList(view) end end)
+    view.onPick = onPick
+    local function redraw() M.RenderEmbedded(view) end
+    view.previous:SetScript('OnClick', function() view.floor = view.floor - 1; redraw() end)
+    view.next:SetScript('OnClick', function() view.floor = view.floor + 1; redraw() end)
+    view.onQuestSelect = redraw
+    embedded = view
+    return view
+end
+function M.RenderEmbedded(view)
+    M.Clear(view)
+    local data = view.data
+    if not data or #data.floors == 0 then view:Hide(); return false end
+    view.floor = math.max(1, math.min(view.floor, #data.floors))
+    local floor = data.floors[view.floor]
+    local loaded, w, h = M.PaintArt(view, floor, view:GetWidth(), view:GetHeight() - 30)
     if loaded then
-        drawPins(window, selected, floorAt, w, h, function(boss) pick(boss, true) end)
-        if M.DrawQuestPins then M.DrawQuestPins(window, selected, floorAt, w, h) end
+        M.DrawPins(view, data, view.floor, w, h, view.onPick)
+        if M.DrawQuestPins then M.DrawQuestPins(view, data, view.floor, w, h) end
     end
-    window.level:SetText(floor and (floor.name .. ' (' .. floorAt .. '/' .. #selected.floors .. ')') or 'Aucun étage connu')
-    window.prev:SetEnabled(floorAt > 1); window.next:SetEnabled(floorAt < #selected.floors)
-    offset = math.max(0, math.min(offset, #selected.bosses - ROWS))
-    for i, row in ipairs(window.rows) do
-        local boss = selected.bosses[offset + i]
-        row.boss = boss; row:SetShown(boss ~= nil)
-        if boss then
-            row.label:SetText((offset + i) .. '. ' .. Q.Safe(boss.name))
-            row:SetSelected(window.picked == boss)
-        end
-    end
-    local missing = 0
-    for _, boss in ipairs(selected.bosses) do if not boss.floor then missing = missing + 1 end end
-    window.hint:SetText((#selected.floors == 0 and 'Aucune carte intérieure connue.' or selected.classic and 'Carte Classic : positions indicatives à confirmer sur Forever.' or 'Carte et positions fournies par le client.')
-        .. (missing > 0 and (' ' .. missing .. ' boss sans position connue.') or '') .. ' Clic sur une icône : butin.')
-end
-draw = M.Draw
-function M.RefreshVisible() if window and window:IsVisible() then M.Draw() end end
-local function create()
-    window = S.Box(UIParent, S.colors.bg, S.colors.line)
-    window:SetSize(950, 660); window:SetPoint('CENTER'); window:SetFrameStrata('DIALOG')
-    window:SetMovable(true); window:EnableMouse(true); window:RegisterForDrag('LeftButton')
-    window:SetScript('OnDragStart', function(self) self:StartMoving() end)
-    window:SetScript('OnDragStop', function(self) self:StopMovingOrSizing() end)
-    window.title = S.Text(window, 16, S.colors.gold); window.title:SetPoint('TOPLEFT', 18, -18); window.title:SetWidth(740)
-    local close = S.Button(window, 'Fermer', 72, 24, 'ghost'); close:SetPoint('TOPRIGHT', -12, -12)
-    close:SetScript('OnClick', function() window:Hide(); if GameTooltip then GameTooltip:Hide() end end)
-    window.prev = S.Button(window, '<', 30, 24, 'ghost'); window.prev:SetPoint('TOPLEFT', 230, -48)
-    window.next = S.Button(window, '>', 30, 24, 'ghost'); window.next:SetPoint('TOPRIGHT', -20, -48)
-    window.prev:SetScript('OnClick', function() floorAt = floorAt - 1; draw() end)
-    window.next:SetScript('OnClick', function() floorAt = floorAt + 1; draw() end)
-    window.level = S.Text(window, 12, S.colors.text, 'CENTER'); window.level:SetPoint('TOPLEFT', 265, -53); window.level:SetWidth(620)
-    window.canvas = CreateFrame('Frame', nil, window)
-    window.tiles, window.pins, window.rows = {}, {}, {}
-    local list = S.Box(window, S.colors.panel, S.colors.line); list:SetPoint('TOPLEFT', 14, -48); list:SetSize(200, 565)
-    list:EnableMouseWheel(true); list:SetScript('OnMouseWheel', function(_, delta) offset = offset - delta * 2; draw() end)
-    local title = S.Heading(list, 'Boss · molette pour défiler'); title:SetPoint('TOPLEFT', 8, -8)
-    for i = 1, ROWS do
-        local row = S.Row(list, 184, 30); row:SetPoint('TOPLEFT', 8, -34 - (i - 1) * 31)
-        row.label = S.Text(row, 11, S.colors.text); row.label:SetPoint('LEFT', 6, 0); row.label:SetWidth(172)
-        row:SetScript('OnClick', function(self) pick(self.boss, true) end)
-        window.rows[i] = row
-    end
-    window.empty = S.Text(window, 14, S.colors.muted, 'CENTER'); window.empty:SetPoint('CENTER', window, 'CENTER', 105, 0)
-    window.empty:SetWidth(600); window.empty:SetWordWrap(true)
-    window.hint = S.Text(window, 11, S.colors.muted); window.hint:SetPoint('BOTTOMLEFT', 18, 16); window.hint:SetWidth(914)
-    window.hint:SetWordWrap(true)
-end
-function Q.ShowDungeonMap(code)
-    local dungeon = Q.DUNGEON_BY_CODE[code]
-    if not dungeon then return false end
-    if not window then create() end
-    local same = selected and selected.code == code
-    local previousFloor = same and floorAt or 1
-    local previousBoss = same and window.picked and plain(window.picked.name)
-    selected, floorAt, offset = M.Data(code), previousFloor, 0
-    window.picked = nil
-    if previousBoss then
-        for _, boss in ipairs(selected.bosses) do
-            if plain(boss.name) == previousBoss then window.picked = boss; break end
-        end
-    end
-    window.title:SetText('Plan du donjon : ' .. Q.Safe(dungeon.name))
-    local width = UIParent.GetWidth and UIParent:GetWidth() or 1024
-    local height = UIParent.GetHeight and UIParent:GetHeight() or 768
-    window:SetScale(math.max(0.35, math.min(1, (width - 30) / 950, (height - 30) / 660)))
-    window:Show(); draw()
+    view.title:SetText(floor.name .. ' (' .. view.floor .. '/' .. #data.floors .. ')' .. (data.classic and ' · Classic, indicatif' or ''))
+    view.previous:SetEnabled(view.floor > 1); view.next:SetEnabled(view.floor < #data.floors)
+    view.questRecords = M.QuestRecords and M.QuestRecords(data.code) or {}; view.questData = data
+    view.quests:SetLabel('Quêtes (' .. #view.questRecords .. ')')
+    if M.RefreshQuestList then M.RefreshQuestList(view) end
+    view:Show()
     return true
 end
-Core.ShowDungeonMap = function(code) return Q.Run('plan du donjon', Q.ShowDungeonMap, code) end
+function M.ShowEmbedded(view, code, bossName)
+    local changed = view.code ~= code
+    if changed then view.data = M.Data(code); view.code = code; view.floor = 1; view.selectedQuest = nil end
+    if changed or view.bossName ~= bossName then
+        view.bossName, view.picked = bossName, nil
+        for _, boss in ipairs(view.data.bosses) do
+            if plain(boss.name) == plain(bossName) then
+                view.picked = boss; view.floor = boss.floor or 1; break
+            end
+        end
+    end
+    return M.RenderEmbedded(view)
+end
+function M.RefreshVisible()
+    if embedded and embedded:IsVisible() then M.RenderEmbedded(embedded) end
+end
+function Q.ShowDungeonMap(code)
+    if not Q.DUNGEON_BY_KEY[code] then return false end
+    return Q.UI.ShowLoot(code)
+end
+function Core.ShowDungeonMap(code)
+    local ok, result = Q.Run('plan du donjon', Q.ShowDungeonMap, code)
+    return ok and result
+end

@@ -29,12 +29,12 @@ function M.QuestRecords(code)
     end
     local level = read(UnitLevel, 'player')
     local details = Q.DUNGEON_MAP_QUEST_DETAILS and Q.DUNGEON_MAP_QUEST_DETAILS[code] or {}
-    for _, raw in ipairs(Q.DUNGEON_QUESTS[code] or {}) do
+    for _, raw in ipairs(Q.DUNGEON_MAP_QUESTS[code] or {}) do
         local id, meta = raw[1], details[raw[1]] or {}
-        local info = Q.DUNGEON_QUEST_INFO and Q.DUNGEON_QUEST_INFO[id] or {}
+        local info = Q.DUNGEON_MAP_QUEST_INFO and Q.DUNGEON_MAP_QUEST_INFO[id] or {}
         local done = C_QuestLog and read(C_QuestLog.IsQuestFlaggedCompleted, id)
         local title = C_QuestLog and read(C_QuestLog.GetTitleForQuestID, id)
-        local active = Q.IsOnQuest and Q.IsOnQuest(id)
+        local active = C_QuestLog and read(C_QuestLog.IsOnQuest, id)
         local complete = active and C_QuestLog and read(C_QuestLog.IsComplete, id) == true
         local status = active and 'log' or done == true and 'done' or 'todo'
         if status == 'todo' then
@@ -163,7 +163,7 @@ function M.RefreshQuestList(view)
         local quest = records[offset + i]
         row.quest = quest; row:SetShown(quest ~= nil)
         if quest then
-            local color = quest.state == 'done' and S.hex.mint or quest.state == 'log' and S.hex.gold or S.hex.text
+            local color = view.nativeStyle and (quest.state == 'done' and 'ff40d060' or quest.state == 'log' and 'ffffd100' or 'ffffffff') or quest.state == 'done' and S.hex.mint or quest.state == 'log' and S.hex.gold or S.hex.text
             row.label:SetText('|c' .. color .. Q.Safe(quest.title) .. '|r')
             row.state:SetText(quest.status .. (#quest.pins > 0 and ' · repère connu' or ' · position non renseignée'))
         end
@@ -171,7 +171,13 @@ function M.RefreshQuestList(view)
 end
 function M.ToggleQuestList(view)
     if not view.questList then
-        local list = S.Box(view.controls, S.colors.bg, S.colors.line); view.questList = list
+        local list
+        if view.nativeStyle then
+            list = CreateFrame('Frame', nil, view.controls, 'BackdropTemplate')
+            list:SetBackdrop({ bgFile = 'Interface\\Tooltips\\UI-Tooltip-Background', edgeFile = 'Interface\\Tooltips\\UI-Tooltip-Border', tile = true, tileSize = 16, edgeSize = 16, insets = { left = 4, right = 4, top = 4, bottom = 4 } })
+            list:SetBackdropColor(0, 0, 0, 0.95)
+        else list = S.Box(view.controls, S.colors.bg, S.colors.line) end
+        view.questList = list
         list:SetSize(360, 304); list:SetPoint('TOPRIGHT', -6, -34); list.offset = 0
         list:SetFrameLevel(view.controls:GetFrameLevel() + 10)
         list:EnableMouseWheel(true); list:SetScript('OnMouseWheel', function(_, delta)
@@ -179,9 +185,9 @@ function M.ToggleQuestList(view)
         end)
         list.rows = {}
         for i = 1, 8 do
-            local row = S.Row(list, 346, 34); row:SetPoint('TOPLEFT', 7, -7 - (i - 1) * 36)
-            row.label = S.Text(row, 11); row.label:SetPoint('TOPLEFT', 5, -4); row.label:SetWidth(335)
-            row.state = S.Text(row, 10, S.colors.muted); row.state:SetPoint('TOPLEFT', 5, -19); row.state:SetWidth(335)
+            local row = view.nativeStyle and CreateFrame('Button', nil, list) or S.Row(list, 346, 34); row:SetSize(346, 34); row:SetPoint('TOPLEFT', 7, -7 - (i - 1) * 36)
+            row.label = (view.nativeStyle and M.NativeText or S.Text)(row, 11); row.label:SetPoint('TOPLEFT', 5, -4); row.label:SetWidth(335)
+            row.state = (view.nativeStyle and M.NativeText or S.Text)(row, 10, view.nativeStyle and {1,1,1} or S.colors.muted); row.state:SetPoint('TOPLEFT', 5, -19); row.state:SetWidth(335)
             row:SetScript('OnEnter', function(self)
                 if self.quest and GameTooltip then GameTooltip:SetOwner(self, 'ANCHOR_LEFT'); tooltip(self.quest, self.quest.pins) end
             end)

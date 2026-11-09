@@ -391,6 +391,23 @@ end
 function UI.Raise()
     if frame and frame.Raise then frame:Raise() end
 end
+-- Élève notre fenêtre de butin sans masquer ni modifier la carte du jeu.
+function UI.RaiseAbove(strata, level)
+    if not frame then return end
+    if not frame.mapRaise then
+        frame.mapRaise = true
+        frame:HookScript('OnHide', function(self)
+            self:SetFrameStrata(self.mapPreviousStrata or 'HIGH'); self:SetFrameLevel(self.mapPreviousLevel or 0)
+            self.mapPreviousStrata, self.mapPreviousLevel = nil, nil
+        end)
+    end
+    if not frame.mapPreviousStrata then
+        frame.mapPreviousStrata, frame.mapPreviousLevel = frame:GetFrameStrata(), frame:GetFrameLevel()
+    end
+    frame:SetFrameStrata(strata or 'DIALOG'); frame:SetFrameLevel(level or 200)
+    if frame.Raise then frame:Raise() end
+end
+
 
 function UI.IsOpen(id) return frame ~= nil and frame:IsShown() and current == id end
 

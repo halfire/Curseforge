@@ -471,9 +471,10 @@ local function createDungeonsPanel(parent)
         Q.InviteCompatibleGroup(dungeonState.selectedDungeon)
     end)
     panel.btnInviteComp = btnInviteComp
-    panel.btnDungeonMap = S.Button(rightBox, 'Plan', 70, 24, 'ghost')
+    panel.btnDungeonMap = S.Button(rightBox, 'Plans', 70, 24, 'ghost')
     panel.btnDungeonMap:SetScript('OnClick', function()
-        Q.Run('plan du donjon', Q.ShowDungeonMap, dungeonState.selectedDungeon)
+        if Quintessence.ShowDungeonMap then Quintessence.ShowDungeonMap(dungeonState.selectedDungeon)
+        else Q.Print('Installe quinte-bis pour consulter les plans de donjons.') end
     end)
 
     local btnInviteAll = S.Button(rightBox, 'Inviter tous', 88, 24, 'ghost')

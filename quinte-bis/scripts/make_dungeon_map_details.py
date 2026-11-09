@@ -28,7 +28,7 @@ def quote(s):return json.dumps(s,ensure_ascii=False)
 
 lua=LuaRuntime(unpack_returned_tuples=True);lua.execute('Q={}')
 for n in ['DungeonMapData.lua','DungeonQuests.lua','DungeonQuestPlaces.lua']:
- lua.execute('assert(loadstring(...))("quinte-group",Q)',(root/n).read_text())
+ lua.execute('assert(loadstring(...))("quinte-group",Q)',((root if n == 'DungeonMapData.lua' else suite/'quinte-group')/n).read_text())
 q=lua.globals().Q
 names={}
 for row in table('creature_template',['entry','name','modelid1','lootid']):names[int(row[0])]=row
@@ -57,7 +57,7 @@ for info in q.DUNGEON_MAPS.values():
    provenance[name]={'npc':nid,'display':display,'source':origin,'url':f'https://forever.warcraftdb.com/data/npc/{nid}' if models else 'https://github.com/cmangos/classic-db/tree/master/Full_DB'}
   if nid in names:boss_items[name]=drops.get(int(names[nid][3]),set())
 
-wh=json.loads((root/'scripts/data/wowhead_forever_quests.json').read_text());wd=json.loads((root/'scripts/data/warcraftdb_objectives.json').read_text())
+wh=json.loads((suite/'quinte-group/scripts/data/wowhead_forever_quests.json').read_text());wd=json.loads((suite/'quinte-group/scripts/data/warcraftdb_objectives.json').read_text())
 lines=['local _, Q = ...','-- Généré par scripts/make_dungeon_map_details.py ; sources et SHA-256 dans scripts/data/dungeon_map_details_sources.json.',
  '-- Modèles : WarcraftDB Forever, sinon CMaNGOS Classic GPL-3.0 (référence visuelle). API et visuels du client prioritaires.',
  '-- Positions : plan Classic déjà embarqué, indicatif sur Forever. Aucune position inconnue ou extérieure projetée.', 'Q.DUNGEON_BOSS_PORTRAITS = {']
@@ -102,6 +102,6 @@ for code,rows in sorted(q.DUNGEON_QUESTS.items()):
  lines.append(' },')
 lines.append('}')
 (root/'DungeonMapDetails.lua').write_text('\n'.join(lines)+'\n')
-summary={'generated':'2026-11-09','classic_db':{'url':'https://github.com/cmangos/classic-db/blob/master/Full_DB/ClassicDB_1_12_1_z2815.sql.gz','sha256':hashlib.sha256(db.read_bytes()).hexdigest(),'license':'GPL-3.0'},'portraits':provenance,'quest_relations':relations,'quest_sources':{p.name:hashlib.sha256(p.read_bytes()).hexdigest() for p in [root/'scripts/data/wowhead_forever_quests.json',root/'scripts/data/warcraftdb_objectives.json']},'limitations':'Positions intérieures non connues omises ; aucune coordonnée extérieure convertie. Référence Classic indiquée.'}
+summary={'generated':'2026-11-09','classic_db':{'url':'https://github.com/cmangos/classic-db/blob/master/Full_DB/ClassicDB_1_12_1_z2815.sql.gz','sha256':hashlib.sha256(db.read_bytes()).hexdigest(),'license':'GPL-3.0'},'portraits':provenance,'quest_relations':relations,'quest_sources':{p.name:hashlib.sha256(p.read_bytes()).hexdigest() for p in [suite/'quinte-group/scripts/data/wowhead_forever_quests.json',suite/'quinte-group/scripts/data/warcraftdb_objectives.json']},'limitations':'Positions intérieures non connues omises ; aucune coordonnée extérieure convertie. Référence Classic indiquée.'}
 (root/'scripts/data/dungeon_map_details_sources.json').write_text(json.dumps(summary,ensure_ascii=False,indent=2)+'\n')
 print(len(portraits),'portraits,',pin_count,'relations positionnées,',sum(len(v) for v in relations.values()),'quêtes positionnées')

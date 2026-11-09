@@ -3,7 +3,7 @@
 ## Group: Quintessence
 ## Notes: Module Quintessence - Listes BiS de la guilde et besoins par donjon pour monter les groupes (onglet BiS & donjons, /qbis). Nécessite l'addon Quintessence.
 ## Author: Quintessence
-## Version: 0.9.0
+## Version: 0.10.0
 ## SavedVariables: QuinteBisDB
 ## Dependencies: Quintessence
 ## IconTexture: Interface\Icons\INV_Misc_Head_Dragon_01
@@ -15,4 +15,13 @@ Data.lua
 Learn.lua
 Sync.lua
 Tooltip.lua
+DungeonImages.lua
+DungeonMapData.lua
+DungeonMapAssets.lua
+DungeonMapDetails.lua
+DungeonMapQuestInfo.lua
+DungeonMapQuests.lua
+DungeonMaps.lua
+DungeonMapOverlay.lua
+DungeonMapQuestPins.lua
 UI.lua

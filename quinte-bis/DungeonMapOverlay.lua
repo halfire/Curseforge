@@ -2,7 +2,7 @@ local _, Q = ...
 -- Remplacement visuel du fond de carte en donjon : cadre propre sous UIParent.
 -- La carte Blizzard est uniquement lue (visibilité, rectangle, échelle et carte affichée).
 -- Aucun parentage, champ, crochet, raccourci ni fonction de Blizzard n'est modifié.
-local Core, S, Maps = Quintessence, Quintessence.Style, Q.DungeonMaps
+local Core, Maps = Quintessence, Q.DungeonMaps
 local O = {}
 Q.DungeonMapOverlay = O
 local view, codes, instanceKey, chosen, data = nil, {}, nil, nil, nil
@@ -53,9 +53,9 @@ function O.Instance()
     if instanceType ~= 'party' then return {}, nil end
     local target = key(name)
     if target == '' then return {}, nil end
-    for _, dungeon in ipairs(Q.FOREVER_DUNGEONS) do
-        if target == key(dungeon.name) or target == key(ENGLISH[dungeon.code]) then
-            return { dungeon.code }, target, dungeon.code
+    for _, dungeon in ipairs(Q.DUNGEONS) do
+        if target == key(dungeon.name) or target == key(ENGLISH[dungeon.key]) then
+            return { dungeon.key }, target, dungeon.key
         end
     end
     for _, family in ipairs(FAMILIES) do
@@ -94,39 +94,39 @@ local function openLoot(boss)
     if not ok then Q.Error('butin de la carte du donjon', found)
     elseif found == false then Q.Print('Butin non répertorié pour ' .. Q.Safe(boss.name) .. '.')
     else
-        dismiss()
-        if Core.UI and Core.UI.Raise then Core.UI.Raise() end
+        if Core.UI and Core.UI.RaiseAbove then Core.UI.RaiseAbove(view:GetFrameStrata(), view:GetFrameLevel() + 100)
+        elseif Core.UI and Core.UI.Raise then Core.UI.Raise() end
     end
 end
 local function create()
     view = CreateFrame('Frame', nil, UIParent)
-    view.fill = true
+    view.fill = true; view.nativeStyle = true
     view.backdrop = view:CreateTexture(nil, 'BACKGROUND'); view.backdrop:SetAllPoints()
-    view.backdrop:SetColorTexture(unpack(S.colors.bg))
+    view.backdrop:SetColorTexture(0, 0, 0, 1)
     view.artX, view.artY, view.floor = 0, 0, 1
     view.onQuestSelect = function() dirty = true end
     view.canvas = CreateFrame('Frame', nil, view)
     view.tiles, view.pins, view.wings = {}, {}, {}
     view.controls = CreateFrame('Frame', nil, view); view.controls:SetAllPoints(view)
     view.controls:SetFrameLevel(view:GetFrameLevel() + 10)
-    view.topbar = S.Fill(view.controls, 'BACKGROUND', { 0, 0, 0, 0.65 })
+    view.topbar = view.controls:CreateTexture(nil, 'BACKGROUND')
     view.topbar:SetPoint('TOPLEFT'); view.topbar:SetPoint('TOPRIGHT'); view.topbar:SetHeight(32)
-    view.bottomBar = S.Fill(view.controls, 'BACKGROUND', { 0, 0, 0, 0.5 })
+    view.bottomBar = view.controls:CreateTexture(nil, 'BACKGROUND')
     view.bottomBar:SetPoint('BOTTOMLEFT'); view.bottomBar:SetPoint('BOTTOMRIGHT'); view.bottomBar:SetHeight(22)
-    view.previous = S.Button(view.controls, '<', 26, 22, 'ghost'); view.previous:SetPoint('TOPLEFT', 6, -5)
-    view.next = S.Button(view.controls, '>', 26, 22, 'ghost'); view.next:SetPoint('LEFT', view.previous, 'RIGHT', 5, 0)
+    view.previous = Maps.NativeButton(view.controls, '<', 26, 22, 'ghost'); view.previous:SetPoint('TOPLEFT', 6, -5)
+    view.next = Maps.NativeButton(view.controls, '>', 26, 22, 'ghost'); view.next:SetPoint('LEFT', view.previous, 'RIGHT', 5, 0)
     view.previous:SetScript('OnClick', function() view.floor = view.floor - 1; dirty = true end)
     view.next:SetScript('OnClick', function() view.floor = view.floor + 1; dirty = true end)
-    view.title = S.Text(view.controls, 12, S.colors.text); view.title:SetPoint('TOPLEFT', 72, -10)
-    view.world = S.Button(view.controls, 'Carte du monde', 122, 22, 'ghost'); view.world:SetPoint('TOPRIGHT', -6, -5)
+    view.title = Maps.NativeText(view.controls, 12, { 1, 0.82, 0 }); view.title:SetPoint('TOPLEFT', 72, -10)
+    view.world = Maps.NativeButton(view.controls, 'Carte du monde', 122, 22, 'ghost'); view.world:SetPoint('TOPRIGHT', -6, -5)
     view.world:SetScript('OnClick', dismiss)
-    view.quests = S.Button(view.controls, 'Quêtes', 100, 22, 'ghost')
+    view.quests = Maps.NativeButton(view.controls, 'Quêtes', 100, 22, 'ghost')
     view.quests:SetPoint('RIGHT', view.world, 'LEFT', -5, 0)
     view.quests:SetScript('OnClick', function()
         if Maps.ToggleQuestList then Maps.ToggleQuestList(view) end
     end)
-    view.hint = S.Text(view.controls, 10, S.colors.muted); view.hint:SetPoint('BOTTOMLEFT', 8, 6); view.hint:SetWordWrap(true)
-    view.empty = S.Text(view, 14, S.colors.muted, 'CENTER'); view.empty:SetPoint('CENTER')
+    view.hint = Maps.NativeText(view.controls, 10, { 1, 1, 1 }); view.hint:SetPoint('BOTTOMLEFT', 8, 6); view.hint:SetWordWrap(true)
+    view.empty = Maps.NativeText(view, 14, { 1, 1, 1 }, 'CENTER'); view.empty:SetPoint('CENTER')
     view.empty:SetWordWrap(true)
     view:EnableMouse(true)
     view:EnableMouseWheel(true); view:SetScript('OnMouseWheel', function() end)
@@ -144,14 +144,14 @@ local function draw()
         local button = view.wings[i]
         if multiple and code then
             if not button then
-                button = S.Button(view.controls, '', 100, 22, 'ghost')
+                button = Maps.NativeButton(view.controls, '', 100, 22, 'ghost')
                 button:SetScript('OnClick', function(self) selectCode(self.code) end)
                 view.wings[i] = button
             end
             local bw = math.min(180, (width - 12) / #codes - 6)
             button.code = code; button:SetWidth(bw); button:ClearAllPoints()
             button:SetPoint('TOPLEFT', 6 + (i - 1) * (bw + 6), -35)
-            local dungeon = Q.DUNGEON_BY_CODE[code]
+            local dungeon = Q.DUNGEON_BY_KEY[code]
             button:SetLabel(code == 'LBRS' and 'Pic inférieur (LBRS)' or dungeon and dungeon.short or code); button:SetActive(code == chosen); button:Show()
         elseif button then button:Hide() end
     end
@@ -170,7 +170,7 @@ local function draw()
     end
     view.empty:SetWidth(math.max(100, width - 30)); view.empty:SetShown(not loaded)
     view.empty:SetText(not chosen and 'Choisis l’aile du donjon ci-dessus.' or 'Aucun plan disponible pour ce donjon.')
-    local dungeon = chosen and Q.DUNGEON_BY_CODE[chosen]
+    local dungeon = chosen and Q.DUNGEON_BY_KEY[chosen]
     view.title:SetWidth(math.max(40, width - 320))
     view.title:SetText(dungeon and (Q.Safe(dungeon.name) .. (floor and (' · ' .. floor.name .. ' (' .. view.floor .. '/' .. #data.floors .. ')') or '')) or 'Choisir l’aile du donjon')
     view.previous:SetEnabled(floor ~= nil and view.floor > 1)
@@ -178,6 +178,7 @@ local function draw()
     view.hint:SetWidth(math.max(100, width - 16))
     view.hint:SetText(data and data.classic and 'Plan Classic · positions indicatives sur Forever · clic sur un boss : butin · clic droit : monde'
         or 'Clic sur un boss : butin · Carte du monde pour consulter les autres zones')
+    view.hint:Hide()
     dirty = false
 end
 local function nativeMap(mapID)

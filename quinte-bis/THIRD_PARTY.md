@@ -29,8 +29,8 @@ servent uniquement à l'affichage du plan ; elles ne sont jamais envoyées au mo
 - Références visuelles et relations de butin Classic manquantes : CMaNGOS ClassicDB,
   https://github.com/cmangos/classic-db/blob/master/Full_DB/ClassicDB_1_12_1_z2815.sql.gz.
   Licence et notices conservées dans ThirdParty/CMaNGOS-LICENSE.md et ThirdParty/CMaNGOS-COPYRIGHT.md.
-- Quêtes : textes/noms de donneurs/rendus Forever déjà relevés dans scripts/data/wowhead_forever_quests.json
-  et warcraftdb_objectives.json. Un objet requis de Classic ne relie un boss à une quête que si son nom
+- Quêtes : textes/noms de donneurs/rendus Forever déjà relevés dans ../quinte-group/scripts/data/wowhead_forever_quests.json
+  et ../quinte-group/scripts/data/warcraftdb_objectives.json. Un objet requis de Classic ne relie un boss à une quête que si son nom
   figure aussi dans les objectifs Forever. Un objet de départ n’est relié qu’au nom de l’objet de départ Forever.
   Coordonnées exclusivement issues du plan déjà référencé ; aucun point extérieur/inconnu projeté à l’intérieur.
   Les positions Classic restent indicatives sur Forever.
@@ -38,3 +38,14 @@ servent uniquement à l'affichage du plan ; elles ne sont jamais envoyées au mo
   scripts/data/dungeon_map_details_sources.json, inclus dans le paquet avec le code source et les notices.
 - Points natifs supplémentaires : C_QuestLog.GetQuestsOnMap uniquement pour le même UiMap que l’image.
   Contrat : https://github.com/Gethe/wow-ui-source/blob/live/Interface/AddOns/Blizzard_APIDocumentationGenerated/QuestLogDocumentation.lua.
+
+## Illustrations des instances — 09/11/2026
+
+Vignettes du codex Blizzard (EncounterJournal/UI-EJ-DUNGEONBUTTON), miroir public Gethe/wow-ui-textures,
+révision 312a6e61bab69370c65ccc0a08f1075d62196294. Sources exactes et SHA-256 des entrées PNG et sorties TGA
+conservés dans Media/Dungeons/sources.json. Génération : scripts/make_dungeon_images.py (Pillow).
+Aucune illustration spécifique inventée pour les nouveaux donjons Forever : vignette générique Default.
+Les images restent la propriété de Blizzard Entertainment. Le code préexistant sous MIT conserve sa
+notice dans ThirdParty/Quintessence-MIT.txt ; la distribution intégrant les données CMaNGOS est sous GPL-3.0.
+Le catalogue de quêtes/conditions est régénéré par scripts/make_dungeon_map_quests.py depuis les faits
+Forever de quinte-group. Le module group n'est pas nécessaire à l'exécution des plans.
