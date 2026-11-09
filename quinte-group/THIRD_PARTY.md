@@ -19,3 +19,22 @@ fonctionnelle pour comprendre le comportement demandé : carte, étages et boss 
 Génération : `scripts/make_dungeon_maps.py` pour les données MIT, `scripts/make_dungeon_map_art.py` pour
 les images Blizzard. Les caches de téléchargement ne sont pas distribués. Les coordonnées intérieures
 servent uniquement à l'affichage du plan ; elles ne sont jamais envoyées au moteur d'itinéraire extérieur.
+
+## Portraits et relations de quêtes — 09/11/2026
+
+- PNJ : relevés Wowhead Forever déjà conservés dans les données de quinte-bis.
+- Modèles Forever prioritaires : https://forever.warcraftdb.com/api/data/node/npc/ID (extra.models),
+  par exemple https://forever.warcraftdb.com/data/npc/639. Portraits rendus par le client via
+  SetPortraitTextureFromCreatureDisplayID ; les images de rencontres natives sont prioritaires.
+- Références visuelles et relations de butin Classic manquantes : CMaNGOS ClassicDB,
+  https://github.com/cmangos/classic-db/blob/master/Full_DB/ClassicDB_1_12_1_z2815.sql.gz.
+  Licence et notices conservées dans ThirdParty/CMaNGOS-LICENSE.md et ThirdParty/CMaNGOS-COPYRIGHT.md.
+- Quêtes : textes/noms de donneurs/rendus Forever déjà relevés dans scripts/data/wowhead_forever_quests.json
+  et warcraftdb_objectives.json. Un objet requis de Classic ne relie un boss à une quête que si son nom
+  figure aussi dans les objectifs Forever. Un objet de départ n’est relié qu’au nom de l’objet de départ Forever.
+  Coordonnées exclusivement issues du plan déjà référencé ; aucun point extérieur/inconnu projeté à l’intérieur.
+  Les positions Classic restent indicatives sur Forever.
+- Génération : scripts/make_dungeon_map_details.py ; provenance et SHA-256 dans
+  scripts/data/dungeon_map_details_sources.json, inclus dans le paquet avec le code source et les notices.
+- Points natifs supplémentaires : C_QuestLog.GetQuestsOnMap uniquement pour le même UiMap que l’image.
+  Contrat : https://github.com/Gethe/wow-ui-source/blob/live/Interface/AddOns/Blizzard_APIDocumentationGenerated/QuestLogDocumentation.lua.

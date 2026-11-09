@@ -3,13 +3,14 @@
 ## Group: Quintessence
 ## Notes: Module Quintessence - Compagnon de leveling, quêtes partagées, préférences de donjons et Codex secret de WoW Forever (/qgroup).
 ## Author: Quintessence
-## Version: 0.18.0
+## Version: 0.19.0
 ## SavedVariables: QuinteGroupDB
 ## Dependencies: Quintessence
 ## IconTexture: Interface\Icons\INV_Misc_Head_Dragon_01
 Core.lua
 DungeonMapData.lua
 DungeonMapAssets.lua
+DungeonMapDetails.lua
 Leveling.lua
 Dungeons.lua
 DungeonQuests.lua
@@ -19,5 +20,6 @@ Entrances.lua
 DungeonMaps.lua
 DungeonMapOverlay.lua
 Party.lua
+DungeonMapQuests.lua
 Codex.lua
 UI.lua

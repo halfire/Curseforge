@@ -10,6 +10,7 @@ local opened, dismissed, originalMap, elapsed = false, false, nil, 0
 local geometry, dirty = nil, true
 local needsChoice = false
 local remembered = {}
+local questGeneration = -1
 local ENGLISH = {
     RFC = 'Ragefire Chasm', WC = 'Wailing Caverns', DM = 'The Deadmines', SFK = 'Shadowfang Keep',
     STOCKS = 'The Stockade', BFD = 'Blackfathom Deeps', GNOMER = 'Gnomeregan', RFK = 'Razorfen Kraul',
@@ -75,6 +76,7 @@ end
 local function clear()
     for _, texture in ipairs(view.tiles) do texture:Hide() end
     for _, pin in ipairs(view.pins) do pin:Hide() end
+    for _, pin in ipairs(view.questPins or {}) do pin:Hide() end
 end
 local function dismiss()
     dismissed = true
@@ -84,7 +86,7 @@ end
 local function selectCode(code)
     chosen, data = code, Maps.Data(code)
     remembered[instanceKey] = code
-    view.floor = 1; view.picked = nil; dirty = true
+    view.floor = 1; view.picked = nil; view.selectedQuest = nil; dirty = true
 end
 local function openLoot(boss)
     if not Core.ShowBossLoot then Q.Print('Installe quinte-bis pour voir le butin de ce boss.'); return end
@@ -97,18 +99,33 @@ local function openLoot(boss)
     end
 end
 local function create()
-    view = S.Box(UIParent, S.colors.bg, S.colors.line)
-    view.artX, view.artY, view.floor = 0, -32, 1
+    view = CreateFrame('Frame', nil, UIParent)
+    view.fill = true
+    view.backdrop = view:CreateTexture(nil, 'BACKGROUND'); view.backdrop:SetAllPoints()
+    view.backdrop:SetColorTexture(unpack(S.colors.bg))
+    view.artX, view.artY, view.floor = 0, 0, 1
+    view.onQuestSelect = function() dirty = true end
     view.canvas = CreateFrame('Frame', nil, view)
     view.tiles, view.pins, view.wings = {}, {}, {}
-    view.previous = S.Button(view, '<', 26, 22, 'ghost'); view.previous:SetPoint('TOPLEFT', 6, -5)
-    view.next = S.Button(view, '>', 26, 22, 'ghost'); view.next:SetPoint('LEFT', view.previous, 'RIGHT', 5, 0)
+    view.controls = CreateFrame('Frame', nil, view); view.controls:SetAllPoints(view)
+    view.controls:SetFrameLevel(view:GetFrameLevel() + 10)
+    view.topbar = S.Fill(view.controls, 'BACKGROUND', { 0, 0, 0, 0.65 })
+    view.topbar:SetPoint('TOPLEFT'); view.topbar:SetPoint('TOPRIGHT'); view.topbar:SetHeight(32)
+    view.bottomBar = S.Fill(view.controls, 'BACKGROUND', { 0, 0, 0, 0.5 })
+    view.bottomBar:SetPoint('BOTTOMLEFT'); view.bottomBar:SetPoint('BOTTOMRIGHT'); view.bottomBar:SetHeight(22)
+    view.previous = S.Button(view.controls, '<', 26, 22, 'ghost'); view.previous:SetPoint('TOPLEFT', 6, -5)
+    view.next = S.Button(view.controls, '>', 26, 22, 'ghost'); view.next:SetPoint('LEFT', view.previous, 'RIGHT', 5, 0)
     view.previous:SetScript('OnClick', function() view.floor = view.floor - 1; dirty = true end)
     view.next:SetScript('OnClick', function() view.floor = view.floor + 1; dirty = true end)
-    view.title = S.Text(view, 12, S.colors.text); view.title:SetPoint('TOPLEFT', 72, -10)
-    view.world = S.Button(view, 'Carte du monde', 122, 22, 'ghost'); view.world:SetPoint('TOPRIGHT', -6, -5)
+    view.title = S.Text(view.controls, 12, S.colors.text); view.title:SetPoint('TOPLEFT', 72, -10)
+    view.world = S.Button(view.controls, 'Carte du monde', 122, 22, 'ghost'); view.world:SetPoint('TOPRIGHT', -6, -5)
     view.world:SetScript('OnClick', dismiss)
-    view.hint = S.Text(view, 10, S.colors.muted); view.hint:SetPoint('BOTTOMLEFT', 8, 6); view.hint:SetWordWrap(true)
+    view.quests = S.Button(view.controls, 'Quêtes', 100, 22, 'ghost')
+    view.quests:SetPoint('RIGHT', view.world, 'LEFT', -5, 0)
+    view.quests:SetScript('OnClick', function()
+        if Maps.ToggleQuestList then Maps.ToggleQuestList(view) end
+    end)
+    view.hint = S.Text(view.controls, 10, S.colors.muted); view.hint:SetPoint('BOTTOMLEFT', 8, 6); view.hint:SetWordWrap(true)
     view.empty = S.Text(view, 14, S.colors.muted, 'CENTER'); view.empty:SetPoint('CENTER')
     view.empty:SetWordWrap(true)
     view:EnableMouse(true)
@@ -120,13 +137,14 @@ local function draw()
     clear()
     local width, height = view:GetWidth(), view:GetHeight()
     local multiple = #codes > 1 or needsChoice
-    view.artY = multiple and -64 or -32
+    view.artY = 0
+    view.topbar:SetHeight(multiple and 64 or 32)
     for i = 1, 4 do
         local code = codes[i]
         local button = view.wings[i]
         if multiple and code then
             if not button then
-                button = S.Button(view, '', 100, 22, 'ghost')
+                button = S.Button(view.controls, '', 100, 22, 'ghost')
                 button:SetScript('OnClick', function(self) selectCode(self.code) end)
                 view.wings[i] = button
             end
@@ -139,12 +157,21 @@ local function draw()
     end
     local floor = data and data.floors[view.floor]
     local loaded, w, h
-    if floor then loaded, w, h = Maps.PaintArt(view, floor, width, math.max(1, height + view.artY - 26)) end
-    if loaded then Maps.DrawPins(view, data, view.floor, w, h, openLoot) end
+    if floor then loaded, w, h = Maps.PaintArt(view, floor, width, height) end
+    if loaded then
+        Maps.DrawPins(view, data, view.floor, w, h, openLoot)
+        if Maps.DrawQuestPins then Maps.DrawQuestPins(view, data, view.floor, w, h) end
+    end
+    if Maps.QuestRecords then
+        local records = chosen and Maps.QuestRecords(chosen) or {}
+        view.quests:SetLabel('Quêtes (' .. #records .. ')')
+        view.questRecords, view.questData = records, data
+        if Maps.RefreshQuestList then Maps.RefreshQuestList(view) end
+    end
     view.empty:SetWidth(math.max(100, width - 30)); view.empty:SetShown(not loaded)
     view.empty:SetText(not chosen and 'Choisis l’aile du donjon ci-dessus.' or 'Aucun plan disponible pour ce donjon.')
     local dungeon = chosen and Q.DUNGEON_BY_CODE[chosen]
-    view.title:SetWidth(math.max(40, width - 210))
+    view.title:SetWidth(math.max(40, width - 320))
     view.title:SetText(dungeon and (Q.Safe(dungeon.name) .. (floor and (' · ' .. floor.name .. ' (' .. view.floor .. '/' .. #data.floors .. ')') or '')) or 'Choisir l’aile du donjon')
     view.previous:SetEnabled(floor ~= nil and view.floor > 1)
     view.next:SetEnabled(floor ~= nil and view.floor < #data.floors)
@@ -192,6 +219,10 @@ function O.Refresh()
         local strata, level = read(map.GetFrameStrata, map), read(map.GetFrameLevel, map)
         view:SetFrameStrata((strata == 'FULLSCREEN' or strata == 'FULLSCREEN_DIALOG') and 'FULLSCREEN_DIALOG' or 'DIALOG')
         view:SetFrameLevel(number(level) and level + 20 or 100)
+    end
+    if Maps.QuestVersion then
+        local current = Maps.QuestVersion()
+        if current ~= questGeneration then questGeneration, dirty = current, true end
     end
     if dirty then draw() end
     view:Show()

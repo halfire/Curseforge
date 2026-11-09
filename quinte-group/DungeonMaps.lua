@@ -46,6 +46,11 @@ local function nativeFloors(id)
     end
     return list
 end
+local function encounterVisual(encounterID)
+    if type(EJ_GetCreatureInfo) ~= 'function' then return nil, nil end
+    local ok, _, _, _, display, icon = pcall(EJ_GetCreatureInfo, 1, encounterID)
+    if ok then return number(display) and display > 0 and display or nil, number(icon) and icon > 0 and icon or nil end
+end
 local function nativeBosses(mapID, floor)
     local out = {}
     local list = C_EncounterJournal and call(C_EncounterJournal.GetEncountersOnMap, mapID)
@@ -54,8 +59,9 @@ local function nativeBosses(mapID, floor)
             if number(info.encounterID) and number(info.mapX) and number(info.mapY)
                 and info.mapX >= 0 and info.mapX <= 1 and info.mapY >= 0 and info.mapY <= 1 then
                 local name = call(EJ_GetEncounterInfo, info.encounterID)
+                local display, icon = encounterVisual(info.encounterID)
                 out[#out + 1] = { name = type(name) == 'string' and name or ('Boss ' .. info.encounterID),
-                    x = info.mapX, y = info.mapY, floor = floor, native = true }
+                    x = info.mapX, y = info.mapY, floor = floor, native = true, display = display, icon = icon }
             end
         end
     elseif type(EJ_GetMapEncounter) == 'function' then
@@ -89,7 +95,7 @@ function M.Data(code)
             local art = artFor(floor.mapID)
             if art then
                 local index = #data.floors + 1
-                data.floors[index] = { name = floor.name or ('Niveau ' .. index), art = art }
+                data.floors[index] = { name = floor.name or ('Niveau ' .. index), mapID = floor.mapID, art = art }
                 for _, boss in ipairs(nativeBosses(floor.mapID, index)) do data.bosses[#data.bosses + 1] = boss end
             end
         end
@@ -122,6 +128,10 @@ function M.Data(code)
         for _, boss in pairs(placed) do if boss.native then merged[#merged + 1] = boss end end
         data.bosses = merged
     end
+    for _, boss in ipairs(data.bosses) do
+        local visual = Q.DUNGEON_BOSS_PORTRAITS and Q.DUNGEON_BOSS_PORTRAITS[boss.name]
+        if visual then boss.display = boss.display or visual.display; boss.npc = visual.npc end
+    end
     return data
 end
 local function openLoot(boss)
@@ -147,18 +157,20 @@ local function tooltip(pin)
     if not (GameTooltip and pin.boss) then return end
     GameTooltip:SetOwner(pin, 'ANCHOR_RIGHT')
     GameTooltip:SetText(Q.Safe(pin.boss.name))
-    GameTooltip:AddLine('Clic : voir le butin de ce boss.', unpack(S.colors.muted))
-    if pin.classic then GameTooltip:AddLine('Position Classic indicative sur Forever.', unpack(S.colors.gold)) end
+    GameTooltip:AddLine('Clic : voir le butin de ce boss.', S.colors.muted[1], S.colors.muted[2], S.colors.muted[3], true)
+    if pin.classic then GameTooltip:AddLine('Position Classic indicative sur Forever.', S.colors.gold[1], S.colors.gold[2], S.colors.gold[3], true) end
     GameTooltip:Show()
 end
 local function clearTextures()
     for _, texture in ipairs(window.tiles) do texture:Hide() end
     for _, pin in ipairs(window.pins) do pin:Hide() end
+    for _, pin in ipairs(window.questPins or {}) do pin:Hide() end
 end
 local function paintArt(view, floor, mapW, mapH)
     local art = floor.art or { width = 1024, height = 768, tw = 256, th = 256 }
     local scale = math.min(mapW / art.width, mapH / art.height)
-    local w, h = art.width * scale, art.height * scale
+    local w, h = view.fill and mapW or art.width * scale, view.fill and mapH or art.height * scale
+    local sx, sy = w / art.width, h / art.height
     view.canvas:SetSize(w, h)
     view.canvas:ClearAllPoints()
     view.canvas:SetPoint('TOPLEFT', view, 'TOPLEFT', (view.artX or 230) + (mapW - w) / 2, (view.artY or -88) - (mapH - h) / 2)
@@ -177,8 +189,8 @@ local function paintArt(view, floor, mapW, mapH)
         local tw, th = math.min(art.tw, art.width - col * art.tw), math.min(art.th, art.height - row * art.th)
         local texture = view.tiles[index]
         if not texture then texture = view.canvas:CreateTexture(nil, 'ARTWORK'); view.tiles[index] = texture end
-        texture:SetPoint('TOPLEFT', view.canvas, 'TOPLEFT', col * art.tw * scale, -row * art.th * scale)
-        texture:SetSize(tw * scale, th * scale)
+        texture:SetPoint('TOPLEFT', view.canvas, 'TOPLEFT', col * art.tw * sx, -row * art.th * sy)
+        texture:SetSize(tw * sx, th * sy)
         texture:SetTexCoord(0, tw / art.tw, 0, th / art.th)
         local file
         if floor.art then file = art.textures[index]
@@ -197,7 +209,7 @@ local function drawPins(view, data, level, w, h, onPick)
             local pin = view.pins[n]
             if not pin then
                 pin = CreateFrame('Button', nil, view.canvas)
-                pin:SetSize(24, 24)
+                pin:SetSize(30, 30)
                 pin.icon = pin:CreateTexture(nil, 'OVERLAY'); pin.icon:SetAllPoints()
                 pin.icon:SetTexture('Interface\\TargetingFrame\\UI-RaidTargetingIcon_8')
                 pin.number = S.Text(pin, 10, S.colors.text, 'CENTER'); pin.number:SetPoint('TOP', pin, 'BOTTOM', 0, 1)
@@ -208,7 +220,14 @@ local function drawPins(view, data, level, w, h, onPick)
             end
             pin.boss, pin.classic, pin.onPick = boss, data.classic, onPick
             pin:ClearAllPoints(); pin:SetPoint('CENTER', view.canvas, 'TOPLEFT', boss.x * w, -boss.y * h)
-            pin.icon:SetVertexColor(unpack(view.picked == boss and S.colors.gold or S.colors.text))
+            -- Les portraits sont rendus par le client, sans téléchargement en jeu.
+            pin.icon:SetTexture('Interface\\TargetingFrame\\UI-RaidTargetingIcon_8')
+            if boss.icon then pin.icon:SetTexture(boss.icon)
+            elseif number(boss.display) and type(SetPortraitTextureFromCreatureDisplayID) == 'function' then
+                pcall(SetPortraitTextureFromCreatureDisplayID, pin.icon, boss.display)
+            end
+            pin.icon:SetVertexColor(1, 1, 1, 1)
+            pin.number:SetTextColor(unpack(view.picked == boss and S.colors.gold or S.colors.text))
             pin.number:SetText(i); pin:Show()
         end
     end
@@ -223,7 +242,10 @@ function M.Draw()
     if floor then loaded, w, h = paintArt(window, floor, MAP_W, MAP_H) end
     window.empty:SetShown(not loaded)
     window.empty:SetText('Carte intérieure non disponible dans cette version du client.\nLes boss connus restent dans la liste.')
-    if loaded then drawPins(window, selected, floorAt, w, h, function(boss) pick(boss, true) end) end
+    if loaded then
+        drawPins(window, selected, floorAt, w, h, function(boss) pick(boss, true) end)
+        if M.DrawQuestPins then M.DrawQuestPins(window, selected, floorAt, w, h) end
+    end
     window.level:SetText(floor and (floor.name .. ' (' .. floorAt .. '/' .. #selected.floors .. ')') or 'Aucun étage connu')
     window.prev:SetEnabled(floorAt > 1); window.next:SetEnabled(floorAt < #selected.floors)
     offset = math.max(0, math.min(offset, #selected.bosses - ROWS))
@@ -241,6 +263,7 @@ function M.Draw()
         .. (missing > 0 and (' ' .. missing .. ' boss sans position connue.') or '') .. ' Clic sur une icône : butin.')
 end
 draw = M.Draw
+function M.RefreshVisible() if window and window:IsVisible() then M.Draw() end end
 local function create()
     window = S.Box(UIParent, S.colors.bg, S.colors.line)
     window:SetSize(950, 660); window:SetPoint('CENTER'); window:SetFrameStrata('DIALOG')
