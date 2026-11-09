@@ -457,12 +457,12 @@ local function createDungeonsPanel(parent)
 
     local dTitle = S.Text(rightBox, 15, S.colors.text)
     dTitle:SetPoint('TOPLEFT', 50, -11)
-    dTitle:SetWidth(DR_W - 340)
+    dTitle:SetWidth(DR_W - 390)
     panel.dTitle = dTitle
 
     local dSub = S.Text(rightBox, 11, S.colors.muted)
     dSub:SetPoint('TOPLEFT', 50, -29)
-    dSub:SetWidth(DR_W - 340)
+    dSub:SetWidth(DR_W - 390)
     panel.dSub = dSub
 
     local btnInviteComp = S.Button(rightBox, 'Groupe sans conflit', 142, 24, 'primary')
@@ -472,7 +472,6 @@ local function createDungeonsPanel(parent)
     end)
     panel.btnInviteComp = btnInviteComp
     panel.btnDungeonMap = S.Button(rightBox, 'Plan', 70, 24, 'ghost')
-    panel.btnDungeonMap:SetPoint('RIGHT', btnInviteComp, 'LEFT', -6, 0)
     panel.btnDungeonMap:SetScript('OnClick', function()
         Q.Run('plan du donjon', Q.ShowDungeonMap, dungeonState.selectedDungeon)
     end)
@@ -491,6 +490,7 @@ local function createDungeonsPanel(parent)
         Q.Print(string.format('%d invitation(s) envoyée(s) pour %s.', count, needs.name))
     end)
     panel.btnInviteAll = btnInviteAll
+    panel.btnDungeonMap:SetPoint('RIGHT', btnInviteAll, 'LEFT', -6, 0)
 
     -- Bandeau d'état des conflits de butin
     local banner = S.Box(rightBox, S.colors.bg, S.colors.line)

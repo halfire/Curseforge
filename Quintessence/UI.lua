@@ -388,6 +388,10 @@ function UI.Toggle(id)
     if frame and frame:IsShown() and (id == nil or id == current) then frame:Hide() else UI.Open(id) end
 end
 
+function UI.Raise()
+    if frame and frame.Raise then frame:Raise() end
+end
+
 function UI.IsOpen(id) return frame ~= nil and frame:IsShown() and current == id end
 
 -- Arrivée dans la guilde (ou départ) pendant que la fenêtre est ouverte : on la redessine

@@ -5,7 +5,7 @@ local addonName, Q = ...
   Règle Retail 12+ : uniquement nos propres cadres, aucune écriture dans les objets de Blizzard.
 ]]
 local Core = Quintessence
-Q.name, Q.version = addonName or 'quinte-group', '0.17.2'
+Q.name, Q.version = addonName or 'quinte-group', '0.18.0'
 Q.debug = { errors = {}, slow = {} }
 
 function Q.Call(fn, ...)

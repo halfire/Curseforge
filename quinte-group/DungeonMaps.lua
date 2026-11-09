@@ -148,24 +148,24 @@ local function tooltip(pin)
     GameTooltip:SetOwner(pin, 'ANCHOR_RIGHT')
     GameTooltip:SetText(Q.Safe(pin.boss.name))
     GameTooltip:AddLine('Clic : voir le butin de ce boss.', unpack(S.colors.muted))
-    if selected.classic then GameTooltip:AddLine('Position Classic indicative sur Forever.', unpack(S.colors.gold)) end
+    if pin.classic then GameTooltip:AddLine('Position Classic indicative sur Forever.', unpack(S.colors.gold)) end
     GameTooltip:Show()
 end
 local function clearTextures()
     for _, texture in ipairs(window.tiles) do texture:Hide() end
     for _, pin in ipairs(window.pins) do pin:Hide() end
 end
-local function paintArt(floor)
+local function paintArt(view, floor, mapW, mapH)
     local art = floor.art or { width = 1024, height = 768, tw = 256, th = 256 }
-    local scale = math.min(MAP_W / art.width, MAP_H / art.height)
+    local scale = math.min(mapW / art.width, mapH / art.height)
     local w, h = art.width * scale, art.height * scale
-    window.canvas:SetSize(w, h)
-    window.canvas:ClearAllPoints()
-    window.canvas:SetPoint('TOPLEFT', window, 'TOPLEFT', 230 + (MAP_W - w) / 2, -88 - (MAP_H - h) / 2)
+    view.canvas:SetSize(w, h)
+    view.canvas:ClearAllPoints()
+    view.canvas:SetPoint('TOPLEFT', view, 'TOPLEFT', (view.artX or 230) + (mapW - w) / 2, (view.artY or -88) - (mapH - h) / 2)
     if floor.image then
-        local texture = window.tiles[1]
-        if not texture then texture = window.canvas:CreateTexture(nil, 'ARTWORK'); window.tiles[1] = texture end
-        texture:SetPoint('TOPLEFT', window.canvas, 'TOPLEFT', 0, 0)
+        local texture = view.tiles[1]
+        if not texture then texture = view.canvas:CreateTexture(nil, 'ARTWORK'); view.tiles[1] = texture end
+        texture:SetPoint('TOPLEFT', view.canvas, 'TOPLEFT', 0, 0)
         texture:SetSize(w, h); texture:SetTexCoord(0, 1, 0, 0.75)
         local loaded = texture:SetTexture('Interface\\AddOns\\' .. addonName .. '\\' .. floor.image)
         if loaded ~= false then texture:Show(); return true, w, h end
@@ -175,9 +175,9 @@ local function paintArt(floor)
     for index = 1, math.min(64, columns * rows) do
         local col, row = (index - 1) % columns, math.floor((index - 1) / columns)
         local tw, th = math.min(art.tw, art.width - col * art.tw), math.min(art.th, art.height - row * art.th)
-        local texture = window.tiles[index]
-        if not texture then texture = window.canvas:CreateTexture(nil, 'ARTWORK'); window.tiles[index] = texture end
-        texture:SetPoint('TOPLEFT', window.canvas, 'TOPLEFT', col * art.tw * scale, -row * art.th * scale)
+        local texture = view.tiles[index]
+        if not texture then texture = view.canvas:CreateTexture(nil, 'ARTWORK'); view.tiles[index] = texture end
+        texture:SetPoint('TOPLEFT', view.canvas, 'TOPLEFT', col * art.tw * scale, -row * art.th * scale)
         texture:SetSize(tw * scale, th * scale)
         texture:SetTexCoord(0, tw / art.tw, 0, th / art.th)
         local file
@@ -189,40 +189,41 @@ local function paintArt(floor)
     end
     return loaded, w, h
 end
-local function drawPins(w, h)
+local function drawPins(view, data, level, w, h, onPick)
     local n = 0
-    for i, boss in ipairs(selected.bosses) do
-        if boss.floor == floorAt and number(boss.x) and number(boss.y) then
+    for i, boss in ipairs(data.bosses) do
+        if boss.floor == level and number(boss.x) and number(boss.y) then
             n = n + 1
-            local pin = window.pins[n]
+            local pin = view.pins[n]
             if not pin then
-                pin = CreateFrame('Button', nil, window.canvas)
+                pin = CreateFrame('Button', nil, view.canvas)
                 pin:SetSize(24, 24)
                 pin.icon = pin:CreateTexture(nil, 'OVERLAY'); pin.icon:SetAllPoints()
                 pin.icon:SetTexture('Interface\\TargetingFrame\\UI-RaidTargetingIcon_8')
                 pin.number = S.Text(pin, 10, S.colors.text, 'CENTER'); pin.number:SetPoint('TOP', pin, 'BOTTOM', 0, 1)
-                pin:SetScript('OnClick', function(self) pick(self.boss, true) end)
+                pin:SetScript('OnClick', function(self) if self.onPick then self.onPick(self.boss) end end)
                 pin:SetScript('OnEnter', tooltip)
                 pin:SetScript('OnLeave', function() if GameTooltip then GameTooltip:Hide() end end)
-                window.pins[n] = pin
+                view.pins[n] = pin
             end
-            pin.boss = boss
-            pin:ClearAllPoints(); pin:SetPoint('CENTER', window.canvas, 'TOPLEFT', boss.x * w, -boss.y * h)
-            pin.icon:SetVertexColor(unpack(window.picked == boss and S.colors.gold or S.colors.text))
+            pin.boss, pin.classic, pin.onPick = boss, data.classic, onPick
+            pin:ClearAllPoints(); pin:SetPoint('CENTER', view.canvas, 'TOPLEFT', boss.x * w, -boss.y * h)
+            pin.icon:SetVertexColor(unpack(view.picked == boss and S.colors.gold or S.colors.text))
             pin.number:SetText(i); pin:Show()
         end
     end
 end
+M.PaintArt, M.DrawPins = paintArt, drawPins
 function M.Draw()
     if not window or not selected then return end
     clearTextures()
     floorAt = math.max(1, math.min(floorAt, #selected.floors))
     local floor = selected.floors[floorAt]
     local loaded, w, h
-    if floor then loaded, w, h = paintArt(floor) end
+    if floor then loaded, w, h = paintArt(window, floor, MAP_W, MAP_H) end
     window.empty:SetShown(not loaded)
     window.empty:SetText('Carte intérieure non disponible dans cette version du client.\nLes boss connus restent dans la liste.')
-    if loaded then drawPins(w, h) end
+    if loaded then drawPins(window, selected, floorAt, w, h, function(boss) pick(boss, true) end) end
     window.level:SetText(floor and (floor.name .. ' (' .. floorAt .. '/' .. #selected.floors .. ')') or 'Aucun étage connu')
     window.prev:SetEnabled(floorAt > 1); window.next:SetEnabled(floorAt < #selected.floors)
     offset = math.max(0, math.min(offset, #selected.bosses - ROWS))
