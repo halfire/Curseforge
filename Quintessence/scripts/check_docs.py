@@ -3,6 +3,8 @@
 
     python3 Quintessence/scripts/check_docs.py          # vérifie : code de sortie 1 s'il y a un problème
     python3 Quintessence/scripts/check_docs.py --write  # réécrit la section automatique de chaque AGENTS.md
+    python3 Quintessence/scripts/check_docs.py --write quinte-bis  # seulement ce dépôt (travail à plusieurs agents :
+                                                                    # ne réécrire que les dépôts dont on a le verrou)
 
 Pour chaque addon (dossier frère de Quintessence) :
   - section automatique de AGENTS.md entre <!-- auto:debut --> et <!-- auto:fin --> : version lue dans le code,
@@ -124,8 +126,12 @@ def check_text(module, f, text):
 
 def main():
     write = '--write' in sys.argv
+    only = [a for a in sys.argv[1:] if not a.startswith('--')]
+    unknown = [a for a in only if a not in MODULES]
+    if unknown:
+        sys.exit('Dépôt inconnu : ' + ', '.join(unknown) + ' (au choix : ' + ', '.join(MODULES) + ')')
     failed = False
-    for module in MODULES:
+    for module in only or MODULES:
         f = facts(module)
         path = f['folder'] / 'AGENTS.md'
         text = path.read_text(encoding='utf-8') if path.exists() else ''
