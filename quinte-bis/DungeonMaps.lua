@@ -141,7 +141,8 @@ local function tooltip(pin)
     GameTooltip:Show()
 end
 local function paintArt(view, floor, mapW, mapH)
-    local art = floor.art or { width = 1024, height = 768, tw = 256, th = 256 }
+    -- Le canevas Classic utile mesure 1002 × 668 : les tuiles BLP incluent du noir de remplissage.
+    local art = floor.art or { width = 1002, height = 668, tw = 256, th = 256 }
     local scale = math.min(mapW / art.width, mapH / art.height)
     local w, h = view.fill and mapW or art.width * scale, view.fill and mapH or art.height * scale
     local sx, sy = w / art.width, h / art.height
@@ -152,7 +153,7 @@ local function paintArt(view, floor, mapW, mapH)
         local texture = view.tiles[1]
         if not texture then texture = view.canvas:CreateTexture(nil, 'ARTWORK'); view.tiles[1] = texture end
         texture:SetPoint('TOPLEFT', view.canvas, 'TOPLEFT', 0, 0)
-        texture:SetSize(w, h); texture:SetTexCoord(0, 1, 0, 0.75)
+        texture:SetSize(w, h); texture:SetTexCoord(0, 1002 / 1024, 0, 668 / 1024)
         local loaded = texture:SetTexture('Interface\\AddOns\\' .. addonName .. '\\' .. floor.image)
         if loaded ~= false then texture:Show(); return true, w, h end
     end

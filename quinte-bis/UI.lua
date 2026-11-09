@@ -19,6 +19,9 @@ local EW = VW - SLOTS_W - 12                     -- 626
 local SOURCE_ROWS = math.floor((VH - 238) / 22)  -- 17 sources
 local BOSSES_W = 300                             -- Butin : boss à gauche, butin à droite
 local LW = VW - BOSSES_W - 12                    -- 766
+-- Répartition du détail à droite : 70 % plan (commandes comprises), 30 % butin.
+local MAP_GAP = 6
+local MAP_HEIGHT = math.floor((VH - 32) * 0.70)
 local NEEDS_W = 380                              -- Besoins : donjons à gauche, membres à droite
 local NW = VW - NEEDS_W - 12                     -- 686
 local DUNGEON_ROWS = math.floor((VH - 8) / 37)   -- 16 donjons
@@ -288,8 +291,8 @@ local function renderLoot()
     v.bossScroll:SetMinMaxValues(0, math.max(0, #bosses - BOSS_ROWS)); v.bossScroll:SetValue(state.bossOffset)
     local boss = bosses[state.boss] or { name = 'Butin non répertorié', items = {} }
     local hasMap = Q.DungeonMaps.ShowEmbedded(v.plan, raid.key, boss.name)
-    local mapHeight = hasMap and 292 or 0
-    local lootRows = math.floor((VH - 122 - mapHeight) / 29)
+    local mapHeight = hasMap and MAP_HEIGHT or 0
+    local lootRows = math.floor((VH - 120 - mapHeight) / 29)
     v.lootBox:ClearAllPoints(); v.lootBox:SetPoint('TOPLEFT', BOSSES_W + 12, -32 - mapHeight)
     v.lootBox:SetSize(LW, VH - 32 - mapHeight)
     v.lootScroll:SetHeight(lootRows * 29)
@@ -371,7 +374,7 @@ local function createLoot(parent)
     v.bossScroll = S.Scrollbar(v.detail, BOSS_ROWS * 26, function(offset) if offset ~= state.bossOffset then state.bossOffset = offset; Q.Run('défilement', renderLoot) end end)
     v.bossScroll:SetPoint('TOPLEFT', BOSSES_W - 8, -36)
 
-    v.plan = Q.DungeonMaps.CreateEmbedded(v.detail, LW, 286, function(boss)
+    v.plan = Q.DungeonMaps.CreateEmbedded(v.detail, LW, MAP_HEIGHT - MAP_GAP, function(boss)
         if not UI.ShowLoot(state.raid, boss.name) then Q.Print('Butin non répertorié pour ' .. Q.Safe(boss.name) .. '.') end
     end)
     v.plan:SetPoint('TOPLEFT', BOSSES_W + 12, -32)
