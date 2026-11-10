@@ -34,7 +34,7 @@ local function questTitle(id, fallback)
     local fn = C_QuestLog and C_QuestLog.GetTitleForQuestID
     if fn then
         local ok, title = pcall(fn, id)
-        if ok and type(title) == 'string' and title ~= '' then return title end
+        if ok and not isSecret(title) and type(title) == 'string' and title ~= '' then return title end
         if C_QuestLog.RequestLoadQuestByID then pcall(C_QuestLog.RequestLoadQuestByID, id) end
     end
     return fallback
@@ -43,7 +43,7 @@ local function done(id)
     local fn = C_QuestLog and C_QuestLog.IsQuestFlaggedCompleted or IsQuestFlaggedCompleted
     if not fn then return false end
     local ok, value = pcall(fn, id)
-    return ok and value == true
+    return ok and not isSecret(value) and value == true
 end
 
 --- Vrai si la quête est dans mon journal, même sous une zone repliée (la liste du journal ne montre alors pas ses quêtes).
@@ -65,7 +65,7 @@ local function complete(id)
     local fn = C_QuestLog and C_QuestLog.IsComplete
     if not fn then return false end
     local ok, value = pcall(fn, id)
-    return ok and value == true
+    return ok and not isSecret(value) and value == true
 end
 local function sameTitle(title) return type(title) == 'string' and not isSecret(title) and title:lower() or nil end
 
@@ -73,7 +73,7 @@ local function sameTitle(title) return type(title) == 'string' and not isSecret(
 function Q.CanShareQuest(id)
     if C_QuestLog and C_QuestLog.IsPushableQuest then
         local ok, value = pcall(C_QuestLog.IsPushableQuest, id)
-        return ok and value == true
+        return ok and not isSecret(value) and value == true
     end
     local index = logIndex(id)
     if not (index and SelectQuestLogEntry and GetQuestLogPushable) then return false end
@@ -269,7 +269,10 @@ function Q.DungeonQuests(code)
                 for i, step in ipairs(info.chain) do
                     local sid = step[1]
                     if sid == id then here = i end
-                    chain[i] = { id = sid, title = questTitle(sid, step[2]), here = sid == id, inDungeon = inList[sid] or false,
+                    local other = Q.DUNGEON_QUEST_INFO and Q.DUNGEON_QUEST_INFO[sid]
+                    chain[i] = { id = sid, title = questTitle(sid, step[2]), here = sid == id,
+                        inDungeon = inList[sid] and not (other and other.outside) or false,
+                        outside = other and other.outside or false,
                         state = (sid == id and state) or ((Q.IsOnQuest(sid) and 'log') or (done(sid) and 'done') or 'todo') }
                 end
                 for i, step in ipairs(chain) do
@@ -286,6 +289,8 @@ function Q.DungeonQuests(code)
                 end
                 -- Hors du donjon : avant une quête du donjon = prérequis ; après = suite ; début d'une chaîne qui reste dehors = rien
                 tag = (later and 'prérequis') or (here > 1 and 'suite hors du donjon') or nil
+            elseif info and info.outside then
+                tag = 'étape hors du donjon'
             elseif prev then
                 tag = 'suite'
             end
@@ -297,7 +302,7 @@ function Q.DungeonQuests(code)
                 minLevel = minLevel, start = (place and place.start) or (info and info.start),
                 prev = prev, prevState = prevState,
                 prevTitle = prev and questTitle(prev, (info and info.prevTitle) or knownTitle(prev)) or nil,
-                tag = tag, chain = chain }
+                tag = tag, chain = chain, note = info and info.note, narrative = info and info.narrative }
         end
     end
     -- Ce que je peux faire d'abord : mes quêtes, puis celles à prendre, puis celles déjà faites.
@@ -313,12 +318,18 @@ end
 --- Liste à afficher : les étapes d'une même chaîne se suivent, dans l'ordre de la chaîne, à la place de la première
 --- d'entre elles ; chaque étape est décalée d'un cran de plus (q.depth = 0, 1, 2…). Les étapes de la chaîne qui ne sont
 --- pas des quêtes de ce donjon (prérequis faits dehors, étapes entre deux quêtes du donjon) sont ajoutées comme lignes
---- d'information (q.virtual = true) : tout le chemin jusqu'à la dernière quête du donjon. Ne change pas Q.DungeonQuests.
+--- d'information (q.virtual = true) : tout le chemin, y compris les suites après le donjon. Ne change pas Q.DungeonQuests.
 local STEP_STATE = { done = 'faite', log = 'en cours', todo = 'à faire' }
 function Q.ChainOrder(quests)
     local groups, out, placed = {}, {}, {}
+    local function chainKey(q)
+        if not (q.chain and q.chain[1]) then return nil end
+        local ids = {}
+        for _, step in ipairs(q.chain) do ids[#ids + 1] = tostring(step.id) end
+        return table.concat(ids, ':')
+    end
     for _, q in ipairs(quests) do
-        local first = q.chain and q.chain[1] and q.chain[1].id
+        local first = chainKey(q)
         if first then
             groups[first] = groups[first] or {}
             groups[first][#groups[first] + 1] = q
@@ -329,7 +340,7 @@ function Q.ChainOrder(quests)
         return 0
     end
     for _, q in ipairs(quests) do
-        local first = q.chain and q.chain[1] and q.chain[1].id
+        local first = chainKey(q)
         if not first then
             q.depth = 0; out[#out + 1] = q
         elseif not placed[first] then
@@ -344,21 +355,35 @@ function Q.ChainOrder(quests)
             if lastPos == 0 then
                 for depth, member in ipairs(group) do member.depth = depth - 1; out[#out + 1] = member end
             else
-                for i = 1, lastPos do
+                for i = 1, #chain do
                     local step = chain[i]
                     local member = byId[step.id]
                     if member then
-                        member.depth = i - 1; out[#out + 1] = member
+                        member.depth = i - 1; member.chainIndex = i; member.chainLength = #chain
+                        out[#out + 1] = member
                     else
                         -- Étape hors de ce donjon : son état, sa place, et la chaîne vue depuis elle (infobulle)
                         local view = {}
                         for k, s in ipairs(chain) do
-                            view[k] = { id = s.id, title = s.title, state = s.state, inDungeon = s.inDungeon, here = k == i,
+                            view[k] = { id = s.id, title = s.title, state = s.state, inDungeon = s.inDungeon, outside = s.outside, here = k == i,
                                 step = (k < i and 'prérequis') or (k > i and 'suite') or nil }
+                        end
+                        local elsewhere
+                        for code, list in pairs(Q.DUNGEON_QUESTS or {}) do
+                            for _, candidate in ipairs(list) do
+                                if candidate[1] == step.id and not step.outside and Q.DUNGEON_BY_CODE[code] then
+                                    local dungeon = Q.GetDungeonInfo and Q.GetDungeonInfo(code)
+                                    if dungeon then elsewhere = dungeon.name; break end
+                                end
+                            end
+                            if elsewhere then break end
                         end
                         out[#out + 1] = { virtual = true, id = step.id, title = step.title, state = step.state,
                             stateText = STEP_STATE[step.state] or 'à faire', depth = i - 1,
-                            tag = (i < firstPos) and 'prérequis, hors du donjon' or 'étape hors du donjon',
+                            tag = (elsewhere and ('autre donjon : ' .. elsewhere))
+                                or (i < firstPos and not q.narrative) and 'prérequis, hors du donjon'
+                                or (i > lastPos and 'suite après le donjon') or 'étape hors du donjon',
+                            chainIndex = i, chainLength = #chain, narrative = q.narrative,
                             chain = view, holders = {}, groupHas = {}, groupMissing = {}, known = true }
                     end
                 end

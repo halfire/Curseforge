@@ -1,13 +1,13 @@
 {
- "version": "1.42.4",
+ "version": "1.42.5",
  "addons": [
   [
    "Quintessence",
-   "1.42.4"
+   "1.42.5"
   ],
   [
    "quinte-craft",
-   "0.11.0"
+   "0.11.2"
   ],
   [
    "quinte-caract",
@@ -15,11 +15,11 @@
   ],
   [
    "quinte-bis",
-   "0.10.1"
+   "0.11.0"
   ],
   [
    "quinte-group",
-   "0.20.0"
+   "0.21.0"
   ],
   [
    "quinte-map",

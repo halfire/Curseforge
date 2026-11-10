@@ -1,6 +1,6 @@
 local addonName, Q = ...
 -- quinte-bis : listes BiS des membres et besoins par donjon, pour savoir qui emmener où (module de Quintessence).
-Q.name, Q.version, Q.revision = addonName or 'quinte-bis', '0.10.1', 0
+Q.name, Q.version, Q.revision = addonName or 'quinte-bis', '0.11.0', 0
 Q.debug = { errors = {}, slow = {} }
 
 function Q.Call(fn, ...)
@@ -96,11 +96,12 @@ SlashCmdList.QUINTEBIS = function(message)
         local command = (message or ''):match('^%s*(%S*)')
         if command == '' then Q.UI.Toggle()
         elseif command == 'donjons' then Q.UI.Open('needs')
-        elseif command == 'raids' then Q.UI.Open('loot')
+        elseif command == 'raids' then Q.UI.Open('raids')
+        elseif command == 'butin' then Q.UI.Open('dungeonLoot')
         elseif command == 'resume' then Q.Summary()
         elseif command == 'debug' then Q.Debug()
         else
-            Q.Print('/qbis : ouvrir ta liste BiS · /qbis raids : butin des raids · /qbis donjons : qui a besoin de quel donjon · /qbis resume · /qbis debug')
+            Q.Print('/qbis : ouvrir ta liste BiS · /qbis raids : butin des raids · /qbis butin : butin des donjons · /qbis donjons : qui a besoin de quel donjon · /qbis resume · /qbis debug')
         end
     end)
 end

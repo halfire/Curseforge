@@ -18,6 +18,24 @@ local DETAIL_X = LIST_X + LIST_W + 10
 local DETAIL_W = W - DETAIL_X - 28                    -- 326 : texte du détail (cadre de 354)
 local MAX_REAGENTS, MAX_CRAFTERS = 12, 24
 local QUESTION_MARK = 134400
+-- Icônes historiques du client : aucune texture externe ni donnée sauvegardée.
+local PROFESSION_ICONS = {
+    alchemy = 'Trade_Alchemy', blacksmithing = 'Trade_BlackSmithing',
+    enchanting = 'Trade_Engraving', engineering = 'Trade_Engineering',
+    tailoring = 'Trade_Tailoring', leatherworking = 'Trade_LeatherWorking',
+    cooking = 'INV_Misc_Food_15', firstaid = 'Spell_Holy_SealOfSacrifice',
+    mining = 'Trade_Mining',
+}
+local function professionIcon(name)
+    local icon = PROFESSION_ICONS[Q.ProfessionKey(name)]
+    local folded = Q.Fold(name)
+    if not icon then
+        if folded:find('herb', 1, true) then icon = 'Trade_Herbalism'
+        elseif folded:find('depec', 1, true) or folded:find('skinning', 1, true) then icon = 'INV_Misc_Pelt_Wolf_01'
+        elseif folded:find('peche', 1, true) or folded:find('fishing', 1, true) then icon = 'Trade_Fishing' end
+    end
+    return icon and ('Interface\\Icons\\' .. icon) or QUESTION_MARK
+end
 
 -- ---------------------------------------------------------------------------
 -- Données (sans affichage : testables hors du jeu)
@@ -402,6 +420,12 @@ local function renderProfessions()
         if item then
             b.value = item.profession
             b.label:SetText(item.label)
+            local hasIcon = item.kind == 'prof'
+            b.icon:SetShown(hasIcon)
+            if hasIcon then b.icon:SetTexture(professionIcon(item.profession)) end
+            b.label:ClearAllPoints()
+            b.label:SetPoint('LEFT', hasIcon and 32 or 10, 0)
+            b.label:SetPoint('RIGHT', -36, 0)
             b.count:SetText(item.count)
             b:SetSelected(item.selected)
             if item.kind == 'cat' then
@@ -488,6 +512,7 @@ local function create(parent)
     for i = 1, LEFT_ROWS do
         local b = S.Row(leftBox, LEFT_W - 12, LEFT_ROW_H - 1)
         b:SetPoint('TOPLEFT', 0, -(i - 1) * LEFT_ROW_H)
+        b.icon = b:CreateTexture(nil, 'ARTWORK'); b.icon:SetSize(18, 18); b.icon:SetPoint('LEFT', 8, 0); b.icon:Hide()
         b.label = S.Text(b, 12, S.colors.muted); b.label:SetPoint('LEFT', 10, 0); b.label:SetPoint('RIGHT', -36, 0)
         b.count = S.Text(b, 11, S.colors.muted, 'RIGHT'); b.count:SetPoint('RIGHT', -6, 0)
         b:SetScript('OnClick', function(self)
@@ -703,6 +728,32 @@ function UI.ShowMode(mode)
     state.mode = mode or 'recipes'; state.selected = nil; state.offset = 0
     UI.Open()
     UI.Refresh()
+end
+
+-- Fenêtre indépendante : ne change pas l’onglet actuellement consulté.
+local orderNotice
+function UI.OrderNoticeVisible() return orderNotice and orderNotice:IsShown() or false end
+function UI.OrderNotice(count)
+    if not UIParent then return false end
+    if not orderNotice then
+        local f = CreateFrame('Frame', nil, UIParent)
+        f:SetSize(390, 180); f:SetPoint('CENTER'); f:SetFrameStrata('DIALOG')
+        f:EnableMouse(true)
+        local bg = S.Box(f, S.colors.panel, S.colors.line); bg:SetAllPoints()
+        local title = S.Text(f, 16, S.colors.gold); title:SetPoint('TOPLEFT', 20, -20)
+        title:SetText('Commandes d’artisanat')
+        f.message = S.Text(f, 13, S.colors.text); f.message:SetPoint('TOPLEFT', 20, -54)
+        f.message:SetWidth(350); f.message:SetWordWrap(true)
+        local view = S.Button(f, 'Voir les commandes', 175, 26, 'primary'); view:SetPoint('BOTTOMLEFT', 20, 20)
+        view:SetScript('OnClick', function() f:Hide(); UI.ShowMode('orders') end)
+        local close = S.Button(f, 'Plus tard', 140, 26, 'ghost'); close:SetPoint('BOTTOMRIGHT', -20, 20)
+        close:SetScript('OnClick', function() f:Hide() end)
+        orderNotice = f
+    end
+    orderNotice.message:SetText('Tu as ' .. count .. ' commande' .. (count > 1 and 's' or '')
+        .. ' à traiter. Ouvre la liste pour consulter les demandes et y répondre.')
+    orderNotice:Show()
+    return true
 end
 
 -- Onglet « Craft » de la fenêtre Quintessence

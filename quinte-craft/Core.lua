@@ -1,6 +1,6 @@
 local addonName, Q = ...
 -- Nom réel du dossier installé (ex. « Quinte-craft » cloné depuis GitHub) : ADDON_LOADED le renvoie tel quel.
-Q.name, Q.version, Q.revision = addonName or 'quinte-craft', '0.11.0', 0
+Q.name, Q.version, Q.revision = addonName or 'quinte-craft', '0.11.2', 0
 Q.debug = { errors = {}, scans = 0, changes = 0, slow = {} }
 function Q.Call(fn, ...)
     if type(fn) ~= 'function' then return false end
@@ -91,6 +91,7 @@ frame:SetScript('OnEvent', function(_, event, arg)
         if not Q.ready or Q.disabled then return
         elseif event == 'PLAYER_LOGIN' then
             Q.Identity(); if Q.sync then Q.sync:Start() end
+            Q.ScheduleOrderNotice(5)
             if C_Timer and C_Timer.After then C_Timer.After(3, function() Q.Run('identité différée', Q.Identity) end) end
         elseif event == 'PLAYER_LEVEL_UP' then Q.Identity(arg)
         elseif event == 'GUILD_ROSTER_UPDATE' then return -- le roster est relu par LibQuinteSync (au plus toutes les 10 s)

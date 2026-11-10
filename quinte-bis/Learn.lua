@@ -3,7 +3,7 @@ local _, Q = ...
   Learn.lua : butin vu en jeu. Les tables générées (DungeonLoot.lua, RaidLoot.lua) ne connaissent pas tout WoW Forever :
   quand un membre ouvre le corps d'un boss qui vient de mourir, un objet portable absent de la table de l'instance est
   noté dans sa fiche (`seen[id] = { k = clé d'instance, b = boss }`, 60 objets au plus) et partagé par la synchro des listes.
-  L'onglet Butin des boss les montre sous « Vu en jeu par la guilde ». Rien d'autre n'est noté (ni le corps des autres
+  Les onglets Butin raid et Butin donjon les montrent sous « Vu en jeu par la guilde ». Rien d'autre n'est noté (ni le corps des autres
   monstres, ni qui a reçu l'objet). Événements de fin de boss et noms d'instance à confirmer sur Forever.
 ]]
 local SEEN_MAX, BOSS_WINDOW = 60, 180

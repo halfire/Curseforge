@@ -3,7 +3,7 @@
 ## Group: Quintessence
 ## Notes: Module Quintessence - Recettes et composants de toute la guilde (onglet Craft, /qcraft). Nécessite l'addon Quintessence.
 ## Author: Quintessence
-## Version: 0.11.0
+## Version: 0.11.2
 ## SavedVariables: QuinteCraftDB
 ## Dependencies: Quintessence
 ## IconTexture: Interface\Icons\INV_Misc_Head_Dragon_01

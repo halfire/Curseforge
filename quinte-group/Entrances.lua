@@ -167,14 +167,16 @@ function Q.HasDungeonQuestPlace(questId)
     return (p and p.start) ~= nil
 end
 --- Phrase décrivant où prendre une quête, nil si le lieu est inconnu.
-local function placeText(p)
+local function placeText(p, questId)
     if not (p and p.start) then return nil end
     local who = Q.Safe(p.start)
     local text
     if p.at == 'inside' then text = who .. (p.item and ' (objet trouvé)' or '') .. ', dans le donjon'
     elseif p.x then text = string.format('%s, %s (%s, %s)', who, ZONE_FR[p.zone] or p.zone or '?', p.x, p.y)
     else text = who end
-    if p.note then text = text .. ' · ' .. p.note end
+    local info = Q.DUNGEON_QUEST_INFO and Q.DUNGEON_QUEST_INFO[questId]
+    local note = (info and info.note) or p.note
+    if note then text = text .. ' · ' .. note end
     return text
 end
 --- Un clic sur « Carte » : repère et carte sur le donneur ; quête prise dans le donjon, repère sur son entrée.
@@ -182,7 +184,7 @@ function Q.ShowDungeonQuestPlace(questId, title, code, route)
     local p = Q.DUNGEON_QUEST_PLACES and Q.DUNGEON_QUEST_PLACES[questId]
     local name = Q.Safe(title or ('quête ' .. tostring(questId)))
     if not (p and p.start) then Q.Print('Lieu inconnu pour ' .. name .. '.'); return false end
-    Q.Print(name .. ' : ' .. placeText(p) .. '.')
+    Q.Print(name .. ' : ' .. placeText(p, questId) .. '.')
     if p.at then return code ~= nil and Q.ShowDungeonEntrance(code, route) end
     if not p.x then return false end
     local mapID = findMap(ZONE_FR[p.zone], p.zone, p.map)
@@ -197,7 +199,7 @@ function Q.PrintDungeonQuestPlaces(code)
     local shown = 0
     for _, q in ipairs(Q.DungeonQuests and Q.DungeonQuests(code) or {}) do
         if q.state ~= 'done' then
-            local text = placeText(Q.DUNGEON_QUEST_PLACES and Q.DUNGEON_QUEST_PLACES[q.id])
+            local text = placeText(Q.DUNGEON_QUEST_PLACES and Q.DUNGEON_QUEST_PLACES[q.id], q.id)
             if shown == 0 then Q.Print('Lieux des quêtes : ' .. Q.Safe(d and d.name or tostring(code))) end
             Q.Print(string.format('[%d] %s : %s', q.level or 0, Q.Safe(q.title), text or 'lieu inconnu'))
             shown = shown + 1

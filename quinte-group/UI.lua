@@ -55,18 +55,19 @@ local function showQuestTooltip(owner, q)
     if q.classes then GameTooltip:AddLine('Réservée à : ' .. q.classes, 1, 0.82, 0) end
     if q.minLevel then GameTooltip:AddLine('Niveau requis : ' .. q.minLevel, 1, 1, 1) end
     if q.tag then GameTooltip:AddLine('(' .. q.tag .. ')', 1, 0.82, 0) end
+    if q.note then GameTooltip:AddLine(q.note, 1, 0.82, 0, true) end
     if q.chain then
-        -- Chaîne complète en puces : prérequis, cette quête, suites (Wowhead Forever)
+        -- Chaîne complète numérotée : prérequis, cette quête, suites (Wowhead Forever)
         local STATE = { done = 'faite', log = 'en cours', todo = 'à faire', locked = 'à faire', low = 'à faire' }
         GameTooltip:AddLine('Chaîne de quêtes :', 1, 0.82, 0)
         for i, step in ipairs(q.chain) do
-            -- Chaque étape décalée d'un cran de plus que la précédente
-            local label = string.rep('    ', i - 1) .. '• ' .. Q.Safe(step.title or ('quête ' .. step.id))
+            -- Même largeur de titre pour chaque étape, même dans une longue chaîne.
+            local label = i .. '/' .. #q.chain .. '  ' .. Q.Safe(step.title or ('quête ' .. step.id))
             if step.here then
                 GameTooltip:AddLine(label .. ' ← celle-ci', 0.36, 0.82, 0.66, true)
             else
-                local where = step.inDungeon and 'dans ce donjon' or nil
-                local note = (step.step or 'étape') .. (where and (', ' .. where) or '') .. ', ' .. (STATE[step.state] or 'à faire')
+                local where = step.inDungeon and 'dans ce donjon' or (step.outside and 'hors du donjon' or nil)
+                local note = (q.narrative and 'parcours' or step.step or 'étape') .. (where and (', ' .. where) or '') .. ', ' .. (STATE[step.state] or 'à faire')
                 GameTooltip:AddLine(label .. ' (' .. note .. ')', 1, 1, 1, true)
             end
         end
@@ -339,6 +340,7 @@ local IW = DR_W - 28                               -- 778 : largeur intérieure 
 local D_ROWS = math.floor((PH - 58) / 38)          -- 14 donjons
 local M_ROWS = 8                                   -- membres inscrits
 local L_ROWS = math.floor((PH - 48 - 96 - (M_ROWS * 26 + 4) - 28 - 18) / 27) -- objets recherchés
+local QUEST_ROWS = math.floor(L_ROWS * 27 / 42)
 local LOOT_Y = -96 - (M_ROWS * 26 + 4) - 12
 
 local function createDungeonsPanel(parent)
@@ -842,27 +844,30 @@ function UI.RefreshDungeons()
         p.bossLoot:SetEnabled(grouped and todo > 0)
         p.lootEmpty:SetShown(questCount == 0)
         p.lootEmpty:SetText('Aucune quête connue pour ce donjon.')
-        dungeonState.lootOffset = math.max(0, math.min(dungeonState.lootOffset, math.max(0, #quests - L_ROWS)))
+        dungeonState.lootOffset = math.max(0, math.min(dungeonState.lootOffset, math.max(0, #quests - QUEST_ROWS)))
         for i = 1, L_ROWS do
             local r, q = p.lootRows[i], quests[dungeonState.lootOffset + i]
-            if q then
+            if q and i <= QUEST_ROWS then
+                r.frame:ClearAllPoints(); r.frame:SetPoint('TOPLEFT', 1, -2 - (i - 1) * 42); r.frame:SetHeight(41)
+                r.itemName:ClearAllPoints(); r.itemName:SetPoint('TOPLEFT', 32, -4)
+                r.membersList:ClearAllPoints(); r.membersList:SetPoint('BOTTOMLEFT', 32, 4)
+                r.membersList:SetJustifyH('LEFT')
                 r.frame:Show(); r.frame.itemID = nil; r.frame.quest = q
                 r.icon:SetTexture('Interface\\Icons\\INV_Misc_Note_01')
-                -- Suite d'une chaîne : décalée d'un cran par étape (6 crans au plus), sous la précédente
-                local depth = math.min(q.depth or 0, 6)
-                local indent = depth > 0 and (string.rep('   ', depth - 1) .. '|c' .. S.hex.muted .. '└|r ') or ''
+                -- Numérotation stable : aucune perte de largeur dans les longues chaînes.
+                local indent = q.chainIndex and (q.chainIndex .. '/' .. q.chainLength .. '  ') or ''
                 if q.virtual then
                     -- Étape de la chaîne faite hors de ce donjon : ligne d'information, sans action
                     r.itemName:SetText(string.format('%s|c%s%s (%s)|r', indent, S.hex.muted, Q.Safe(q.title or ('quête ' .. q.id)), q.tag))
-                    r.itemName:SetWidth(285)
-                    r.membersList:SetPoint('RIGHT', -182, 0); r.membersList:SetWidth(IW - 506)
+                    r.itemName:SetWidth(IW - 42)
+                    r.membersList:SetWidth(IW - 42)
                     r.place:Hide(); r.route:Hide(); r.action:Hide()
-                    r.membersList:SetText('|c' .. (q.state == 'done' and S.hex.mint or S.hex.muted) .. q.stateText .. '|r')
+                    r.membersList:SetText('|c' .. (q.state == 'done' and S.hex.mint or S.hex.muted) .. q.stateText .. (q.narrative and ' · parcours Wowhead, étapes possiblement facultatives' or '') .. '|r')
                 else
                 r.itemName:SetText(string.format('%s|c%s[%d]|r %s%s', indent, S.hex.gold, q.level, Q.Safe(q.title),
                     q.tag and (' |c' .. S.hex.muted .. '(' .. q.tag .. ')|r') or ''))
-                r.itemName:SetWidth(285)
-                r.membersList:SetPoint('RIGHT', -182, 0); r.membersList:SetWidth(IW - 506)
+                r.itemName:SetWidth(IW - 216)
+                r.membersList:SetWidth(IW - 216)
                 r.place:SetShown(q.state ~= 'done' and Q.HasDungeonQuestPlace(q.id))
                 r.place:SetScript('OnClick', function() Q.Run('lieu de quête', Q.ShowDungeonQuestPlace, q.id, q.title, selectedNeeds.code) end)
                 r.route:SetShown(q.state ~= 'done' and Q.HasDungeonQuestPlace(q.id))
@@ -896,6 +901,7 @@ function UI.RefreshDungeons()
                     text = '|c' .. S.hex.muted .. 'faite|r'
                     r.action:Hide()
                 end
+                if q.note then text = text .. ' · détails au survol' end
                 r.membersList:SetText(text)
                 end
             else r.frame:Hide(); r.frame.quest = nil end
@@ -915,6 +921,9 @@ function UI.RefreshDungeons()
         local lt = loots[dungeonState.lootOffset + i]
         if lt then
             r.frame:Show()
+            r.frame:ClearAllPoints(); r.frame:SetPoint('TOPLEFT', 1, -2 - (i - 1) * 27); r.frame:SetHeight(26)
+            r.itemName:ClearAllPoints(); r.itemName:SetPoint('LEFT', 32, 0)
+            r.membersList:ClearAllPoints(); r.membersList:SetJustifyH('RIGHT')
             r.frame.itemID = lt.id
             r.frame.quest = nil
             r.action:Hide()

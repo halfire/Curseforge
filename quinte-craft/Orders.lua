@@ -42,6 +42,33 @@ function Q.OpenOrdersForMe()
     return n
 end
 
+-- Une seule alerte récapitulative ; fenêtre glissante persistante, même après /reload.
+local noticeScheduled = false
+function Q.ScheduleOrderNotice(delay)
+    if noticeScheduled or not C_Timer or not C_Timer.After then return end
+    noticeScheduled = true
+    C_Timer.After(delay or 1, function()
+        noticeScheduled = false
+        Q.Run('alerte commandes', function()
+            local count = Q.OpenOrdersForMe()
+            if count == 0 or not Q.UI or not Q.UI.OrderNotice then return end
+            local now, recent = Q.Now(), {}
+            for _, at in ipairs(type(QuinteCraftDB.orderNoticeTimes) == 'table' and QuinteCraftDB.orderNoticeTimes or {}) do
+                if type(at) == 'number' and at > now - 600 and at <= now then recent[#recent + 1] = at end
+            end
+            table.sort(recent)
+            QuinteCraftDB.orderNoticeTimes = recent
+            -- Une fenêtre déjà visible se met à jour sans nouvelle ouverture.
+            if Q.UI.OrderNoticeVisible and Q.UI.OrderNoticeVisible() then Q.UI.OrderNotice(count); return end
+            if #recent >= 5 then
+                Q.ScheduleOrderNotice(math.max(1, recent[#recent - 4] + 600 - now))
+                return
+            end
+            if Q.UI.OrderNotice(count) then recent[#recent + 1] = now end
+        end)
+    end)
+end
+
 local function send(o, target)
     if not Q.comm or not Q.comm.Send then return false end
     Q.comm:Send({ t = 'order', o = { id = o.id, from = o.from, to = o.to, spell = o.spell, item = o.item, name = o.name,
@@ -112,6 +139,7 @@ function Q.OnOrderMessage(data, sender)
     if key(o.to) == mine and o.status == 'open' and not old then
         Q.Print('|cffffd100Nouvelle commande|r de ' .. Q.Safe(Quintessence.DisplayName(o.from)) .. ' : ' .. what
             .. (o.note and (' — « ' .. Q.Safe(o.note) .. ' »') or '') .. ' (onglet Craft → Commandes).')
+        Q.ScheduleOrderNotice()
         -- Accusé de réception : le demandeur sait que la commande est arrivée
         if Q.comm and Q.comm.Send then send(o, o.from) end
     elseif key(o.from) == mine and old and old.status ~= o.status then
