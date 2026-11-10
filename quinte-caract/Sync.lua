@@ -218,6 +218,8 @@ local function export(db, request)
     if not c then return {} end
     local clean = validate(c, request.key, Q.Now())
     if not clean or tooLow(clean) then return {} end
+    -- Les compteurs ne voyagent jamais avec les fiches diffusées à toute la guilde.
+    clean.gameStats = nil
     return {{key = request.key, character = clean}}
 end
 local function merge(db, part, sender, now, request)
@@ -227,6 +229,7 @@ local function merge(db, part, sender, now, request)
     if old and old.source == 'self' then return false end
     if not old and not bounded(db.characters, 999) then return false end
     local clean = validate(part.character, part.key, now)
+    if clean then clean.gameStats = nil end
     if not clean or tooLow(clean) or clean.updated < now - 60 * 86400 or old and clean.updated <= (old.updated or 0) then return false end
     local gone = purgedAt(db, part.key)
     if not old and ((gone and clean.updated <= gone) or inactive(clean, now)) then return false end

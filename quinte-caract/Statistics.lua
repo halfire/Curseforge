@@ -83,10 +83,12 @@ local function finish(result, state)
     -- Ne pas rediffuser des centaines de compteurs uniquement pour avancer leur date.
     if result and snapshot and result.state == snapshot.state and Q.Equal(result.categories, snapshot.categories)
         and Q.Equal(result.rows, snapshot.rows) then result = snapshot end
+    if result and snapshot and result ~= snapshot then result.at = math.max(result.at, snapshot.at + 1) end
     if result and (#result.rows > 0 or not snapshot or #snapshot.rows == 0) then snapshot = result end
     if not snapshot then snapshot = {at = Q.Now(), state = state, categories = {}, rows = {}} end
     if Q.Schedule then Q.Schedule() end
     if Q.UI then Q.UI.OnDataChanged() end
+    if Q.PublishStatistics then Q.PublishStatistics() end
     if announce then
         Q.Print((messages[Q.statisticsState] or messages.error) .. ' ' .. #(snapshot.rows or {}) .. ' ligne(s) conservée(s).')
         announce = nil
@@ -100,6 +102,9 @@ local function step()
     elseif coroutine.status(worker) == 'dead' then finish(result) end
 end
 function Q.RequestStatistics(force, report)
+    if report and (not Q.StatisticsOfficer or not Q.StatisticsOfficer()) then
+        Q.Print('Statistiques réservées au maître de guilde et aux officiers.'); return
+    end
     announce = announce or report
     if worker then return end
     if inCombat() then
@@ -125,7 +130,8 @@ function Q.CollectGameStatistics()
     return old and old.gameStats or nil
 end
 function Q.StatisticsLines(c)
-    local s = c.gameStats
+    if not Q.StatisticsOfficer or not Q.StatisticsOfficer() then return {'Statistiques réservées au maître de guilde et aux officiers.'} end
+    local s = Q.StatisticsFor and Q.StatisticsFor(c) or nil
     local lines = {s and (messages[s.state] or messages.error) or 'Statistiques pas encore relevées.'}
     if not s then return lines end
     lines[#lines + 1] = 'Valeurs fournies par le jeu ; date du relevé : ' .. (date and date('%d/%m/%Y %H:%M', s.at) or s.at)

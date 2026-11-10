@@ -85,6 +85,9 @@ local function renderDetails()
     if not entry then d:Hide(); frame.detailsEmpty:Show(); return end
     frame.detailsEmpty:Hide(); d:Show()
     local c = entry
+    local canStats = Q.StatisticsOfficer and Q.StatisticsOfficer()
+    d.statButton:SetShown(canStats and true or false)
+    if not canStats then state.statistics = false end
     d.name:SetText('|c' .. classHex(c.class) .. Q.Safe(c.name) .. '|r' .. (c.source == 'sync' and ' |cff9aa4b8(reçu par la synchro)|r' or ''))
     d.meta:SetText('Niveau ' .. number(c.level) .. ' · ' .. Q.Safe(c.race or '?') .. ' ' .. Q.Safe(className(c.class))
         .. (c.spec and (' · ' .. Q.Safe(c.spec)) or '') .. (c.guildRank and (' · ' .. Q.Safe(c.guildRank)) or '')
@@ -268,7 +271,10 @@ local function create(parent)
     d.train = S.Button(d, 'Entraînement', 104, 22, 'ghost'); d.train:SetPoint('TOPRIGHT', -102, 2)
     d.train:SetScript('OnClick', function() state.training = not state.training; state.statistics = false; state.trainOffset = 0; Q.Run('entraînement', renderDetails) end)
     d.statButton = S.Button(d, 'Statistiques', 100, 22, 'ghost'); d.statButton:SetPoint('TOPRIGHT', -212, 2)
-    d.statButton:SetScript('OnClick', function() state.statistics = not state.statistics; state.training = false; state.trainOffset = 0; Q.Run('statistiques', renderDetails) end)
+    d.statButton:SetScript('OnClick', function()
+        if not Q.StatisticsOfficer() then return end
+        state.statistics = not state.statistics; state.training = false; state.trainOffset = 0; Q.Run('statistiques', renderDetails)
+    end)
     local tv = CreateFrame('Frame', nil, d); tv:SetPoint('TOPLEFT', 0, -44); tv:SetSize(DW, DH - 44)
     tv.lines = {}
     for i = 1, TRAIN_LINES do
