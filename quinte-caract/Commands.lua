@@ -60,6 +60,7 @@ local function trace(value)
     return value == nil and 'nil' or type(value)
 end
 function Q.Debug()
+    Q.Print('Statistiques du jeu : ' .. ((Q.StatisticsMessages or {})[Q.statisticsState] or 'pas encore relevées') .. ' ; /qcaract statistiques pour relire.')
     Q.Run('relevé diagnostic', Q.Capture)
     local keys = {}
     for label in pairs(Q.api) do
@@ -85,6 +86,7 @@ function Q.Command(message)
     if not command then return Q.UI and Quintessence.UI.Open('caract') end
     if command == 'resume' then return Q.Summary() end
     if command == 'debug' then return Q.Debug() end
+    if command == 'statistiques' then return Q.RequestStatistics(true, true) end
     if command == 'sync' then
         if not Q.sync then return Q.Print('Synchro indisponible : voir /qcaract debug.') end
         if value == 'on' then Q.sync:SetEnabled(true)

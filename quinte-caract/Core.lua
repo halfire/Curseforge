@@ -1,6 +1,6 @@
 local addonName, Q = ...
 -- Nom réel du dossier installé (ex. « Quinte-Caract » cloné depuis GitHub) : ADDON_LOADED le renvoie tel quel.
-Q.name, Q.version = addonName or 'quinte-caract', '0.12.0'
+Q.name, Q.version = addonName or 'quinte-caract', '0.13.0'
 Q.api, Q.errors, Q.pendingItems = {}, {}, {}
 Q.scans, Q.changes, Q.slow = 0, 0, {}
 
@@ -77,7 +77,7 @@ end
 -- une nouvelle fiche à toute la guilde (delta GUILD, puis une demande et une réponse par membre). Un changement de ces
 -- seuls champs est gardé localement et diffusé au plus une fois par VOLATILE_DELAY ; le reste (stuff, talents, niveau,
 -- métiers, accès…) part tout de suite. À la déconnexion, la date est mise à jour pour que le site importe la fiche.
-local VOLATILE, VOLATILE_DELAY = {stats = true, pvp = true}, 900
+local VOLATILE, VOLATILE_DELAY = {stats = true, pvp = true, gameStats = true}, 900
 local function sameExceptVolatile(a, b)
     for k, v in pairs(a) do if not VOLATILE[k] and not Q.Equal(v, b[k]) then return false end end
     for k in pairs(b) do if not VOLATILE[k] and a[k] == nil then return false end end

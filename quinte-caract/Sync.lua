@@ -61,6 +61,26 @@ local function validate(value, recordKey, now)
             or not field(clean.pvp, value.pvp, 'rankName', 'string')
             or not field(clean.pvp, value.pvp, 'honorableKills', 'number', 0, 1e10, true) then return nil end
     end
+    if value.gameStats ~= nil then
+        local s = value.gameStats
+        local states = {ok = true, partial = true, empty = true, absent = true, restricted = true, error = true}
+        if not bounded(s, 4) or not Q.String(s.state, 16) or not states[s.state]
+            or not Q.Number(s.at, 0, now + 300, true) or not bounded(s.categories, 128) or not array(s.rows, 512) then return nil end
+        local out, seen, bytes = {state = s.state, at = s.at, categories = {}, rows = {}}, {}, 0
+        for id, label in pairs(s.categories) do
+            if not Q.Number(id, 1, 1e9, true) or not Q.String(label, 100) then return nil end
+            bytes = bytes + #label; out.categories[id] = label
+        end
+        for _, row in ipairs(s.rows) do
+            if not array(row, 4) or #row ~= 4 or not Q.Number(row[1], 1, 1e9, true)
+                or not Q.Number(row[2], 1, 1e9, true) or not out.categories[row[2]] or seen[row[1]]
+                or not Q.String(row[3], 100) or not Q.String(row[4], 100) then return nil end
+            bytes = bytes + #row[3] + #row[4]; seen[row[1]] = true
+            out.rows[#out.rows + 1] = {row[1], row[2], row[3], row[4]}
+        end
+        if bytes > 40000 or (s.state ~= 'ok' and s.state ~= 'partial' and #out.rows > 0) then return nil end
+        clean.gameStats = out
+    end
     -- Accès de raid et clés (Attunements.lua) : n'étaient pas recopiés, donc jamais vus chez les autres ni sur le site
     -- pour une fiche reçue. Clés inconnues acceptées (version plus récente), valeurs booléennes seulement.
     if value.attunements ~= nil then

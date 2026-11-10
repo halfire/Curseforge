@@ -109,13 +109,14 @@ local function renderDetails()
     for _, row in ipairs(c.equipment or {}) do gear[row.slot] = row end
     -- Vue Entraînement : plan du maître de classe (connu vérifié pour son propre personnage seulement)
     d.train:SetActive(state.training and true or false)
-    if state.training then
+    d.statButton:SetActive(state.statistics and true or false)
+    if state.training or state.statistics then
         local mine = state.selected == Q.Key()
         local plan = Q.TrainingPlan(c.class, c.level, mine)
-        local all = Q.TrainingLines(plan, 200, mine)
+        local all = state.statistics and Q.StatisticsLines(c) or Q.TrainingLines(plan, 200, mine)
         state.trainOffset = math.max(0, math.min(state.trainOffset or 0, math.max(0, #all - #d.training.lines)))
         for i, fs in ipairs(d.training.lines) do fs:SetText(all[state.trainOffset + i] or '') end
-        d.training.note:SetText(mine and '' or 'Fiche d\'un membre : sorts des prochains niveaux, d\'après sa classe et son niveau.')
+        d.training.note:SetText(state.statistics and 'Molette : défiler. Valeurs dans la langue du client du joueur.' or (mine and '' or 'Fiche d\'un membre : sorts des prochains niveaux, d\'après sa classe et son niveau.'))
         d.list:Hide(); d.sheet:Hide(); d.training:Show()
         d.toggle:SetLabel(view() == 'sheet' and 'Vue liste' or 'Vue fiche')
         return
@@ -256,15 +257,18 @@ local function create(parent)
     local d = CreateFrame('Frame', nil, frame)
     d:SetPoint('TOPLEFT', DETAIL_X + 16, -14); d:SetSize(DW, DH)
     d.name = text(d, 'GameFontNormalLarge'); d.name:SetPoint('TOPLEFT', 0, 0)
+    d.name:SetPoint('RIGHT', -320, 0); d.name:SetWordWrap(false)
     d.meta = text(d, 'GameFontDisableSmall'); d.meta:SetPoint('TOPLEFT', 0, -24); d.meta:SetPoint('RIGHT', 0, 0)
     d.toggle = S.Button(d, 'Vue liste', 96, 22, 'ghost'); d.toggle:SetPoint('TOPRIGHT', 0, 2)
     d.toggle:SetScript('OnClick', function()
-        if state.training then state.training = false
+        if state.training or state.statistics then state.training = false; state.statistics = false
         else QuinteCaractDB.view = view() == 'sheet' and 'list' or 'sheet' end
         Q.Run('vue', renderDetails)
     end)
     d.train = S.Button(d, 'Entraînement', 104, 22, 'ghost'); d.train:SetPoint('TOPRIGHT', -102, 2)
-    d.train:SetScript('OnClick', function() state.training = not state.training; state.trainOffset = 0; Q.Run('entraînement', renderDetails) end)
+    d.train:SetScript('OnClick', function() state.training = not state.training; state.statistics = false; state.trainOffset = 0; Q.Run('entraînement', renderDetails) end)
+    d.statButton = S.Button(d, 'Statistiques', 100, 22, 'ghost'); d.statButton:SetPoint('TOPRIGHT', -212, 2)
+    d.statButton:SetScript('OnClick', function() state.statistics = not state.statistics; state.training = false; state.trainOffset = 0; Q.Run('statistiques', renderDetails) end)
     local tv = CreateFrame('Frame', nil, d); tv:SetPoint('TOPLEFT', 0, -44); tv:SetSize(DW, DH - 44)
     tv.lines = {}
     for i = 1, TRAIN_LINES do
