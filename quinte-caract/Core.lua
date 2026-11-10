@@ -1,6 +1,6 @@
 local addonName, Q = ...
 -- Nom réel du dossier installé (ex. « Quinte-Caract » cloné depuis GitHub) : ADDON_LOADED le renvoie tel quel.
-Q.name, Q.version = addonName or 'quinte-caract', '0.14.0'
+Q.name, Q.version = addonName or 'quinte-caract', '0.15.0'
 Q.api, Q.errors, Q.pendingItems = {}, {}, {}
 Q.scans, Q.changes, Q.slow = 0, 0, {}
 
@@ -87,6 +87,7 @@ function Q.Capture(final)
     if not Q.ready or Q.disabled then return end
     local record = Q.CollectCharacter()
     if not record then return end
+    if Q.IdentityMetadata then Q.IdentityMetadata(record) end
     local old = QuinteCaractDB.characters[Q.Key()]
     local previous = {}
     if old and old.source == 'self' then
@@ -150,6 +151,7 @@ function Q.Init()
     Quintessence.MigrateSelf(QuinteCaractDB.characters, function(c) c.name = Quintessence.PlayerName() end)
     Q.ready = true
     Q.Run('synchro', Q.SyncInit)
+    if Q.IdentityInit then Q.Run('principaux et rerolls', Q.IdentityInit) end
     if Q.InitStatisticsPrivacy then Q.Run('confidentialité des statistiques', Q.InitStatisticsPrivacy) end
 end
 frame:SetScript('OnEvent', function(_, event, arg)

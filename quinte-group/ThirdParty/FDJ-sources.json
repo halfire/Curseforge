@@ -1,0 +1,15 @@
+{
+  "source": "ForeverDungeonJournal 2.0, dossier fourni par le GM le 10/11/2026",
+  "files": {
+    "Data/Dungeons.lua": "c82ffae42e3b7aad06e6323fd6c6c022391e39e128d559661f4dca04a9bb6260",
+    "Data/SharedLoot.lua": "bbd7652fc20df938be8f718eb7375fb3559c853a949ae040dc5d4f969fefc7ff",
+    "Data/Bosses.lua": "b2513507fa77923345722116536427ee49c7fee577b49d548493c78a43fd1af4",
+    "Data/QuestMaps.lua": "7b973f1d21f4c99c9babd454f964a901fee6ca90c86671d5e055213f36d552f5",
+    "Data/QuestChains.lua": "8c1eaabd2961955dbd80db35e1e890d89ff8f6fdb46f6ca8dc4ac2db8befbdc4",
+    "Data/QuestRewards.lua": "c0bb274ff95768a49347c8ce0dcf0cf8345fd7da73264811dbe5dcbefb9a7c49",
+    "Data/QuestShareability.lua": "3b1e65b5d0ac89cd020e657044c48e1d63a2db94ed4156b04d3e6dcf6139497b",
+    "Data/QuestUpdates.lua": "d718f134e95d5eea0755ca2d76224d0bcc2a12c343173bb0502c3ece44e92ea4",
+    "Core/Journal.lua": "a708b994a608ee88cd50ec86035ac71462892c8f3a245818245b39a9d333fc7c",
+    "Localization/Content_frFR.lua": "7f6ea49fd3346d645ca5652830fa764196bc173cd03c803b57dda4c6f799fc3e"
+  }
+}

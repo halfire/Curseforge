@@ -239,11 +239,24 @@ function Q.DungeonQuests(code)
         local key = sameTitle(title)
         local logId = (mine[id] or Q.IsOnQuest(id)) and id or (key and mineTitles[key]) or nil
         local info = Q.DUNGEON_QUEST_INFO and Q.DUNGEON_QUEST_INFO[id]
+        local reference = Q.REFERENCE_QUEST_INFO and Q.REFERENCE_QUEST_INFO[id]
+        if reference then
+            info = { class = reference.class, start = reference.start, chain = {} }
+            for _, step in ipairs(reference.prereqs or {}) do
+                info.chain[#info.chain + 1] = { step.id, step.title }
+                if not done(step.id) then info.prev, info.prevTitle = step.id, step.title end
+            end
+            info.chain[#info.chain + 1] = { id, reference.title }
+            -- Un prénom/titre identique dans deux étapes n'identifie pas la quête du donjon.
+            for _, step in ipairs(reference.prereqs or {}) do
+                if step.title == q[3] and not mine[id] and not Q.IsOnQuest(id) then logId = nil end
+            end
+        end
         -- Niveau requis recoupé (DungeonQuests.lua), puis Forever (lieux) ; la table d'informations ne sert plus que pour
         -- la classe et la suite (ou la quête précédente notée dans DungeonQuests.lua)
         local place = Q.DUNGEON_QUEST_PLACES and Q.DUNGEON_QUEST_PLACES[id]
         local minLevel = tonumber(q[4]) or (place and place.level) or (info and info.level)
-        local prev = (info and info.prev) or tonumber(q[5])
+        local prev = reference and info.prev or (info and info.prev) or tonumber(q[5])
         local classMask = (info and info.class) or tonumber(q[6])
         local holders, groupHas, groupMissing = {}, {}, {}
         for _, l in ipairs(logs) do

@@ -23,6 +23,7 @@ function N.RefreshSettings()
         button:SetActive(prefs[key])
     end
     panel.state:SetText(prefs.enabled and 'Guidage actif · affichage personnalisable' or 'Guidage désactivé · les marqueurs restent disponibles')
+    if Core.Characters then Core.Characters.RefreshSettings() end
 end
 local function create(parent)
     panel = CreateFrame('Frame', nil, parent)
@@ -47,6 +48,7 @@ local function create(parent)
     end
     local note = S.Text(panel, 11, S.colors.muted); note:SetPoint('TOPLEFT', 0, -438); note:SetWidth(1068); note:SetWordWrap(true)
     note:SetText('Chemin utilise les passages du terrain. Bateaux, vols et portails peuvent faire partie du trajet même si leurs icônes sont masquées. Moteur Shortest Path Forever, de cjber, intégré à Quintessence (GPL).')
+    if Core.Characters then Core.Characters.AddSettings(panel) end
     N.RefreshSettings()
     return panel
 end

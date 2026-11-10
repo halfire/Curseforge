@@ -49,3 +49,10 @@ Les images restent la propriété de Blizzard Entertainment. Le code préexistan
 notice dans ThirdParty/Quintessence-MIT.txt ; la distribution intégrant les données CMaNGOS est sous GPL-3.0.
 Le catalogue de quêtes/conditions est régénéré par scripts/make_dungeon_map_quests.py depuis les faits
 Forever de quinte-group. Le module group n'est pas nécessaire à l'exécution des plans.
+
+## Référence fournie par le GM — 10/11/2026
+
+ForeverDungeonJournal 2.0, auteur Exehn. À la demande expresse du GM : données de plans, boss, quêtes/prérequis et
+ressources fournies, normalisées dans DungeonReference.lua ; images nécessaires dans Media/FDJ. Aucune interface FDJ
+chargée au runtime. Provenance, empreintes des fichiers/ressources et limites : docs/REFERENCE_DONJONS.md et
+scripts/data/fdj_sources.json. Les fichiers fournis ne déclarent pas de licence générale ; pas de réattribution de leurs droits.

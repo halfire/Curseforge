@@ -16,7 +16,9 @@ local ENGLISH = {
     STOCKS = 'The Stockade', BFD = 'Blackfathom Deeps', GNOMER = 'Gnomeregan', RFK = 'Razorfen Kraul',
     RFD = 'Razorfen Downs', ULDA = 'Uldaman', ZF = "Zul'Farrak", MARA = 'Maraudon',
     ST = "The Temple of Atal'Hakkar", BRD = 'Blackrock Depths', LBRS = 'Lower Blackrock Spire',
-    STRAT = 'Stratholme', SCHOLO = 'Scholomance',
+    STRAT = 'Stratholme', SCHOLO = 'Scholomance', THANES = 'Hall of Thanes', LORDAERON = 'Ruins of Lordaeron',
+    EXCAV = 'Excavation Site: Wetlands', DALARAN = 'City of Dalaran', DROWNED = 'The Drowned City',
+    KROLDOK = "Krol'dok Stronghold", ALCAZ = 'Alcaz Prison', BLACKMAW = 'Blackmaw Hold', SHAPER = "Shaper's Terrace", UBRS = 'Upper Blackrock Spire',
 }
 local FAMILIES = {
     { names = { 'Scarlet Monastery', 'Monastère écarlate' }, codes = { 'SM_GY', 'SM_LIB', 'SM_ARM', 'SM_CATH' },
@@ -75,6 +77,7 @@ function O.Instance()
 end
 local function clear()
     for _, texture in ipairs(view.tiles) do texture:Hide() end
+    for _, texture in ipairs(view.mapPatches or {}) do texture:Hide() end
     for _, pin in ipairs(view.pins) do pin:Hide() end
     for _, pin in ipairs(view.questPins or {}) do pin:Hide() end
 end

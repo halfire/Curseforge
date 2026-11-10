@@ -656,6 +656,7 @@ local function createDungeonsPanel(parent)
         local membersList = S.Text(r, 11, S.colors.muted, 'RIGHT')
         membersList:SetPoint('RIGHT', -10, 0); membersList:SetWidth(IW - 360)
 
+        local chain = S.Button(r, '+', 22, 20, 'ghost'); chain:SetPoint('LEFT', 4, 0); chain:Hide()
         local action = S.Button(r, 'Partager', 64, 20, 'ghost')
         action:SetPoint('RIGHT', -6, 0)
         action:Hide()
@@ -676,6 +677,7 @@ local function createDungeonsPanel(parent)
 
         lootRows[i] = {
             frame = r,
+            chain = chain,
             icon = icon,
             itemName = itemName,
             membersList = membersList,
@@ -829,7 +831,8 @@ function UI.RefreshDungeons()
 
     local quests = Q.DungeonQuests and Q.DungeonQuests(selectedNeeds.code) or {}
     local questCount = #quests
-    if Q.ChainOrder then quests = Q.ChainOrder(quests) end
+    dungeonState.expandedQuests = dungeonState.expandedQuests or {}
+    if Q.QuestDisplayRows then quests = Q.QuestDisplayRows(quests, dungeonState.expandedQuests) end
     p.questToggle:SetLabel(dungeonState.showQuests and 'Butins' or ('Quêtes (' .. questCount .. ')'))
     p.questToggle:SetActive(dungeonState.showQuests and true or false)
     if dungeonState.showQuests then
@@ -855,17 +858,25 @@ function UI.RefreshDungeons()
                 r.frame:Show(); r.frame.itemID = nil; r.frame.quest = q
                 r.icon:SetTexture('Interface\\Icons\\INV_Misc_Note_01')
                 -- Numérotation stable : aucune perte de largeur dans les longues chaînes.
-                local indent = q.chainIndex and (q.chainIndex .. '/' .. q.chainLength .. '  ') or ''
+                local indent = ''
+                local progress = q.hasPrerequisites and ('  ' .. q.journeyDone .. '/' .. q.journeyTotal) or ''
+                r.chain:SetShown(q.hasPrerequisites and true or false)
+                r.icon:SetShown(not q.hasPrerequisites)
+                r.chain:SetLabel(dungeonState.expandedQuests[q.id] and '-' or '+')
+                r.chain:SetScript('OnClick', function() dungeonState.expandedQuests[q.id] = not dungeonState.expandedQuests[q.id]; UI.RefreshDungeons() end)
                 if q.virtual then
                     -- Étape de la chaîne faite hors de ce donjon : ligne d'information, sans action
                     r.itemName:SetText(string.format('%s|c%s%s (%s)|r', indent, S.hex.muted, Q.Safe(q.title or ('quête ' .. q.id)), q.tag))
                     r.itemName:SetWidth(IW - 42)
                     r.membersList:SetWidth(IW - 42)
-                    r.place:Hide(); r.route:Hide(); r.action:Hide()
+                    r.action:Hide()
+                    r.place:SetShown(Q.HasDungeonQuestPlace(q.id)); r.route:SetShown(Q.HasDungeonQuestPlace(q.id))
+                    r.place:SetScript('OnClick', function() Q.ShowDungeonQuestPlace(q.id, q.title, selectedNeeds.code) end)
+                    r.route:SetScript('OnClick', function() Q.ShowDungeonQuestPlace(q.id, q.title, selectedNeeds.code, true) end)
                     r.membersList:SetText('|c' .. (q.state == 'done' and S.hex.mint or S.hex.muted) .. q.stateText .. (q.narrative and ' · parcours Wowhead, étapes possiblement facultatives' or '') .. '|r')
                 else
                 r.itemName:SetText(string.format('%s|c%s[%d]|r %s%s', indent, S.hex.gold, q.level, Q.Safe(q.title),
-                    q.tag and (' |c' .. S.hex.muted .. '(' .. q.tag .. ')|r') or ''))
+                    (q.tag and (' |c' .. S.hex.muted .. '(' .. q.tag .. ')|r') or '') .. progress))
                 r.itemName:SetWidth(IW - 216)
                 r.membersList:SetWidth(IW - 216)
                 r.place:SetShown(q.state ~= 'done' and Q.HasDungeonQuestPlace(q.id))
@@ -926,6 +937,7 @@ function UI.RefreshDungeons()
             r.membersList:ClearAllPoints(); r.membersList:SetJustifyH('RIGHT')
             r.frame.itemID = lt.id
             r.frame.quest = nil
+            r.chain:Hide(); r.icon:Show()
             r.action:Hide()
             r.place:Hide()
             r.route:Hide()

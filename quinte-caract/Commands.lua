@@ -38,7 +38,9 @@ end
 function Q.Search(query)
     local matches, needle = {}, fold(query)
     for key, c in pairs(QuinteCaractDB.characters) do
-        if ((c.level or 0) >= Q.MIN_LEVEL or c.source == 'self') and fold(key):find(needle, 1, true) then matches[#matches + 1] = {key = key, data = c} end
+        local main = Q.MainOf and Q.MainOf(key, c) or key
+        if ((c.level or 0) >= Q.MIN_LEVEL or c.source == 'self' and Quintessence.SameName(key, main))
+            and fold(key):find(needle, 1, true) then matches[#matches + 1] = {key = key, data = c} end
     end
     table.sort(matches, function(a, b) return a.key < b.key end)
     if #matches == 0 then return Q.Print('Aucun personnage correspondant à « ' .. Q.Safe(query) .. ' ».') end
@@ -60,6 +62,10 @@ local function trace(value)
     return value == nil and 'nil' or type(value)
 end
 function Q.Debug()
+    if Quintessence.Characters then
+        Q.Print('Principal : ' .. Q.Safe(Quintessence.Characters.Main() and Quintessence.DisplayName(Quintessence.Characters.Main()) or 'en attente')
+            .. ' ; ' .. #Quintessence.Characters.Own() .. ' personnage(s) propres connus.')
+    end
     Q.Print('Statistiques du jeu : ' .. ((Q.StatisticsMessages or {})[Q.statisticsState] or 'pas encore relevées') .. ' ; /qcaract statistiques pour relire.')
     Q.Run('relevé diagnostic', Q.Capture)
     local keys = {}

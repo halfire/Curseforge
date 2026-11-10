@@ -30,7 +30,7 @@ local function field(target, source, name, kind, lo, hi, integer)
     target[name] = clean; return true
 end
 local function validate(value, recordKey, now)
-    if not bounded(value, 25) or not Q.String(recordKey) then return nil end
+    if not bounded(value, 28) or not Q.String(recordKey) then return nil end
     local clean = {}
     for _, name in ipairs(stringFields) do if not field(clean, value, name, 'string') then return nil end end
     for name, limits in pairs(numberFields) do
@@ -41,6 +41,12 @@ local function validate(value, recordKey, now)
     if Lib.CanonicalKey(clean.name .. '-' .. clean.realm:gsub('%s', '')) ~= Lib.CanonicalKey(recordKey) then return nil end
     if clean.class and not clean.class:match('^[A-Z_]+$') then return nil end
     if clean.faction and clean.faction ~= 'Alliance' and clean.faction ~= 'Horde' and clean.faction ~= 'Neutral' then return nil end
+    if value.main ~= nil or value.family ~= nil or value.mainUpdated ~= nil then
+        if not Q.String(value.main) or not Q.String(value.family, 64)
+            or not value.family:match('^[%w:]+$') or not Q.Number(value.mainUpdated, 0, now + 300, true)
+            or not value.main:match('^.+%-.+$') or value.main:find('|', 1, true) then return nil end
+        clean.main, clean.family, clean.mainUpdated = value.main, value.family, value.mainUpdated
+    end
     if value.stats ~= nil then
         if not bounded(value.stats, 11) then return nil end
         local stats = {}

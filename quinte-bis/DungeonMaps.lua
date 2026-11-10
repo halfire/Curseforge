@@ -83,11 +83,21 @@ local function artFor(mapID)
     if type(textures) ~= 'table' or #textures == 0 or #textures > 64 then return nil end
     return { width = layer.layerWidth, height = layer.layerHeight, tw = layer.tileWidth, th = layer.tileHeight, textures = textures }
 end
---- Résolution à chaque ouverture : les API du client restent prioritaires sur les données Classic de secours.
+local assetsByName
+local function mapAsset(name)
+    if not name then return nil end
+    if not assetsByName then
+        assetsByName = {}
+        for key, value in pairs(Q.DUNGEON_MAP_ASSETS or {}) do assetsByName[key:lower()] = value end
+    end
+    return assetsByName[name:lower()]
+end
+--- Les plans de la référence demandée gardent leur image et leurs positions ; API natives sinon, puis Classic.
 function M.Data(code)
     local fallback = Q.DUNGEON_MAPS[code]
     local data = { code = code, floors = {}, bosses = {} }
-    local id = nativeMap(code)
+    local reference = Q.REFERENCE_MAPS and Q.REFERENCE_MAPS[code]
+    local id = not reference and nativeMap(code)
     if id then
         for _, floor in ipairs(nativeFloors(id)) do
             local art = artFor(floor.mapID)
@@ -96,6 +106,24 @@ function M.Data(code)
                 data.floors[index] = { name = floor.name or ('Niveau ' .. index), mapID = floor.mapID, art = art }
                 for _, boss in ipairs(nativeBosses(floor.mapID, index)) do data.bosses[#data.bosses + 1] = boss end
             end
+        end
+    end
+    if #data.floors == 0 and reference then
+        data.reference = true
+        for i, floor in ipairs(reference.floors) do
+            local artName, page
+            if floor.tiles then
+                artName, page = floor.tiles:match('WorldMap\\([^\\]+)\\.-(%d+)_$')
+            end
+            data.floors[i] = { name = 'Niveau ' .. i, mapID = floor.uiMapID,
+                artName = artName, page = tonumber(page), patches = floor.patches,
+                image = floor.image or (artName and mapAsset(artName .. '_' .. page)),
+                texBottom = floor.texBottom, textureWidth = floor.image and 1024 or nil,
+                height = floor.image and (floor.texBottom or 1) * 1024 or nil }
+        end
+        for _, boss in ipairs(reference.bosses) do
+            local copy = {}; for k, v in pairs(boss) do copy[k] = v end
+            data.bosses[#data.bosses + 1] = copy
         end
     end
     if #data.floors == 0 and fallback then
@@ -123,11 +151,12 @@ function M.Data(code)
             placed[plain(boss.name)] = nil
         end
         -- Rencontres natives localisées : conserver leurs positions même si le catalogue utilise le nom anglais.
-        for _, boss in pairs(placed) do if boss.native then merged[#merged + 1] = boss end end
+        for _, boss in ipairs(data.bosses) do if placed[plain(boss.name)] and (boss.native or data.reference) then merged[#merged + 1] = boss end end
         data.bosses = merged
     end
     for _, boss in ipairs(data.bosses) do
-        local visual = Q.DUNGEON_BOSS_PORTRAITS and Q.DUNGEON_BOSS_PORTRAITS[boss.name]
+        local visual = (Q.REFERENCE_PORTRAITS and Q.REFERENCE_PORTRAITS[boss.name]) or (Q.DUNGEON_BOSS_PORTRAITS and Q.DUNGEON_BOSS_PORTRAITS[boss.name])
+        if visual then boss.image, boss.icon = visual.image, visual.icon or boss.icon end
         if visual then boss.display = boss.display or visual.display; boss.npc = visual.npc end
     end
     return data
@@ -136,13 +165,25 @@ local function tooltip(pin)
     if not (GameTooltip and pin.boss) then return end
     GameTooltip:SetOwner(pin, 'ANCHOR_RIGHT')
     GameTooltip:SetText(Q.Safe(pin.boss.name))
-    GameTooltip:AddLine('Clic : voir le butin de ce boss.', S.colors.muted[1], S.colors.muted[2], S.colors.muted[3], true)
+    GameTooltip:AddLine(pin.boss.quest and 'Clic : voir la quête de cet objectif.' or 'Clic : voir le butin de ce boss.', S.colors.muted[1], S.colors.muted[2], S.colors.muted[3], true)
     if pin.classic then GameTooltip:AddLine('Position Classic indicative sur Forever.', S.colors.gold[1], S.colors.gold[2], S.colors.gold[3], true) end
     GameTooltip:Show()
 end
+local function paintPatches(view, floor, w, h)
+    view.mapPatches = view.mapPatches or {}
+    for _, texture in ipairs(view.mapPatches) do texture:Hide() end
+    for i, patch in ipairs(floor.patches or {}) do
+        local texture = view.mapPatches[i]
+        if not texture then texture = view.canvas:CreateTexture(nil, 'ARTWORK', nil, 2); view.mapPatches[i] = texture end
+        texture:ClearAllPoints(); texture:SetPoint('TOPLEFT', view.canvas, 'TOPLEFT', patch.x0 * w, -patch.y0 * h)
+        texture:SetSize((patch.x1 - patch.x0) * w, (patch.y1 - patch.y0) * h)
+        texture:SetTexture('Interface\\AddOns\\' .. addonName .. '\\' .. patch.image)
+        texture:SetAlpha(patch.alpha or 1); texture:Show()
+    end
+end
 local function paintArt(view, floor, mapW, mapH)
     -- Le canevas Classic utile mesure 1002 × 668 : les tuiles BLP incluent du noir de remplissage.
-    local art = floor.art or { width = 1002, height = 668, tw = 256, th = 256 }
+    local art = floor.art or { width = floor.textureWidth or 1002, height = floor.height or 668, tw = 256, th = 256 }
     local scale = math.min(mapW / art.width, mapH / art.height)
     local w, h = view.fill and mapW or art.width * scale, view.fill and mapH or art.height * scale
     local sx, sy = w / art.width, h / art.height
@@ -153,9 +194,9 @@ local function paintArt(view, floor, mapW, mapH)
         local texture = view.tiles[1]
         if not texture then texture = view.canvas:CreateTexture(nil, 'ARTWORK'); view.tiles[1] = texture end
         texture:SetPoint('TOPLEFT', view.canvas, 'TOPLEFT', 0, 0)
-        texture:SetSize(w, h); texture:SetTexCoord(0, 1002 / 1024, 0, 668 / 1024)
+        texture:SetSize(w, h); texture:SetTexCoord(0, floor.textureWidth and 1 or 1002 / 1024, 0, floor.texBottom or 668 / 1024)
         local loaded = texture:SetTexture('Interface\\AddOns\\' .. addonName .. '\\' .. floor.image)
-        if loaded ~= false then texture:Show(); return true, w, h end
+        if loaded ~= false then texture:Show(); paintPatches(view, floor, w, h); return true, w, h end
     end
     local columns, rows = math.ceil(art.width / art.tw), math.ceil(art.height / art.th)
     local loaded = false
@@ -174,6 +215,7 @@ local function paintArt(view, floor, mapW, mapH)
         if index == 1 then loaded = ok ~= false and file ~= nil end
         if file then texture:Show() end
     end
+    paintPatches(view, floor, w, h)
     return loaded, w, h
 end
 local function drawPins(view, data, level, w, h, onPick)
@@ -188,16 +230,27 @@ local function drawPins(view, data, level, w, h, onPick)
                 pin.icon = pin:CreateTexture(nil, 'OVERLAY'); pin.icon:SetAllPoints()
                 pin.icon:SetTexture('Interface\\TargetingFrame\\UI-RaidTargetingIcon_8')
                 pin.number = pin:CreateFontString(nil, 'OVERLAY', 'GameFontNormalSmall'); pin.number:SetJustifyH('CENTER'); pin.number:SetPoint('TOP', pin, 'BOTTOM', 0, 1)
-                pin:SetScript('OnClick', function(self) if self.onPick then self.onPick(self.boss) end end)
+                pin:SetScript('OnClick', function(self)
+                    if self.boss.quest and M.ToggleQuestList then
+                        local owner = self.mapView
+                        if not owner.questList or not owner.questList:IsShown() then M.ToggleQuestList(owner) end
+                        owner.selectedQuest = self.boss.quest
+                        for index, quest in ipairs(owner.questRecords or {}) do
+                            if quest.id == self.boss.quest then owner.questList.offset = index - 1; break end
+                        end
+                        M.RefreshQuestList(owner)
+                    elseif self.onPick then self.onPick(self.boss) end
+                end)
                 pin:SetScript('OnEnter', tooltip)
                 pin:SetScript('OnLeave', function() if GameTooltip then GameTooltip:Hide() end end)
                 view.pins[n] = pin
             end
-            pin.boss, pin.classic, pin.onPick = boss, data.classic, onPick
+            pin.boss, pin.classic, pin.onPick, pin.mapView = boss, data.classic, onPick, view
             pin:ClearAllPoints(); pin:SetPoint('CENTER', view.canvas, 'TOPLEFT', boss.x * w, -boss.y * h)
             -- Les portraits sont rendus par le client, sans téléchargement en jeu.
             pin.icon:SetTexture('Interface\\TargetingFrame\\UI-RaidTargetingIcon_8')
-            if boss.icon then pin.icon:SetTexture(boss.icon)
+            if boss.image then pin.icon:SetTexture('Interface\\AddOns\\' .. addonName .. '\\' .. boss.image)
+            elseif boss.icon then pin.icon:SetTexture(boss.icon)
             elseif number(boss.display) and type(SetPortraitTextureFromCreatureDisplayID) == 'function' then
                 pcall(SetPortraitTextureFromCreatureDisplayID, pin.icon, boss.display)
             end
@@ -227,7 +280,7 @@ function M.NativeButton(parent, label, width, height)
     return button
 end
 function M.Clear(view)
-    for _, field in ipairs({ 'tiles', 'pins', 'questPins' }) do
+    for _, field in ipairs({ 'tiles', 'pins', 'questPins', 'mapPatches' }) do
         for _, object in ipairs(view[field] or {}) do object:Hide() end
     end
 end

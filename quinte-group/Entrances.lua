@@ -172,7 +172,7 @@ local function placeText(p, questId)
     local who = Q.Safe(p.start)
     local text
     if p.at == 'inside' then text = who .. (p.item and ' (objet trouvé)' or '') .. ', dans le donjon'
-    elseif p.x then text = string.format('%s, %s (%s, %s)', who, ZONE_FR[p.zone] or p.zone or '?', p.x, p.y)
+    elseif p.x then text = string.format('%s, %s (%.1f, %.1f)', who, ZONE_FR[p.zone] or p.zone or '?', p.x, p.y)
     else text = who end
     local info = Q.DUNGEON_QUEST_INFO and Q.DUNGEON_QUEST_INFO[questId]
     local note = (info and info.note) or p.note

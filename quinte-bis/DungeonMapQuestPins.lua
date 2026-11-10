@@ -32,6 +32,12 @@ function M.QuestRecords(code)
     for _, raw in ipairs(Q.DUNGEON_MAP_QUESTS[code] or {}) do
         local id, meta = raw[1], details[raw[1]] or {}
         local info = Q.DUNGEON_MAP_QUEST_INFO and Q.DUNGEON_MAP_QUEST_INFO[id] or {}
+        local reference = Q.REFERENCE_QUEST_INFO and Q.REFERENCE_QUEST_INFO[id]
+        local journey = Q.QuestJourney(id)
+        if reference then
+            info = { class = reference.class }
+            for _, step in ipairs(journey) do if not step.here and step.state ~= 'done' then info.prev = step.id; break end end
+        end
         local done = C_QuestLog and read(C_QuestLog.IsQuestFlaggedCompleted, id)
         local title = C_QuestLog and read(C_QuestLog.GetTitleForQuestID, id)
         local active = C_QuestLog and read(C_QuestLog.IsOnQuest, id)
@@ -44,7 +50,8 @@ function M.QuestRecords(code)
         end
         rows[#rows + 1] = { id = id, title = type(title) == 'string' and title ~= '' and title or raw[3],
             state = status, status = complete and 'À rendre' or STATE[status],
-            start = meta.start, finish = meta.finish, objective = meta.objective, pins = meta.pins or {} }
+            start = meta.start or (reference and reference.start), finish = meta.finish, objective = meta.objective,
+            pins = (Q.REFERENCE_QUEST_PINS[code] and Q.REFERENCE_QUEST_PINS[code][id]) or meta.pins or {} }
     end
     cache[code] = { version = version, rows = rows }
     return rows
@@ -77,8 +84,11 @@ local function positions(record, data, level)
     local out, seen = {}, {}
     for _, point in ipairs(record.pins) do
         local found
+        if point.reference and data.reference and point.floor == level then
+            found = { x = point.x, y = point.y, kind = point.kind, target = point.target }
+        end
         for _, boss in ipairs(data.bosses) do
-            if plain(boss.name) == plain(point.target) and boss.floor == level and number(boss.x) and number(boss.y) then
+            if not found and plain(boss.name) == plain(point.target) and boss.floor == level and number(boss.x) and number(boss.y) then
                 found = { x = boss.x, y = boss.y, kind = point.kind, target = point.target }; break
             end
         end
@@ -156,7 +166,8 @@ end
 function M.RefreshQuestList(view)
     local list = view.questList
     if not list or not list:IsShown() then return end
-    local records = view.questRecords or {}
+    view.expandedQuests = view.expandedQuests or {}
+    local records = Q.QuestDisplayRows(view.questRecords or {}, view.expandedQuests)
     local offset = math.max(0, math.min(list.offset or 0, math.max(0, #records - #list.rows)))
     list.offset = offset
     for i, row in ipairs(list.rows) do
@@ -164,7 +175,9 @@ function M.RefreshQuestList(view)
         row.quest = quest; row:SetShown(quest ~= nil)
         if quest then
             local color = view.nativeStyle and (quest.state == 'done' and 'ff40d060' or quest.state == 'log' and 'ffffd100' or 'ffffffff') or quest.state == 'done' and S.hex.mint or quest.state == 'log' and S.hex.gold or S.hex.text
-            row.label:SetText('|c' .. color .. Q.Safe(quest.title) .. '|r')
+            row.label:SetText('|c' .. color .. Q.Safe(quest.title) .. '|r' .. (quest.hasPrerequisites and ('  ' .. quest.journeyDone .. '/' .. quest.journeyTotal) or ''))
+            row.chain:SetShown(quest.hasPrerequisites and true or false)
+            row.chain:SetLabel(view.expandedQuests[quest.id] and '-' or '+')
             row.state:SetText(quest.status .. (#quest.pins > 0 and ' · repère connu' or ' · position non renseignée'))
         end
     end
@@ -186,13 +199,20 @@ function M.ToggleQuestList(view)
         list.rows = {}
         for i = 1, 8 do
             local row = view.nativeStyle and CreateFrame('Button', nil, list) or S.Row(list, 346, 34); row:SetSize(346, 34); row:SetPoint('TOPLEFT', 7, -7 - (i - 1) * 36)
-            row.label = (view.nativeStyle and M.NativeText or S.Text)(row, 11); row.label:SetPoint('TOPLEFT', 5, -4); row.label:SetWidth(335)
+            row.label = (view.nativeStyle and M.NativeText or S.Text)(row, 11); row.label:SetPoint('TOPLEFT', 28, -4); row.label:SetWidth(312)
             row.state = (view.nativeStyle and M.NativeText or S.Text)(row, 10, view.nativeStyle and {1,1,1} or S.colors.muted); row.state:SetPoint('TOPLEFT', 5, -19); row.state:SetWidth(335)
+            row.chain = (view.nativeStyle and M.NativeButton or S.Button)(row, '+', 22, 22)
+            row.chain:SetPoint('TOPLEFT', 1, -3)
+            row.chain:SetScript('OnClick', function()
+                if not row.quest then return end
+                local id = row.quest.id; view.expandedQuests[id] = not view.expandedQuests[id]; M.RefreshQuestList(view)
+            end)
             row:SetScript('OnEnter', function(self)
                 if self.quest and GameTooltip then GameTooltip:SetOwner(self, 'ANCHOR_LEFT'); tooltip(self.quest, self.quest.pins) end
             end)
             row:SetScript('OnClick', function(self)
                 if not self.quest or not view.questData then return end
+                if self.quest.virtual then Q.ShowJourneyPlace(self.quest.id, self.quest.title, view.questData.code); return end
                 for level = 1, #view.questData.floors do
                     for _, point in ipairs(M.QuestPoints(view.questData, level)) do
                         if point.quest.id == self.quest.id then

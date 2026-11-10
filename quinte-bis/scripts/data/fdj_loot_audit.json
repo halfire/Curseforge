@@ -1,0 +1,2987 @@
+{
+  "differences": [
+    {
+      "instance": "DROWNED",
+      "boss_reference": "Zul'Alai",
+      "item": 274599,
+      "title": "Oathbound Bracers",
+      "boss_precedent": [],
+      "type": "complément"
+    },
+    {
+      "instance": "DROWNED",
+      "boss_reference": "Zul'Alai",
+      "item": 274598,
+      "title": "Bloodslash Axe",
+      "boss_precedent": [],
+      "type": "complément"
+    },
+    {
+      "instance": "DROWNED",
+      "boss_reference": "Zul'Alai",
+      "item": 274600,
+      "title": "Berserker Shackles",
+      "boss_precedent": [],
+      "type": "complément"
+    },
+    {
+      "instance": "DROWNED",
+      "boss_reference": "Var'Taka",
+      "item": 274602,
+      "title": "Brinebelly Leggings",
+      "boss_precedent": [],
+      "type": "complément"
+    },
+    {
+      "instance": "DROWNED",
+      "boss_reference": "Var'Taka",
+      "item": 274601,
+      "title": "Harpoon of Command",
+      "boss_precedent": [],
+      "type": "complément"
+    },
+    {
+      "instance": "DROWNED",
+      "boss_reference": "Var'Taka",
+      "item": 274613,
+      "title": "Priestess Cloak",
+      "boss_precedent": [],
+      "type": "complément"
+    },
+    {
+      "instance": "DROWNED",
+      "boss_reference": "Captain Dreadrise",
+      "item": 274604,
+      "title": "Frosty Blunderbuss",
+      "boss_precedent": [],
+      "type": "complément"
+    },
+    {
+      "instance": "DROWNED",
+      "boss_reference": "Captain Dreadrise",
+      "item": 274605,
+      "title": "Briny Sash",
+      "boss_precedent": [],
+      "type": "complément"
+    },
+    {
+      "instance": "DROWNED",
+      "boss_reference": "Captain Dreadrise",
+      "item": 274603,
+      "title": "Dreadfrost Saber",
+      "boss_precedent": [],
+      "type": "complément"
+    },
+    {
+      "instance": "DROWNED",
+      "boss_reference": "Deathless Marrow",
+      "item": 274606,
+      "title": "Bloodspine Staff",
+      "boss_precedent": [],
+      "type": "complément"
+    },
+    {
+      "instance": "DROWNED",
+      "boss_reference": "Deathless Marrow",
+      "item": 274614,
+      "title": "Knucklebone Ring",
+      "boss_precedent": [],
+      "type": "complément"
+    },
+    {
+      "instance": "DROWNED",
+      "boss_reference": "Primeval Elemental",
+      "item": 274612,
+      "title": "Waterlogged Burial Shroud",
+      "boss_precedent": [],
+      "type": "complément"
+    },
+    {
+      "instance": "DROWNED",
+      "boss_reference": "Primeval Elemental",
+      "item": 274611,
+      "title": "Robe of the Drowned",
+      "boss_precedent": [],
+      "type": "complément"
+    },
+    {
+      "instance": "DROWNED",
+      "boss_reference": "Primeval Elemental",
+      "item": 274615,
+      "title": "Heart of the Primeval",
+      "boss_precedent": [],
+      "type": "complément"
+    },
+    {
+      "instance": "DROWNED",
+      "boss_reference": "Gill",
+      "item": 286646,
+      "title": "Gill's Gills",
+      "boss_precedent": [],
+      "type": "complément"
+    },
+    {
+      "instance": "DROWNED",
+      "boss_reference": "Gill",
+      "item": 286649,
+      "title": "Tidebound Dagger",
+      "boss_precedent": [],
+      "type": "complément"
+    },
+    {
+      "instance": "DROWNED",
+      "boss_reference": "Umbra",
+      "item": 286662,
+      "title": "Deep-Dweller's Grips",
+      "boss_precedent": [],
+      "type": "complément"
+    },
+    {
+      "instance": "DROWNED",
+      "boss_reference": "\"Pyromancer\" Braxton",
+      "item": 286650,
+      "title": "Pyromancer's Baton",
+      "boss_precedent": [],
+      "type": "complément"
+    },
+    {
+      "instance": "DROWNED",
+      "boss_reference": "\"Pyromancer\" Braxton",
+      "item": 286651,
+      "title": "Flamestarter's Signet",
+      "boss_precedent": [],
+      "type": "complément"
+    },
+    {
+      "instance": "DROWNED",
+      "boss_reference": "Min'loth the Serpent",
+      "item": 274610,
+      "title": "Ritual-Binder's Gloves",
+      "boss_precedent": [],
+      "type": "complément"
+    },
+    {
+      "instance": "DROWNED",
+      "boss_reference": "Min'loth the Serpent",
+      "item": 274608,
+      "title": "Maw of Min'loth",
+      "boss_precedent": [],
+      "type": "complément"
+    },
+    {
+      "instance": "DROWNED",
+      "boss_reference": "Min'loth the Serpent",
+      "item": 274609,
+      "title": "Serpentbane Crown",
+      "boss_precedent": [],
+      "type": "complément"
+    },
+    {
+      "instance": "KROLDOK",
+      "boss_reference": "Slavecrusher Grox",
+      "item": 274996,
+      "title": "Resistance Breaker Spaulder",
+      "boss_precedent": [],
+      "type": "complément"
+    },
+    {
+      "instance": "KROLDOK",
+      "boss_reference": "Slavecrusher Grox",
+      "item": 274997,
+      "title": "Chain of Binding",
+      "boss_precedent": [],
+      "type": "complément"
+    },
+    {
+      "instance": "KROLDOK",
+      "boss_reference": "Slavecrusher Grox",
+      "item": 274995,
+      "title": "Slavecrusher Scepter",
+      "boss_precedent": [],
+      "type": "complément"
+    },
+    {
+      "instance": "KROLDOK",
+      "boss_reference": "Twilight Commander Zarmok",
+      "item": 275000,
+      "title": "Zarmok's Plated Signet",
+      "boss_precedent": [],
+      "type": "complément"
+    },
+    {
+      "instance": "KROLDOK",
+      "boss_reference": "Twilight Commander Zarmok",
+      "item": 274998,
+      "title": "Shadowlight Athame",
+      "boss_precedent": [],
+      "type": "complément"
+    },
+    {
+      "instance": "KROLDOK",
+      "boss_reference": "Twilight Commander Zarmok",
+      "item": 274999,
+      "title": "Shadecaster's Leggings",
+      "boss_precedent": [],
+      "type": "complément"
+    },
+    {
+      "instance": "KROLDOK",
+      "boss_reference": "War Handler Ashka",
+      "item": 275001,
+      "title": "Bloodied Gutslicer",
+      "boss_precedent": [],
+      "type": "complément"
+    },
+    {
+      "instance": "KROLDOK",
+      "boss_reference": "War Handler Ashka",
+      "item": 275002,
+      "title": "War Handler's Gaze",
+      "boss_precedent": [],
+      "type": "complément"
+    },
+    {
+      "instance": "KROLDOK",
+      "boss_reference": "Nar'gurk",
+      "item": 275004,
+      "title": "Chain of the Corruptor",
+      "boss_precedent": [],
+      "type": "complément"
+    },
+    {
+      "instance": "KROLDOK",
+      "boss_reference": "Nar'gurk",
+      "item": 275005,
+      "title": "Krol'dok Warplate Chest",
+      "boss_precedent": [],
+      "type": "complément"
+    },
+    {
+      "instance": "KROLDOK",
+      "boss_reference": "Nar'gurk",
+      "item": 275006,
+      "title": "Krol'dok Warplate Helmet",
+      "boss_precedent": [],
+      "type": "complément"
+    },
+    {
+      "instance": "KROLDOK",
+      "boss_reference": "Bossman Toof",
+      "item": 286430,
+      "title": "Toofbreaker",
+      "boss_precedent": [],
+      "type": "complément"
+    },
+    {
+      "instance": "KROLDOK",
+      "boss_reference": "Bossman Toof",
+      "item": 286429,
+      "title": "Big-Belly Belt",
+      "boss_precedent": [],
+      "type": "complément"
+    },
+    {
+      "instance": "KROLDOK",
+      "boss_reference": "Bossman Toof",
+      "item": 286428,
+      "title": "Band of Bossman",
+      "boss_precedent": [],
+      "type": "complément"
+    },
+    {
+      "instance": "KROLDOK",
+      "boss_reference": "Overlord Mugg",
+      "item": 275009,
+      "title": "Emblem of Slamming",
+      "boss_precedent": [],
+      "type": "complément"
+    },
+    {
+      "instance": "KROLDOK",
+      "boss_reference": "Overlord Mugg",
+      "item": 275007,
+      "title": "Mugg's Jabber",
+      "boss_precedent": [],
+      "type": "complément"
+    },
+    {
+      "instance": "KROLDOK",
+      "boss_reference": "Overlord Mugg",
+      "item": 275010,
+      "title": "Strongly Scented Hood",
+      "boss_precedent": [],
+      "type": "complément"
+    },
+    {
+      "instance": "ALCAZ",
+      "boss_reference": "Overseer Wrex",
+      "item": 276734,
+      "title": "Wrex's Pinky Ring",
+      "boss_precedent": [],
+      "type": "complément"
+    },
+    {
+      "instance": "ALCAZ",
+      "boss_reference": "The Questioner",
+      "item": 276742,
+      "title": "Girdle of Extracted Answers",
+      "boss_precedent": [],
+      "type": "complément"
+    },
+    {
+      "instance": "ALCAZ",
+      "boss_reference": "The Questioner",
+      "item": 276743,
+      "title": "Fingerbreaker Stamp",
+      "boss_precedent": [],
+      "type": "complément"
+    },
+    {
+      "instance": "ALCAZ",
+      "boss_reference": "The Questioner",
+      "item": 276741,
+      "title": "Defias Enforcer's Shoulderpads",
+      "boss_precedent": [],
+      "type": "complément"
+    },
+    {
+      "instance": "ALCAZ",
+      "boss_reference": "Tidemistress Ca'zass",
+      "item": 276736,
+      "title": "Seascale Bracers",
+      "boss_precedent": [],
+      "type": "complément"
+    },
+    {
+      "instance": "BLACKMAW",
+      "boss_reference": "Moontouched Wanderer",
+      "item": 280080,
+      "title": "Claymore of Two Moons",
+      "boss_precedent": [],
+      "type": "complément"
+    },
+    {
+      "instance": "BLACKMAW",
+      "boss_reference": "Moontouched Wanderer",
+      "item": 280079,
+      "title": "Lunarlight Robe",
+      "boss_precedent": [],
+      "type": "complément"
+    },
+    {
+      "instance": "BLACKMAW",
+      "boss_reference": "Gortek the Apprentice",
+      "item": 280077,
+      "title": "Fist of Revelation",
+      "boss_precedent": [],
+      "type": "complément"
+    },
+    {
+      "instance": "BLACKMAW",
+      "boss_reference": "Withermaw",
+      "item": 280064,
+      "title": "Withering Grips",
+      "boss_precedent": [],
+      "type": "complément"
+    },
+    {
+      "instance": "BLACKMAW",
+      "boss_reference": "Elder Shaman Bloodmane",
+      "item": 280068,
+      "title": "Bloody Claws of Attack",
+      "boss_precedent": [],
+      "type": "complément"
+    },
+    {
+      "instance": "BLACKMAW",
+      "boss_reference": "Unbound Spirit",
+      "item": 280071,
+      "title": "Flamebreak Talisman",
+      "boss_precedent": [],
+      "type": "complément"
+    },
+    {
+      "instance": "BLACKMAW",
+      "boss_reference": "Varrox Bleakhoof",
+      "item": 280074,
+      "title": "Scalding Flamehoof",
+      "boss_precedent": [],
+      "type": "complément"
+    },
+    {
+      "instance": "SHAPER",
+      "boss_reference": "Titanosaur",
+      "item": 280009,
+      "title": "Titanosaur Scale Pendant",
+      "boss_precedent": [],
+      "type": "complément"
+    },
+    {
+      "instance": "SHAPER",
+      "boss_reference": "Titanosaur",
+      "item": 280011,
+      "title": "Deeproar Cord",
+      "boss_precedent": [],
+      "type": "complément"
+    },
+    {
+      "instance": "SHAPER",
+      "boss_reference": "Titanosaur",
+      "item": 280010,
+      "title": "Gargantuan Wristguards",
+      "boss_precedent": [],
+      "type": "complément"
+    },
+    {
+      "instance": "SHAPER",
+      "boss_reference": "Venomridge",
+      "item": 280015,
+      "title": "Venomvessel Ring",
+      "boss_precedent": [],
+      "type": "complément"
+    },
+    {
+      "instance": "SHAPER",
+      "boss_reference": "Venomridge",
+      "item": 280017,
+      "title": "Octoclaw Chain Boots",
+      "boss_precedent": [],
+      "type": "complément"
+    },
+    {
+      "instance": "SHAPER",
+      "boss_reference": "Venomridge",
+      "item": 280016,
+      "title": "Spiderchitin Wrap",
+      "boss_precedent": [],
+      "type": "complément"
+    },
+    {
+      "instance": "SHAPER",
+      "boss_reference": "Thunderhoof",
+      "item": 280020,
+      "title": "Deep Jungle Rifle",
+      "boss_precedent": [],
+      "type": "complément"
+    },
+    {
+      "instance": "SHAPER",
+      "boss_reference": "Thunderhoof",
+      "item": 280019,
+      "title": "Dinofrill Casque",
+      "boss_precedent": [],
+      "type": "complément"
+    },
+    {
+      "instance": "SHAPER",
+      "boss_reference": "Direhorn Matriarch",
+      "item": 280022,
+      "title": "Scaleguard Scimitar",
+      "boss_precedent": [],
+      "type": "complément"
+    },
+    {
+      "instance": "SHAPER",
+      "boss_reference": "Direhorn Matriarch",
+      "item": 280021,
+      "title": "Tooth of the Matriarch",
+      "boss_precedent": [],
+      "type": "complément"
+    },
+    {
+      "instance": "SHAPER",
+      "boss_reference": "Bolt",
+      "item": 280032,
+      "title": "Bolt's Charged Eyeball",
+      "boss_precedent": [],
+      "type": "complément"
+    },
+    {
+      "instance": "SHAPER",
+      "boss_reference": "Izha'Rel and Tor'Rel",
+      "item": 280014,
+      "title": "Raptorscale Bulwark",
+      "boss_precedent": [],
+      "type": "complément"
+    },
+    {
+      "instance": "SHAPER",
+      "boss_reference": "Izha'Rel and Tor'Rel",
+      "item": 280013,
+      "title": "Frostfang Mail Vest",
+      "boss_precedent": [],
+      "type": "complément"
+    },
+    {
+      "instance": "SHAPER",
+      "boss_reference": "Izha'Rel and Tor'Rel",
+      "item": 280012,
+      "title": "Talon of Tor'Rel",
+      "boss_precedent": [],
+      "type": "complément"
+    },
+    {
+      "instance": "SHAPER",
+      "boss_reference": "Nanaya",
+      "item": 280023,
+      "title": "Nanaya's Control Spire",
+      "boss_precedent": [],
+      "type": "complément"
+    },
+    {
+      "instance": "SHAPER",
+      "boss_reference": "Nanaya",
+      "item": 280025,
+      "title": "Leggings of Curation",
+      "boss_precedent": [],
+      "type": "complément"
+    },
+    {
+      "instance": "SHAPER",
+      "boss_reference": "Nanaya",
+      "item": 280024,
+      "title": "Legplates of Reinforced Crystal",
+      "boss_precedent": [],
+      "type": "complément"
+    },
+    {
+      "instance": "GNOMER",
+      "boss_reference": "Crowd Pummeler 9-60",
+      "item": 9449,
+      "title": "Manual Crowd Pummeler",
+      "boss_precedent": [],
+      "type": "complément"
+    },
+    {
+      "instance": "RFD",
+      "boss_reference": "Plaguemaw the Rotting",
+      "item": 274380,
+      "title": "Decaying Flesh Bands",
+      "boss_precedent": [],
+      "type": "complément"
+    },
+    {
+      "instance": "RFD",
+      "boss_reference": "Glutton",
+      "item": 274385,
+      "title": "Abomination Chain",
+      "boss_precedent": [],
+      "type": "complément"
+    },
+    {
+      "instance": "RFD",
+      "boss_reference": "Amnennar the Coldbringer",
+      "item": 274381,
+      "title": "Coldbringer Spine",
+      "boss_precedent": [],
+      "type": "complément"
+    },
+    {
+      "instance": "ULDA",
+      "boss_reference": "The Lost Dwarves",
+      "item": 9400,
+      "title": "Baelog's Shortbow",
+      "boss_precedent": [
+        "Baelog"
+      ],
+      "type": "rencontre partagée ou groupée"
+    },
+    {
+      "instance": "ULDA",
+      "boss_reference": "The Lost Dwarves",
+      "item": 9401,
+      "title": "Nordic Longshank",
+      "boss_precedent": [
+        "Baelog"
+      ],
+      "type": "rencontre partagée ou groupée"
+    },
+    {
+      "instance": "ULDA",
+      "boss_reference": "The Lost Dwarves",
+      "item": 9398,
+      "title": "Worn Running Boots",
+      "boss_precedent": [
+        "Eric \"The Swift\""
+      ],
+      "type": "rencontre partagée ou groupée"
+    },
+    {
+      "instance": "ULDA",
+      "boss_reference": "The Lost Dwarves",
+      "item": 9394,
+      "title": "Horned Viking Helmet",
+      "boss_precedent": [
+        "Eric \"The Swift\""
+      ],
+      "type": "rencontre partagée ou groupée"
+    },
+    {
+      "instance": "ULDA",
+      "boss_reference": "The Lost Dwarves",
+      "item": 9403,
+      "title": "Battered Viking Shield",
+      "boss_precedent": [
+        "Olaf"
+      ],
+      "type": "rencontre partagée ou groupée"
+    },
+    {
+      "instance": "ULDA",
+      "boss_reference": "The Lost Dwarves",
+      "item": 9404,
+      "title": "Olaf's All Purpose Shield",
+      "boss_precedent": [
+        "Olaf"
+      ],
+      "type": "rencontre partagée ou groupée"
+    },
+    {
+      "instance": "ZF",
+      "boss_reference": "Chief Ukorz Sandscalp",
+      "item": 11086,
+      "title": "Jang'thraze the Protector",
+      "boss_precedent": [],
+      "type": "complément"
+    },
+    {
+      "instance": "MARA",
+      "boss_reference": "Princess Theradras",
+      "item": 17780,
+      "title": "Blade of Eternal Darkness",
+      "boss_precedent": [],
+      "type": "complément"
+    },
+    {
+      "instance": "ST",
+      "boss_reference": "Atal'alarion",
+      "item": 10799,
+      "title": "Headspike",
+      "boss_precedent": [],
+      "type": "complément"
+    },
+    {
+      "instance": "ST",
+      "boss_reference": "Jammal'an the Prophet",
+      "item": 10806,
+      "title": "Vestments of the Atal'ai Prophet",
+      "boss_precedent": [],
+      "type": "complément"
+    },
+    {
+      "instance": "ST",
+      "boss_reference": "Jammal'an the Prophet",
+      "item": 10808,
+      "title": "Gloves of the Atal'ai Prophet",
+      "boss_precedent": [],
+      "type": "complément"
+    },
+    {
+      "instance": "ST",
+      "boss_reference": "Shade of Eranikus",
+      "item": 10829,
+      "title": "Dragon's Eye",
+      "boss_precedent": [],
+      "type": "complément"
+    },
+    {
+      "instance": "ST",
+      "boss_reference": "Shade of Eranikus",
+      "item": 10835,
+      "title": "Crest of Supremacy",
+      "boss_precedent": [],
+      "type": "complément"
+    },
+    {
+      "instance": "ST",
+      "boss_reference": "Shade of Eranikus",
+      "item": 10828,
+      "title": "Dire Nail",
+      "boss_precedent": [],
+      "type": "complément"
+    },
+    {
+      "instance": "ST",
+      "boss_reference": "Shade of Eranikus",
+      "item": 10837,
+      "title": "Tooth of Eranikus",
+      "boss_precedent": [],
+      "type": "complément"
+    },
+    {
+      "instance": "BRD",
+      "boss_reference": "High Interrogator Gerstahn",
+      "item": 22240,
+      "title": "Greaves of Withering Despair",
+      "boss_precedent": [],
+      "type": "complément"
+    },
+    {
+      "instance": "BRD",
+      "boss_reference": "Lord Roccor",
+      "item": 11632,
+      "title": "Earthslag Shoulders",
+      "boss_precedent": [],
+      "type": "complément"
+    },
+    {
+      "instance": "BRD",
+      "boss_reference": "Lord Roccor",
+      "item": 11631,
+      "title": "Stoneshell Guard",
+      "boss_precedent": [],
+      "type": "complément"
+    },
+    {
+      "instance": "BRD",
+      "boss_reference": "Lord Roccor",
+      "item": 22397,
+      "title": "Idol of Ferocity",
+      "boss_precedent": [],
+      "type": "complément"
+    },
+    {
+      "instance": "BRD",
+      "boss_reference": "Houndmaster Grebmar",
+      "item": 11627,
+      "title": "Fleetfoot Greaves",
+      "boss_precedent": [],
+      "type": "complément"
+    },
+    {
+      "instance": "BRD",
+      "boss_reference": "Houndmaster Grebmar",
+      "item": 11623,
+      "title": "Spritecaster Cape",
+      "boss_precedent": [],
+      "type": "complément"
+    },
+    {
+      "instance": "BRD",
+      "boss_reference": "Houndmaster Grebmar",
+      "item": 11629,
+      "title": "Houndmaster's Rifle",
+      "boss_precedent": [],
+      "type": "complément"
+    },
+    {
+      "instance": "BRD",
+      "boss_reference": "Ok'thor the Breaker",
+      "item": 11662,
+      "title": "Ban'thok Sash",
+      "boss_precedent": [],
+      "type": "complément"
+    },
+    {
+      "instance": "BRD",
+      "boss_reference": "Ok'thor the Breaker",
+      "item": 11824,
+      "title": "Cyclopean Band",
+      "boss_precedent": [],
+      "type": "complément"
+    },
+    {
+      "instance": "BRD",
+      "boss_reference": "Ok'thor the Breaker",
+      "item": 11728,
+      "title": "Savage Gladiator Leggings",
+      "boss_precedent": [],
+      "type": "complément"
+    },
+    {
+      "instance": "BRD",
+      "boss_reference": "Anub'shiah",
+      "item": 11675,
+      "title": "Shadefiend Boots",
+      "boss_precedent": [],
+      "type": "complément"
+    },
+    {
+      "instance": "BRD",
+      "boss_reference": "Anub'shiah",
+      "item": 11677,
+      "title": "Graverot Cape",
+      "boss_precedent": [],
+      "type": "complément"
+    },
+    {
+      "instance": "BRD",
+      "boss_reference": "Anub'shiah",
+      "item": 11731,
+      "title": "Savage Gladiator Greaves",
+      "boss_precedent": [],
+      "type": "complément"
+    },
+    {
+      "instance": "BRD",
+      "boss_reference": "Hedrum the Creeper",
+      "item": 11634,
+      "title": "Silkweb Gloves",
+      "boss_precedent": [],
+      "type": "complément"
+    },
+    {
+      "instance": "BRD",
+      "boss_reference": "Hedrum the Creeper",
+      "item": 11635,
+      "title": "Hookfang Shanker",
+      "boss_precedent": [],
+      "type": "complément"
+    },
+    {
+      "instance": "BRD",
+      "boss_reference": "Hedrum the Creeper",
+      "item": 11729,
+      "title": "Savage Gladiator Helm",
+      "boss_precedent": [],
+      "type": "complément"
+    },
+    {
+      "instance": "BRD",
+      "boss_reference": "Pyromancer Loregrain",
+      "item": 11747,
+      "title": "Flamestrider Robes",
+      "boss_precedent": [],
+      "type": "complément"
+    },
+    {
+      "instance": "BRD",
+      "boss_reference": "Pyromancer Loregrain",
+      "item": 11748,
+      "title": "Pyric Caduceus",
+      "boss_precedent": [],
+      "type": "complément"
+    },
+    {
+      "instance": "BRD",
+      "boss_reference": "Fineous Darkvire",
+      "item": 11842,
+      "title": "Lead Surveyor's Mantle",
+      "boss_precedent": [],
+      "type": "complément"
+    },
+    {
+      "instance": "BRD",
+      "boss_reference": "Fineous Darkvire",
+      "item": 11839,
+      "title": "Chief Architect's Monocle",
+      "boss_precedent": [],
+      "type": "complément"
+    },
+    {
+      "instance": "BRD",
+      "boss_reference": "Warder Stilgiss",
+      "item": 11782,
+      "title": "Boreal Mantle",
+      "boss_precedent": [],
+      "type": "complément"
+    },
+    {
+      "instance": "BRD",
+      "boss_reference": "Warder Stilgiss",
+      "item": 11783,
+      "title": "Chillsteel Girdle",
+      "boss_precedent": [],
+      "type": "complément"
+    },
+    {
+      "instance": "BRD",
+      "boss_reference": "Warder Stilgiss",
+      "item": 11755,
+      "title": "Verek's Collar",
+      "boss_precedent": [],
+      "type": "complément"
+    },
+    {
+      "instance": "BRD",
+      "boss_reference": "Warder Stilgiss",
+      "item": 22242,
+      "title": "Verek's Leash",
+      "boss_precedent": [
+        "Verek"
+      ],
+      "type": "rencontre partagée ou groupée"
+    },
+    {
+      "instance": "BRD",
+      "boss_reference": "Lord Incendius",
+      "item": 11764,
+      "title": "Cinderhide Armsplints",
+      "boss_precedent": [],
+      "type": "complément"
+    },
+    {
+      "instance": "BRD",
+      "boss_reference": "Lord Incendius",
+      "item": 11765,
+      "title": "Pyremail Wristguards",
+      "boss_precedent": [],
+      "type": "complément"
+    },
+    {
+      "instance": "BRD",
+      "boss_reference": "Bael'Gar",
+      "item": 11802,
+      "title": "Lavacrest Leggings",
+      "boss_precedent": [],
+      "type": "complément"
+    },
+    {
+      "instance": "BRD",
+      "boss_reference": "Bael'Gar",
+      "item": 11803,
+      "title": "Force of Magma",
+      "boss_precedent": [],
+      "type": "complément"
+    },
+    {
+      "instance": "BRD",
+      "boss_reference": "Bael'Gar",
+      "item": 11805,
+      "title": "Rubidium Hammer",
+      "boss_precedent": [],
+      "type": "complément"
+    },
+    {
+      "instance": "BRD",
+      "boss_reference": "General Angerforge",
+      "item": 11816,
+      "title": "Angerforge's Battle Axe",
+      "boss_precedent": [],
+      "type": "complément"
+    },
+    {
+      "instance": "BRD",
+      "boss_reference": "General Angerforge",
+      "item": 11820,
+      "title": "Royal Decorated Armor",
+      "boss_precedent": [],
+      "type": "complément"
+    },
+    {
+      "instance": "BRD",
+      "boss_reference": "General Angerforge",
+      "item": 11817,
+      "title": "Lord General's Sword",
+      "boss_precedent": [],
+      "type": "complément"
+    },
+    {
+      "instance": "BRD",
+      "boss_reference": "General Angerforge",
+      "item": 11810,
+      "title": "Force of Will",
+      "boss_precedent": [],
+      "type": "complément"
+    },
+    {
+      "instance": "BRD",
+      "boss_reference": "Golem Lord Argelmach",
+      "item": 11822,
+      "title": "Omnicast Boots",
+      "boss_precedent": [],
+      "type": "complément"
+    },
+    {
+      "instance": "BRD",
+      "boss_reference": "Golem Lord Argelmach",
+      "item": 11823,
+      "title": "Luminary Kilt",
+      "boss_precedent": [],
+      "type": "complément"
+    },
+    {
+      "instance": "BRD",
+      "boss_reference": "Golem Lord Argelmach",
+      "item": 11669,
+      "title": "Naglering",
+      "boss_precedent": [],
+      "type": "complément"
+    },
+    {
+      "instance": "BRD",
+      "boss_reference": "Hurley Blackbreath",
+      "item": 18044,
+      "title": "Hurley's Tankard",
+      "boss_precedent": [],
+      "type": "complément"
+    },
+    {
+      "instance": "BRD",
+      "boss_reference": "Hurley Blackbreath",
+      "item": 18043,
+      "title": "Coal Miner Boots",
+      "boss_precedent": [],
+      "type": "complément"
+    },
+    {
+      "instance": "BRD",
+      "boss_reference": "Phalanx",
+      "item": 11744,
+      "title": "Bloodfist",
+      "boss_precedent": [],
+      "type": "complément"
+    },
+    {
+      "instance": "BRD",
+      "boss_reference": "Phalanx",
+      "item": 22212,
+      "title": "Golem Fitted Pauldrons",
+      "boss_precedent": [],
+      "type": "complément"
+    },
+    {
+      "instance": "BRD",
+      "boss_reference": "Phalanx",
+      "item": 11746,
+      "title": "Golem Skull Helm",
+      "boss_precedent": [],
+      "type": "complément"
+    },
+    {
+      "instance": "BRD",
+      "boss_reference": "Ambassador Flamelash",
+      "item": 11812,
+      "title": "Cape of the Fire Salamander",
+      "boss_precedent": [],
+      "type": "complément"
+    },
+    {
+      "instance": "BRD",
+      "boss_reference": "Ambassador Flamelash",
+      "item": 11809,
+      "title": "Flame Wrath",
+      "boss_precedent": [],
+      "type": "complément"
+    },
+    {
+      "instance": "BRD",
+      "boss_reference": "Ambassador Flamelash",
+      "item": 11832,
+      "title": "Burst of Knowledge",
+      "boss_precedent": [],
+      "type": "complément"
+    },
+    {
+      "instance": "BRD",
+      "boss_reference": "The Seven",
+      "item": 11920,
+      "title": "Wraith Scythe",
+      "boss_precedent": [],
+      "type": "complément"
+    },
+    {
+      "instance": "BRD",
+      "boss_reference": "The Seven",
+      "item": 11921,
+      "title": "Impervious Giant",
+      "boss_precedent": [],
+      "type": "complément"
+    },
+    {
+      "instance": "BRD",
+      "boss_reference": "The Seven",
+      "item": 11922,
+      "title": "Blood-etched Blade",
+      "boss_precedent": [],
+      "type": "complément"
+    },
+    {
+      "instance": "BRD",
+      "boss_reference": "The Seven",
+      "item": 11926,
+      "title": "Deathdealer Breastplate",
+      "boss_precedent": [],
+      "type": "complément"
+    },
+    {
+      "instance": "BRD",
+      "boss_reference": "The Seven",
+      "item": 11927,
+      "title": "Legplates of the Eternal Guardian",
+      "boss_precedent": [],
+      "type": "complément"
+    },
+    {
+      "instance": "BRD",
+      "boss_reference": "Magmus",
+      "item": 22395,
+      "title": "Totem of Rage",
+      "boss_precedent": [],
+      "type": "complément"
+    },
+    {
+      "instance": "BRD",
+      "boss_reference": "Magmus",
+      "item": 22400,
+      "title": "Libram of Truth",
+      "boss_precedent": [],
+      "type": "complément"
+    },
+    {
+      "instance": "BRD",
+      "boss_reference": "Magmus",
+      "item": 11746,
+      "title": "Golem Skull Helm",
+      "boss_precedent": [],
+      "type": "complément"
+    },
+    {
+      "instance": "BRD",
+      "boss_reference": "Emperor Dagran Thaurissan",
+      "item": 11930,
+      "title": "The Emperor's New Cape",
+      "boss_precedent": [],
+      "type": "complément"
+    },
+    {
+      "instance": "BRD",
+      "boss_reference": "Emperor Dagran Thaurissan",
+      "item": 11931,
+      "title": "Dreadforge Retaliator",
+      "boss_precedent": [],
+      "type": "complément"
+    },
+    {
+      "instance": "BRD",
+      "boss_reference": "Emperor Dagran Thaurissan",
+      "item": 11932,
+      "title": "Guiding Stave of Wisdom",
+      "boss_precedent": [],
+      "type": "complément"
+    },
+    {
+      "instance": "BRD",
+      "boss_reference": "Emperor Dagran Thaurissan",
+      "item": 11933,
+      "title": "Imperial Jewel",
+      "boss_precedent": [],
+      "type": "complément"
+    },
+    {
+      "instance": "BRD",
+      "boss_reference": "Emperor Dagran Thaurissan",
+      "item": 11934,
+      "title": "Emperor's Seal",
+      "boss_precedent": [],
+      "type": "complément"
+    },
+    {
+      "instance": "BRD",
+      "boss_reference": "Emperor Dagran Thaurissan",
+      "item": 22204,
+      "title": "Wristguards of Renown",
+      "boss_precedent": [],
+      "type": "complément"
+    },
+    {
+      "instance": "BRD",
+      "boss_reference": "Emperor Dagran Thaurissan",
+      "item": 22207,
+      "title": "Sash of the Grand Hunt",
+      "boss_precedent": [],
+      "type": "complément"
+    },
+    {
+      "instance": "LBRS",
+      "boss_reference": "Spirestone Lord Magus",
+      "item": 13282,
+      "title": "Ogreseer Tower Boots",
+      "boss_precedent": [],
+      "type": "complément"
+    },
+    {
+      "instance": "LBRS",
+      "boss_reference": "Highlord Omokk",
+      "item": 13166,
+      "title": "Slamshot Shoulders",
+      "boss_precedent": [],
+      "type": "complément"
+    },
+    {
+      "instance": "LBRS",
+      "boss_reference": "Highlord Omokk",
+      "item": 13167,
+      "title": "Fist of Omokk",
+      "boss_precedent": [],
+      "type": "complément"
+    },
+    {
+      "instance": "LBRS",
+      "boss_reference": "Highlord Omokk",
+      "item": 13168,
+      "title": "Plate of the Shaman King",
+      "boss_precedent": [],
+      "type": "complément"
+    },
+    {
+      "instance": "LBRS",
+      "boss_reference": "Highlord Omokk",
+      "item": 13169,
+      "title": "Tressermane Leggings",
+      "boss_precedent": [],
+      "type": "complément"
+    },
+    {
+      "instance": "LBRS",
+      "boss_reference": "Shadow Hunter Vosh'gajin",
+      "item": 13255,
+      "title": "Trueaim Gauntlets",
+      "boss_precedent": [],
+      "type": "complément"
+    },
+    {
+      "instance": "LBRS",
+      "boss_reference": "Shadow Hunter Vosh'gajin",
+      "item": 12626,
+      "title": "Funeral Cuffs",
+      "boss_precedent": [],
+      "type": "complément"
+    },
+    {
+      "instance": "LBRS",
+      "boss_reference": "Shadow Hunter Vosh'gajin",
+      "item": 13257,
+      "title": "Demonic Runed Spaulders",
+      "boss_precedent": [],
+      "type": "complément"
+    },
+    {
+      "instance": "LBRS",
+      "boss_reference": "Shadow Hunter Vosh'gajin",
+      "item": 12651,
+      "title": "Blackcrow",
+      "boss_precedent": [],
+      "type": "complément"
+    },
+    {
+      "instance": "LBRS",
+      "boss_reference": "War Master Voone",
+      "item": 13177,
+      "title": "Talisman of Evasion",
+      "boss_precedent": [],
+      "type": "complément"
+    },
+    {
+      "instance": "LBRS",
+      "boss_reference": "War Master Voone",
+      "item": 12582,
+      "title": "Keris of Zul'Serak",
+      "boss_precedent": [],
+      "type": "complément"
+    },
+    {
+      "instance": "LBRS",
+      "boss_reference": "War Master Voone",
+      "item": 22231,
+      "title": "Kayser's Boots of Precision",
+      "boss_precedent": [],
+      "type": "complément"
+    },
+    {
+      "instance": "LBRS",
+      "boss_reference": "War Master Voone",
+      "item": 13173,
+      "title": "Flightblade Throwing Axe",
+      "boss_precedent": [],
+      "type": "complément"
+    },
+    {
+      "instance": "LBRS",
+      "boss_reference": "Mother Smolderweb",
+      "item": 13244,
+      "title": "Gilded Gauntlets",
+      "boss_precedent": [],
+      "type": "complément"
+    },
+    {
+      "instance": "LBRS",
+      "boss_reference": "Crystal Fang",
+      "item": 13185,
+      "title": "Sunderseer Mantle",
+      "boss_precedent": [],
+      "type": "complément"
+    },
+    {
+      "instance": "LBRS",
+      "boss_reference": "Urok Doomhowl",
+      "item": 13053,
+      "title": "Doombringer",
+      "boss_precedent": [],
+      "type": "complément"
+    },
+    {
+      "instance": "LBRS",
+      "boss_reference": "Bannok Grimaxe",
+      "item": 12637,
+      "title": "Backusarian Gauntlets",
+      "boss_precedent": [],
+      "type": "complément"
+    },
+    {
+      "instance": "LBRS",
+      "boss_reference": "Bannok Grimaxe",
+      "item": 12621,
+      "title": "Demonfork",
+      "boss_precedent": [],
+      "type": "complément"
+    },
+    {
+      "instance": "LBRS",
+      "boss_reference": "Quartermaster Zigris",
+      "item": 13252,
+      "title": "Cloudrunner Girdle",
+      "boss_precedent": [],
+      "type": "complément"
+    },
+    {
+      "instance": "LBRS",
+      "boss_reference": "Quartermaster Zigris",
+      "item": 13253,
+      "title": "Hands of Power",
+      "boss_precedent": [],
+      "type": "complément"
+    },
+    {
+      "instance": "LBRS",
+      "boss_reference": "Halycon",
+      "item": 13211,
+      "title": "Slashclaw Bracers",
+      "boss_precedent": [],
+      "type": "complément"
+    },
+    {
+      "instance": "LBRS",
+      "boss_reference": "Halycon",
+      "item": 13210,
+      "title": "Pads of the Dread Wolf",
+      "boss_precedent": [],
+      "type": "complément"
+    },
+    {
+      "instance": "LBRS",
+      "boss_reference": "Gizrul the Slavener",
+      "item": 13208,
+      "title": "Bleak Howler Armguards",
+      "boss_precedent": [],
+      "type": "complément"
+    },
+    {
+      "instance": "LBRS",
+      "boss_reference": "Overlord Wyrmthalak",
+      "item": 13161,
+      "title": "Trindlehaven Staff",
+      "boss_precedent": [],
+      "type": "complément"
+    },
+    {
+      "instance": "LBRS",
+      "boss_reference": "Overlord Wyrmthalak",
+      "item": 13163,
+      "title": "Relentless Scythe",
+      "boss_precedent": [],
+      "type": "complément"
+    },
+    {
+      "instance": "LBRS",
+      "boss_reference": "Overlord Wyrmthalak",
+      "item": 22321,
+      "title": "Heart of Wyrmthalak",
+      "boss_precedent": [],
+      "type": "complément"
+    },
+    {
+      "instance": "UBRS",
+      "boss_reference": "Pyroguard Emberseer",
+      "item": 12905,
+      "title": "Wildfire Cape",
+      "boss_precedent": [],
+      "type": "complément"
+    },
+    {
+      "instance": "UBRS",
+      "boss_reference": "Pyroguard Emberseer",
+      "item": 12926,
+      "title": "Flaming Band",
+      "boss_precedent": [],
+      "type": "complément"
+    },
+    {
+      "instance": "UBRS",
+      "boss_reference": "Pyroguard Emberseer",
+      "item": 12927,
+      "title": "Truestrike Shoulders",
+      "boss_precedent": [],
+      "type": "complément"
+    },
+    {
+      "instance": "UBRS",
+      "boss_reference": "Pyroguard Emberseer",
+      "item": 12929,
+      "title": "Emberfury Talisman",
+      "boss_precedent": [],
+      "type": "complément"
+    },
+    {
+      "instance": "UBRS",
+      "boss_reference": "Solakar Flamewreath",
+      "item": 12589,
+      "title": "Dustfeather Sash",
+      "boss_precedent": [],
+      "type": "complément"
+    },
+    {
+      "instance": "UBRS",
+      "boss_reference": "Solakar Flamewreath",
+      "item": 12603,
+      "title": "Nightbrace Tunic",
+      "boss_precedent": [],
+      "type": "complément"
+    },
+    {
+      "instance": "UBRS",
+      "boss_reference": "Solakar Flamewreath",
+      "item": 12606,
+      "title": "Crystallized Girdle",
+      "boss_precedent": [],
+      "type": "complément"
+    },
+    {
+      "instance": "UBRS",
+      "boss_reference": "Solakar Flamewreath",
+      "item": 12609,
+      "title": "Polychromatic Visionwrap",
+      "boss_precedent": [],
+      "type": "complément"
+    },
+    {
+      "instance": "UBRS",
+      "boss_reference": "Jed Runewatcher",
+      "item": 12604,
+      "title": "Starfire Tiara",
+      "boss_precedent": [],
+      "type": "complément"
+    },
+    {
+      "instance": "UBRS",
+      "boss_reference": "Jed Runewatcher",
+      "item": 12605,
+      "title": "Serpentine Skuller",
+      "boss_precedent": [],
+      "type": "complément"
+    },
+    {
+      "instance": "UBRS",
+      "boss_reference": "Jed Runewatcher",
+      "item": 12930,
+      "title": "Briarwood Reed",
+      "boss_precedent": [],
+      "type": "complément"
+    },
+    {
+      "instance": "UBRS",
+      "boss_reference": "Goraluk Anvilcrack",
+      "item": 18048,
+      "title": "Mastersmith's Hammer",
+      "boss_precedent": [],
+      "type": "complément"
+    },
+    {
+      "instance": "UBRS",
+      "boss_reference": "Goraluk Anvilcrack",
+      "item": 13498,
+      "title": "Handcrafted Mastersmith Leggings",
+      "boss_precedent": [],
+      "type": "complément"
+    },
+    {
+      "instance": "UBRS",
+      "boss_reference": "Goraluk Anvilcrack",
+      "item": 18047,
+      "title": "Flame Walkers",
+      "boss_precedent": [],
+      "type": "complément"
+    },
+    {
+      "instance": "UBRS",
+      "boss_reference": "Goraluk Anvilcrack",
+      "item": 13502,
+      "title": "Handcrafted Mastersmith Girdle",
+      "boss_precedent": [],
+      "type": "complément"
+    },
+    {
+      "instance": "UBRS",
+      "boss_reference": "Gyth",
+      "item": 12952,
+      "title": "Gyth's Skull",
+      "boss_precedent": [],
+      "type": "complément"
+    },
+    {
+      "instance": "UBRS",
+      "boss_reference": "Gyth",
+      "item": 12953,
+      "title": "Dragoneye Coif",
+      "boss_precedent": [],
+      "type": "complément"
+    },
+    {
+      "instance": "UBRS",
+      "boss_reference": "Gyth",
+      "item": 12960,
+      "title": "Tribal War Feathers",
+      "boss_precedent": [],
+      "type": "complément"
+    },
+    {
+      "instance": "UBRS",
+      "boss_reference": "Gyth",
+      "item": 22225,
+      "title": "Dragonskin Cowl",
+      "boss_precedent": [],
+      "type": "complément"
+    },
+    {
+      "instance": "UBRS",
+      "boss_reference": "Warchief Rend Blackhand",
+      "item": 12583,
+      "title": "Blackhand Doomsaw",
+      "boss_precedent": [],
+      "type": "complément"
+    },
+    {
+      "instance": "UBRS",
+      "boss_reference": "Warchief Rend Blackhand",
+      "item": 12587,
+      "title": "Eye of Rend",
+      "boss_precedent": [],
+      "type": "complément"
+    },
+    {
+      "instance": "UBRS",
+      "boss_reference": "Warchief Rend Blackhand",
+      "item": 12935,
+      "title": "Warmaster Legguards",
+      "boss_precedent": [],
+      "type": "complément"
+    },
+    {
+      "instance": "UBRS",
+      "boss_reference": "Warchief Rend Blackhand",
+      "item": 12936,
+      "title": "Battleborn Armbraces",
+      "boss_precedent": [],
+      "type": "complément"
+    },
+    {
+      "instance": "UBRS",
+      "boss_reference": "Warchief Rend Blackhand",
+      "item": 12939,
+      "title": "Dal'Rend's Tribal Guardian",
+      "boss_precedent": [],
+      "type": "complément"
+    },
+    {
+      "instance": "UBRS",
+      "boss_reference": "Warchief Rend Blackhand",
+      "item": 12940,
+      "title": "Dal'Rend's Sacred Charge",
+      "boss_precedent": [],
+      "type": "complément"
+    },
+    {
+      "instance": "UBRS",
+      "boss_reference": "Warchief Rend Blackhand",
+      "item": 18102,
+      "title": "Dragonrider Boots",
+      "boss_precedent": [],
+      "type": "complément"
+    },
+    {
+      "instance": "UBRS",
+      "boss_reference": "Warchief Rend Blackhand",
+      "item": 18103,
+      "title": "Band of Rumination",
+      "boss_precedent": [],
+      "type": "complément"
+    },
+    {
+      "instance": "UBRS",
+      "boss_reference": "Warchief Rend Blackhand",
+      "item": 18104,
+      "title": "Feralsurge Girdle",
+      "boss_precedent": [],
+      "type": "complément"
+    },
+    {
+      "instance": "UBRS",
+      "boss_reference": "Warchief Rend Blackhand",
+      "item": 22247,
+      "title": "Faith Healer's Boots",
+      "boss_precedent": [],
+      "type": "complément"
+    },
+    {
+      "instance": "UBRS",
+      "boss_reference": "The Beast",
+      "item": 12709,
+      "title": "Pip's Skinner",
+      "boss_precedent": [],
+      "type": "complément"
+    },
+    {
+      "instance": "UBRS",
+      "boss_reference": "The Beast",
+      "item": 12963,
+      "title": "Blademaster Leggings",
+      "boss_precedent": [],
+      "type": "complément"
+    },
+    {
+      "instance": "UBRS",
+      "boss_reference": "The Beast",
+      "item": 12964,
+      "title": "Tristam Legguards",
+      "boss_precedent": [],
+      "type": "complément"
+    },
+    {
+      "instance": "UBRS",
+      "boss_reference": "The Beast",
+      "item": 12965,
+      "title": "Spiritshroud Leggings",
+      "boss_precedent": [],
+      "type": "complément"
+    },
+    {
+      "instance": "UBRS",
+      "boss_reference": "The Beast",
+      "item": 12966,
+      "title": "Blackmist Armguards",
+      "boss_precedent": [],
+      "type": "complément"
+    },
+    {
+      "instance": "UBRS",
+      "boss_reference": "The Beast",
+      "item": 12967,
+      "title": "Bloodmoon Cloak",
+      "boss_precedent": [],
+      "type": "complément"
+    },
+    {
+      "instance": "UBRS",
+      "boss_reference": "The Beast",
+      "item": 12968,
+      "title": "Frostweaver Cape",
+      "boss_precedent": [],
+      "type": "complément"
+    },
+    {
+      "instance": "UBRS",
+      "boss_reference": "The Beast",
+      "item": 12969,
+      "title": "Seeping Willow",
+      "boss_precedent": [],
+      "type": "complément"
+    },
+    {
+      "instance": "UBRS",
+      "boss_reference": "Lord Valthalak",
+      "item": 22335,
+      "title": "Lord Valthalak's Staff of Command",
+      "boss_precedent": [],
+      "type": "complément"
+    },
+    {
+      "instance": "UBRS",
+      "boss_reference": "Lord Valthalak",
+      "item": 22336,
+      "title": "Draconian Aegis of the Legion",
+      "boss_precedent": [],
+      "type": "complément"
+    },
+    {
+      "instance": "UBRS",
+      "boss_reference": "Lord Valthalak",
+      "item": 22337,
+      "title": "Shroud of Domination",
+      "boss_precedent": [],
+      "type": "complément"
+    },
+    {
+      "instance": "UBRS",
+      "boss_reference": "Lord Valthalak",
+      "item": 22339,
+      "title": "Rune Band of Wizardry",
+      "boss_precedent": [],
+      "type": "complément"
+    },
+    {
+      "instance": "UBRS",
+      "boss_reference": "Lord Valthalak",
+      "item": 22340,
+      "title": "Pendant of Celerity",
+      "boss_precedent": [],
+      "type": "complément"
+    },
+    {
+      "instance": "UBRS",
+      "boss_reference": "Lord Valthalak",
+      "item": 22342,
+      "title": "Leggings of Torment",
+      "boss_precedent": [],
+      "type": "complément"
+    },
+    {
+      "instance": "UBRS",
+      "boss_reference": "Lord Valthalak",
+      "item": 22343,
+      "title": "Handguards of Savagery",
+      "boss_precedent": [],
+      "type": "complément"
+    },
+    {
+      "instance": "UBRS",
+      "boss_reference": "General Drakkisath",
+      "item": 13141,
+      "title": "Tooth of Gnarr",
+      "boss_precedent": [],
+      "type": "complément"
+    },
+    {
+      "instance": "UBRS",
+      "boss_reference": "General Drakkisath",
+      "item": 13098,
+      "title": "Painweaver Band",
+      "boss_precedent": [],
+      "type": "complément"
+    },
+    {
+      "instance": "UBRS",
+      "boss_reference": "General Drakkisath",
+      "item": 13142,
+      "title": "Brigam Girdle",
+      "boss_precedent": [],
+      "type": "complément"
+    },
+    {
+      "instance": "UBRS",
+      "boss_reference": "General Drakkisath",
+      "item": 12602,
+      "title": "Draconian Deflector",
+      "boss_precedent": [],
+      "type": "complément"
+    },
+    {
+      "instance": "UBRS",
+      "boss_reference": "General Drakkisath",
+      "item": 22267,
+      "title": "Spellweaver's Turban",
+      "boss_precedent": [],
+      "type": "complément"
+    },
+    {
+      "instance": "UBRS",
+      "boss_reference": "General Drakkisath",
+      "item": 22269,
+      "title": "Shadow Prowler's Cloak",
+      "boss_precedent": [],
+      "type": "complément"
+    },
+    {
+      "instance": "UBRS",
+      "boss_reference": "General Drakkisath",
+      "item": 22268,
+      "title": "Draconic Infused Emblem",
+      "boss_precedent": [],
+      "type": "complément"
+    },
+    {
+      "instance": "DME",
+      "boss_reference": "Pusillin",
+      "item": 18316,
+      "title": "Obsidian Bauble",
+      "boss_precedent": [],
+      "type": "complément"
+    },
+    {
+      "instance": "DME",
+      "boss_reference": "Zevrim Thornhoof",
+      "item": 18313,
+      "title": "Helm of Awareness",
+      "boss_precedent": [],
+      "type": "complément"
+    },
+    {
+      "instance": "DME",
+      "boss_reference": "Hydrospawn",
+      "item": 18322,
+      "title": "Waterspout Boots",
+      "boss_precedent": [],
+      "type": "complément"
+    },
+    {
+      "instance": "DME",
+      "boss_reference": "Hydrospawn",
+      "item": 18317,
+      "title": "Tempest Talisman",
+      "boss_precedent": [],
+      "type": "complément"
+    },
+    {
+      "instance": "DME",
+      "boss_reference": "Lethtendris",
+      "item": 18325,
+      "title": "Felhide Cap",
+      "boss_precedent": [],
+      "type": "complément"
+    },
+    {
+      "instance": "DME",
+      "boss_reference": "Lethtendris",
+      "item": 18311,
+      "title": "Quel'dorai Channeling Rod",
+      "boss_precedent": [],
+      "type": "complément"
+    },
+    {
+      "instance": "DME",
+      "boss_reference": "Alzzin the Wildshaper",
+      "item": 18309,
+      "title": "Gloves of Restoration",
+      "boss_precedent": [],
+      "type": "complément"
+    },
+    {
+      "instance": "DME",
+      "boss_reference": "Alzzin the Wildshaper",
+      "item": 18310,
+      "title": "Fiendish Machete",
+      "boss_precedent": [],
+      "type": "complément"
+    },
+    {
+      "instance": "DME",
+      "boss_reference": "Alzzin the Wildshaper",
+      "item": 18312,
+      "title": "Energized Chestplate",
+      "boss_precedent": [],
+      "type": "complément"
+    },
+    {
+      "instance": "DME",
+      "boss_reference": "Alzzin the Wildshaper",
+      "item": 18314,
+      "title": "Ring of Demonic Guile",
+      "boss_precedent": [],
+      "type": "complément"
+    },
+    {
+      "instance": "DME",
+      "boss_reference": "Alzzin the Wildshaper",
+      "item": 18318,
+      "title": "Merciful Greaves",
+      "boss_precedent": [],
+      "type": "complément"
+    },
+    {
+      "instance": "DME",
+      "boss_reference": "Alzzin the Wildshaper",
+      "item": 18321,
+      "title": "Energetic Rod",
+      "boss_precedent": [],
+      "type": "complément"
+    },
+    {
+      "instance": "DME",
+      "boss_reference": "Alzzin the Wildshaper",
+      "item": 18327,
+      "title": "Whipvine Cord",
+      "boss_precedent": [],
+      "type": "complément"
+    },
+    {
+      "instance": "DME",
+      "boss_reference": "Alzzin the Wildshaper",
+      "item": 18328,
+      "title": "Shadewood Cloak",
+      "boss_precedent": [],
+      "type": "complément"
+    },
+    {
+      "instance": "DMW",
+      "boss_reference": "Immol'thar",
+      "item": 18381,
+      "title": "Evil Eye Pendant",
+      "boss_precedent": [],
+      "type": "complément"
+    },
+    {
+      "instance": "DMW",
+      "boss_reference": "Immol'thar",
+      "item": 18385,
+      "title": "Robe of Everlasting Night",
+      "boss_precedent": [],
+      "type": "complément"
+    },
+    {
+      "instance": "DMW",
+      "boss_reference": "Immol'thar",
+      "item": 18384,
+      "title": "Bile-etched Spaulders",
+      "boss_precedent": [],
+      "type": "complément"
+    },
+    {
+      "instance": "DMW",
+      "boss_reference": "Immol'thar",
+      "item": 18370,
+      "title": "Vigilance Charm",
+      "boss_precedent": [],
+      "type": "complément"
+    },
+    {
+      "instance": "DMW",
+      "boss_reference": "Lord Hel'nurath",
+      "item": 18755,
+      "title": "Xorothian Firestick",
+      "boss_precedent": [],
+      "type": "complément"
+    },
+    {
+      "instance": "DMW",
+      "boss_reference": "Lord Hel'nurath",
+      "item": 18756,
+      "title": "Dreadguard's Protector",
+      "boss_precedent": [],
+      "type": "complément"
+    },
+    {
+      "instance": "DMW",
+      "boss_reference": "Lord Hel'nurath",
+      "item": 18754,
+      "title": "Fel Hardened Bracers",
+      "boss_precedent": [],
+      "type": "complément"
+    },
+    {
+      "instance": "DMW",
+      "boss_reference": "Lord Hel'nurath",
+      "item": 18757,
+      "title": "Diabolic Mantle",
+      "boss_precedent": [],
+      "type": "complément"
+    },
+    {
+      "instance": "DMW",
+      "boss_reference": "Prince Tortheldrin",
+      "item": 18378,
+      "title": "Silvermoon Leggings",
+      "boss_precedent": [],
+      "type": "complément"
+    },
+    {
+      "instance": "DMW",
+      "boss_reference": "Prince Tortheldrin",
+      "item": 18376,
+      "title": "Timeworn Mace",
+      "boss_precedent": [],
+      "type": "complément"
+    },
+    {
+      "instance": "DMW",
+      "boss_reference": "Prince Tortheldrin",
+      "item": 18373,
+      "title": "Chestplate of Tranquility",
+      "boss_precedent": [],
+      "type": "complément"
+    },
+    {
+      "instance": "DMN",
+      "boss_reference": "Guard Mol'dar",
+      "item": 18494,
+      "title": "Denwatcher's Shoulders",
+      "boss_precedent": [],
+      "type": "complément"
+    },
+    {
+      "instance": "DMN",
+      "boss_reference": "Guard Mol'dar",
+      "item": 18493,
+      "title": "Bulky Iron Spaulders",
+      "boss_precedent": [],
+      "type": "complément"
+    },
+    {
+      "instance": "DMN",
+      "boss_reference": "Guard Mol'dar",
+      "item": 18496,
+      "title": "Heliotrope Cloak",
+      "boss_precedent": [],
+      "type": "complément"
+    },
+    {
+      "instance": "DMN",
+      "boss_reference": "Guard Mol'dar",
+      "item": 18497,
+      "title": "Sublime Wristguards",
+      "boss_precedent": [],
+      "type": "complément"
+    },
+    {
+      "instance": "DMN",
+      "boss_reference": "Guard Mol'dar",
+      "item": 18498,
+      "title": "Hedgecutter",
+      "boss_precedent": [],
+      "type": "complément"
+    },
+    {
+      "instance": "DMN",
+      "boss_reference": "Guard Fengus",
+      "item": 18494,
+      "title": "Denwatcher's Shoulders",
+      "boss_precedent": [],
+      "type": "complément"
+    },
+    {
+      "instance": "DMN",
+      "boss_reference": "Guard Fengus",
+      "item": 18493,
+      "title": "Bulky Iron Spaulders",
+      "boss_precedent": [],
+      "type": "complément"
+    },
+    {
+      "instance": "DMN",
+      "boss_reference": "Guard Fengus",
+      "item": 18496,
+      "title": "Heliotrope Cloak",
+      "boss_precedent": [],
+      "type": "complément"
+    },
+    {
+      "instance": "DMN",
+      "boss_reference": "Guard Fengus",
+      "item": 18497,
+      "title": "Sublime Wristguards",
+      "boss_precedent": [],
+      "type": "complément"
+    },
+    {
+      "instance": "DMN",
+      "boss_reference": "Guard Fengus",
+      "item": 18498,
+      "title": "Hedgecutter",
+      "boss_precedent": [],
+      "type": "complément"
+    },
+    {
+      "instance": "DMN",
+      "boss_reference": "Guard Slip'kik",
+      "item": 18494,
+      "title": "Denwatcher's Shoulders",
+      "boss_precedent": [],
+      "type": "complément"
+    },
+    {
+      "instance": "DMN",
+      "boss_reference": "Guard Slip'kik",
+      "item": 18493,
+      "title": "Bulky Iron Spaulders",
+      "boss_precedent": [],
+      "type": "complément"
+    },
+    {
+      "instance": "DMN",
+      "boss_reference": "Guard Slip'kik",
+      "item": 18496,
+      "title": "Heliotrope Cloak",
+      "boss_precedent": [],
+      "type": "complément"
+    },
+    {
+      "instance": "DMN",
+      "boss_reference": "Guard Slip'kik",
+      "item": 18497,
+      "title": "Sublime Wristguards",
+      "boss_precedent": [],
+      "type": "complément"
+    },
+    {
+      "instance": "DMN",
+      "boss_reference": "Guard Slip'kik",
+      "item": 18498,
+      "title": "Hedgecutter",
+      "boss_precedent": [],
+      "type": "complément"
+    },
+    {
+      "instance": "DMN",
+      "boss_reference": "Cho'Rush the Observer",
+      "item": 18484,
+      "title": "Cho'Rush's Blade",
+      "boss_precedent": [],
+      "type": "complément"
+    },
+    {
+      "instance": "DMN",
+      "boss_reference": "Cho'Rush the Observer",
+      "item": 18490,
+      "title": "Insightful Hood",
+      "boss_precedent": [],
+      "type": "complément"
+    },
+    {
+      "instance": "SM_ARM",
+      "boss_reference": "Herod",
+      "item": 10330,
+      "title": "Scarlet Leggings",
+      "boss_precedent": [],
+      "type": "complément"
+    },
+    {
+      "instance": "SM_ARM",
+      "boss_reference": "Herod",
+      "item": 274295,
+      "title": "Band of Crimson Light",
+      "boss_precedent": [],
+      "type": "complément"
+    },
+    {
+      "instance": "SM_CATH",
+      "boss_reference": "Scarlet Commander Mograine",
+      "item": 10330,
+      "title": "Scarlet Leggings",
+      "boss_precedent": [],
+      "type": "complément"
+    },
+    {
+      "instance": "STRAT",
+      "boss_reference": "Skul",
+      "item": 13394,
+      "title": "Skul's Cold Embrace",
+      "boss_precedent": [],
+      "type": "complément"
+    },
+    {
+      "instance": "STRAT",
+      "boss_reference": "Skul",
+      "item": 13396,
+      "title": "Skul's Ghastly Touch",
+      "boss_precedent": [],
+      "type": "complément"
+    },
+    {
+      "instance": "STRAT",
+      "boss_reference": "Hearthsinger Forresten",
+      "item": 13378,
+      "title": "Songbird Blouse",
+      "boss_precedent": [],
+      "type": "complément"
+    },
+    {
+      "instance": "STRAT",
+      "boss_reference": "Hearthsinger Forresten",
+      "item": 13379,
+      "title": "Piccolo of the Flaming Fire",
+      "boss_precedent": [],
+      "type": "complément"
+    },
+    {
+      "instance": "STRAT",
+      "boss_reference": "Hearthsinger Forresten",
+      "item": 13384,
+      "title": "Rainbow Girdle",
+      "boss_precedent": [],
+      "type": "complément"
+    },
+    {
+      "instance": "STRAT",
+      "boss_reference": "Hearthsinger Forresten",
+      "item": 13383,
+      "title": "Woollies of the Prancing Minstrel",
+      "boss_precedent": [],
+      "type": "complément"
+    },
+    {
+      "instance": "STRAT",
+      "boss_reference": "The Unforgiven",
+      "item": 13404,
+      "title": "Mask of the Unforgiven",
+      "boss_precedent": [],
+      "type": "complément"
+    },
+    {
+      "instance": "STRAT",
+      "boss_reference": "The Unforgiven",
+      "item": 13408,
+      "title": "Soul Breaker",
+      "boss_precedent": [],
+      "type": "complément"
+    },
+    {
+      "instance": "STRAT",
+      "boss_reference": "The Unforgiven",
+      "item": 13409,
+      "title": "Tearfall Bracers",
+      "boss_precedent": [],
+      "type": "complément"
+    },
+    {
+      "instance": "STRAT",
+      "boss_reference": "Timmy the Cruel",
+      "item": 13400,
+      "title": "Vambraces of the Sadist",
+      "boss_precedent": [],
+      "type": "complément"
+    },
+    {
+      "instance": "STRAT",
+      "boss_reference": "Timmy the Cruel",
+      "item": 13402,
+      "title": "Timmy's Galoshes",
+      "boss_precedent": [],
+      "type": "complément"
+    },
+    {
+      "instance": "STRAT",
+      "boss_reference": "Timmy the Cruel",
+      "item": 13401,
+      "title": "The Cruel Hand of Timmy",
+      "boss_precedent": [],
+      "type": "complément"
+    },
+    {
+      "instance": "STRAT",
+      "boss_reference": "Timmy the Cruel",
+      "item": 13403,
+      "title": "Grimgore Noose",
+      "boss_precedent": [],
+      "type": "complément"
+    },
+    {
+      "instance": "STRAT",
+      "boss_reference": "Postmaster Malown",
+      "item": 13393,
+      "title": "Malown's Slam",
+      "boss_precedent": [],
+      "type": "complément"
+    },
+    {
+      "instance": "STRAT",
+      "boss_reference": "Cannon Master Willey",
+      "item": 22403,
+      "title": "Nacreous Shell Necklace",
+      "boss_precedent": [],
+      "type": "complément"
+    },
+    {
+      "instance": "STRAT",
+      "boss_reference": "Cannon Master Willey",
+      "item": 13380,
+      "title": "Willey's Portable Howitzer",
+      "boss_precedent": [],
+      "type": "complément"
+    },
+    {
+      "instance": "STRAT",
+      "boss_reference": "Cannon Master Willey",
+      "item": 13382,
+      "title": "Cannonball Runner",
+      "boss_precedent": [],
+      "type": "complément"
+    },
+    {
+      "instance": "STRAT",
+      "boss_reference": "Cannon Master Willey",
+      "item": 18721,
+      "title": "Barrage Girdle",
+      "boss_precedent": [],
+      "type": "complément"
+    },
+    {
+      "instance": "STRAT",
+      "boss_reference": "Cannon Master Willey",
+      "item": 22407,
+      "title": "Helm of the New Moon",
+      "boss_precedent": [],
+      "type": "complément"
+    },
+    {
+      "instance": "STRAT",
+      "boss_reference": "Cannon Master Willey",
+      "item": 13381,
+      "title": "Master Cannoneer Boots",
+      "boss_precedent": [],
+      "type": "complément"
+    },
+    {
+      "instance": "STRAT",
+      "boss_reference": "Cannon Master Willey",
+      "item": 22405,
+      "title": "Mantle of the Scarlet Crusade",
+      "boss_precedent": [],
+      "type": "complément"
+    },
+    {
+      "instance": "STRAT",
+      "boss_reference": "Cannon Master Willey",
+      "item": 22404,
+      "title": "Willey's Back Scratcher",
+      "boss_precedent": [],
+      "type": "complément"
+    },
+    {
+      "instance": "STRAT",
+      "boss_reference": "Cannon Master Willey",
+      "item": 22406,
+      "title": "Redemption",
+      "boss_precedent": [],
+      "type": "complément"
+    },
+    {
+      "instance": "STRAT",
+      "boss_reference": "Archivist Galford",
+      "item": 13387,
+      "title": "Foresight Girdle",
+      "boss_precedent": [],
+      "type": "complément"
+    },
+    {
+      "instance": "STRAT",
+      "boss_reference": "Archivist Galford",
+      "item": 13386,
+      "title": "Archivist Cape",
+      "boss_precedent": [],
+      "type": "complément"
+    },
+    {
+      "instance": "STRAT",
+      "boss_reference": "Archivist Galford",
+      "item": 18716,
+      "title": "Ash Covered Boots",
+      "boss_precedent": [],
+      "type": "complément"
+    },
+    {
+      "instance": "STRAT",
+      "boss_reference": "Balnazzar",
+      "item": 13348,
+      "title": "Demonshear",
+      "boss_precedent": [],
+      "type": "complément"
+    },
+    {
+      "instance": "STRAT",
+      "boss_reference": "Balnazzar",
+      "item": 18718,
+      "title": "Grand Crusader's Helm",
+      "boss_precedent": [],
+      "type": "complément"
+    },
+    {
+      "instance": "STRAT",
+      "boss_reference": "Balnazzar",
+      "item": 18720,
+      "title": "Shroud of the Nathrezim",
+      "boss_precedent": [],
+      "type": "complément"
+    },
+    {
+      "instance": "STRAT",
+      "boss_reference": "Balnazzar",
+      "item": 13360,
+      "title": "Gift of the Elven Magi",
+      "boss_precedent": [],
+      "type": "complément"
+    },
+    {
+      "instance": "STRAT",
+      "boss_reference": "Balnazzar",
+      "item": 12103,
+      "title": "Star of Mystaria",
+      "boss_precedent": [],
+      "type": "complément"
+    },
+    {
+      "instance": "STRAT",
+      "boss_reference": "Balnazzar",
+      "item": 18717,
+      "title": "Hammer of the Grand Crusader",
+      "boss_precedent": [],
+      "type": "complément"
+    },
+    {
+      "instance": "STRAT",
+      "boss_reference": "Balnazzar",
+      "item": 13369,
+      "title": "Fire Striders",
+      "boss_precedent": [],
+      "type": "complément"
+    },
+    {
+      "instance": "STRAT",
+      "boss_reference": "Stonespine",
+      "item": 13399,
+      "title": "Gargoyle Shredder Talons",
+      "boss_precedent": [],
+      "type": "complément"
+    },
+    {
+      "instance": "STRAT",
+      "boss_reference": "Stonespine",
+      "item": 13397,
+      "title": "Stoneskin Gargoyle Cape",
+      "boss_precedent": [],
+      "type": "complément"
+    },
+    {
+      "instance": "STRAT",
+      "boss_reference": "Nerub'enkan",
+      "item": 18738,
+      "title": "Carapace Spine Crossbow",
+      "boss_precedent": [],
+      "type": "complément"
+    },
+    {
+      "instance": "STRAT",
+      "boss_reference": "Nerub'enkan",
+      "item": 18739,
+      "title": "Chitinous Plate Legguards",
+      "boss_precedent": [],
+      "type": "complément"
+    },
+    {
+      "instance": "STRAT",
+      "boss_reference": "Nerub'enkan",
+      "item": 18740,
+      "title": "Thuzadin Sash",
+      "boss_precedent": [],
+      "type": "complément"
+    },
+    {
+      "instance": "STRAT",
+      "boss_reference": "Baroness Anastari",
+      "item": 13534,
+      "title": "Banshee Finger",
+      "boss_precedent": [],
+      "type": "complément"
+    },
+    {
+      "instance": "STRAT",
+      "boss_reference": "Baroness Anastari",
+      "item": 18728,
+      "title": "Anastari Heirloom",
+      "boss_precedent": [],
+      "type": "complément"
+    },
+    {
+      "instance": "STRAT",
+      "boss_reference": "Baroness Anastari",
+      "item": 18729,
+      "title": "Screeching Bow",
+      "boss_precedent": [],
+      "type": "complément"
+    },
+    {
+      "instance": "STRAT",
+      "boss_reference": "Maleki the Pallid",
+      "item": 18737,
+      "title": "Bone Slicing Hatchet",
+      "boss_precedent": [],
+      "type": "complément"
+    },
+    {
+      "instance": "STRAT",
+      "boss_reference": "Maleki the Pallid",
+      "item": 18734,
+      "title": "Pale Moon Cloak",
+      "boss_precedent": [],
+      "type": "complément"
+    },
+    {
+      "instance": "STRAT",
+      "boss_reference": "Maleki the Pallid",
+      "item": 18735,
+      "title": "Maleki's Footwraps",
+      "boss_precedent": [],
+      "type": "complément"
+    },
+    {
+      "instance": "STRAT",
+      "boss_reference": "Magistrate Barthilas",
+      "item": 18722,
+      "title": "Death Grips",
+      "boss_precedent": [],
+      "type": "complément"
+    },
+    {
+      "instance": "STRAT",
+      "boss_reference": "Magistrate Barthilas",
+      "item": 13376,
+      "title": "Royal Tribunal Cloak",
+      "boss_precedent": [],
+      "type": "complément"
+    },
+    {
+      "instance": "STRAT",
+      "boss_reference": "Magistrate Barthilas",
+      "item": 18726,
+      "title": "Magistrate's Cuffs",
+      "boss_precedent": [],
+      "type": "complément"
+    },
+    {
+      "instance": "STRAT",
+      "boss_reference": "Ramstein the Gorger",
+      "item": 13372,
+      "title": "Slavedriver's Cane",
+      "boss_precedent": [],
+      "type": "complément"
+    },
+    {
+      "instance": "STRAT",
+      "boss_reference": "Ramstein the Gorger",
+      "item": 13373,
+      "title": "Band of Flesh",
+      "boss_precedent": [],
+      "type": "complément"
+    },
+    {
+      "instance": "STRAT",
+      "boss_reference": "Ramstein the Gorger",
+      "item": 13374,
+      "title": "Soulstealer Mantle",
+      "boss_precedent": [],
+      "type": "complément"
+    },
+    {
+      "instance": "STRAT",
+      "boss_reference": "Ramstein the Gorger",
+      "item": 13375,
+      "title": "Crest of Retribution",
+      "boss_precedent": [],
+      "type": "complément"
+    },
+    {
+      "instance": "STRAT",
+      "boss_reference": "Ramstein the Gorger",
+      "item": 13515,
+      "title": "Ramstein's Lightning Bolts",
+      "boss_precedent": [],
+      "type": "complément"
+    },
+    {
+      "instance": "STRAT",
+      "boss_reference": "Baron Rivendare",
+      "item": 22409,
+      "title": "Tunic of the Crescent Moon",
+      "boss_precedent": [],
+      "type": "complément"
+    },
+    {
+      "instance": "STRAT",
+      "boss_reference": "Baron Rivendare",
+      "item": 13346,
+      "title": "Robes of the Exalted",
+      "boss_precedent": [],
+      "type": "complément"
+    },
+    {
+      "instance": "STRAT",
+      "boss_reference": "Baron Rivendare",
+      "item": 22412,
+      "title": "Thuzadin Mantle",
+      "boss_precedent": [],
+      "type": "complément"
+    },
+    {
+      "instance": "STRAT",
+      "boss_reference": "Baron Rivendare",
+      "item": 13344,
+      "title": "Dracorian Gauntlets",
+      "boss_precedent": [],
+      "type": "complément"
+    },
+    {
+      "instance": "STRAT",
+      "boss_reference": "Baron Rivendare",
+      "item": 13349,
+      "title": "Scepter of the Unholy",
+      "boss_precedent": [],
+      "type": "complément"
+    },
+    {
+      "instance": "STRAT",
+      "boss_reference": "Baron Rivendare",
+      "item": 22410,
+      "title": "Gauntlets of Deftness",
+      "boss_precedent": [],
+      "type": "complément"
+    },
+    {
+      "instance": "STRAT",
+      "boss_reference": "Baron Rivendare",
+      "item": 22411,
+      "title": "Helm of the Executioner",
+      "boss_precedent": [],
+      "type": "complément"
+    },
+    {
+      "instance": "STRAT",
+      "boss_reference": "Baron Rivendare",
+      "item": 13345,
+      "title": "Seal of Rivendare",
+      "boss_precedent": [],
+      "type": "complément"
+    },
+    {
+      "instance": "SCHOLO",
+      "boss_reference": "Kirtonos the Herald",
+      "item": 13960,
+      "title": "Heart of the Fiend",
+      "boss_precedent": [],
+      "type": "complément"
+    },
+    {
+      "instance": "SCHOLO",
+      "boss_reference": "Kirtonos the Herald",
+      "item": 13967,
+      "title": "Windreaver Greaves",
+      "boss_precedent": [],
+      "type": "complément"
+    },
+    {
+      "instance": "SCHOLO",
+      "boss_reference": "Kirtonos the Herald",
+      "item": 13969,
+      "title": "Loomguard Armbraces",
+      "boss_precedent": [],
+      "type": "complément"
+    },
+    {
+      "instance": "SCHOLO",
+      "boss_reference": "Kirtonos the Herald",
+      "item": 14024,
+      "title": "Frightalon",
+      "boss_precedent": [],
+      "type": "complément"
+    },
+    {
+      "instance": "SCHOLO",
+      "boss_reference": "Jandice Barov",
+      "item": 14545,
+      "title": "Ghostloom Leggings",
+      "boss_precedent": [],
+      "type": "complément"
+    },
+    {
+      "instance": "SCHOLO",
+      "boss_reference": "Jandice Barov",
+      "item": 14541,
+      "title": "Barovian Family Sword",
+      "boss_precedent": [],
+      "type": "complément"
+    },
+    {
+      "instance": "SCHOLO",
+      "boss_reference": "Jandice Barov",
+      "item": 14548,
+      "title": "Royal Cap Spaulders",
+      "boss_precedent": [],
+      "type": "complément"
+    },
+    {
+      "instance": "SCHOLO",
+      "boss_reference": "Jandice Barov",
+      "item": 18690,
+      "title": "Wraithplate Leggings",
+      "boss_precedent": [],
+      "type": "complément"
+    },
+    {
+      "instance": "SCHOLO",
+      "boss_reference": "Jandice Barov",
+      "item": 18689,
+      "title": "Phantasmal Cloak",
+      "boss_precedent": [],
+      "type": "complément"
+    },
+    {
+      "instance": "SCHOLO",
+      "boss_reference": "Jandice Barov",
+      "item": 22394,
+      "title": "Staff of Metanoia",
+      "boss_precedent": [],
+      "type": "complément"
+    },
+    {
+      "instance": "SCHOLO",
+      "boss_reference": "Rattlegore",
+      "item": 14531,
+      "title": "Frightskull Shaft",
+      "boss_precedent": [],
+      "type": "complément"
+    },
+    {
+      "instance": "SCHOLO",
+      "boss_reference": "Rattlegore",
+      "item": 14537,
+      "title": "Corpselight Greaves",
+      "boss_precedent": [],
+      "type": "complément"
+    },
+    {
+      "instance": "SCHOLO",
+      "boss_reference": "Rattlegore",
+      "item": 14538,
+      "title": "Deadwalker Mantle",
+      "boss_precedent": [],
+      "type": "complément"
+    },
+    {
+      "instance": "SCHOLO",
+      "boss_reference": "Rattlegore",
+      "item": 14539,
+      "title": "Bone Ring Helm",
+      "boss_precedent": [],
+      "type": "complément"
+    },
+    {
+      "instance": "SCHOLO",
+      "boss_reference": "Rattlegore",
+      "item": 18686,
+      "title": "Bone Golem Shoulders",
+      "boss_precedent": [],
+      "type": "complément"
+    },
+    {
+      "instance": "SCHOLO",
+      "boss_reference": "Marduk Blackpool",
+      "item": 14576,
+      "title": "Ebon Hilt of Marduk",
+      "boss_precedent": [],
+      "type": "complément"
+    },
+    {
+      "instance": "SCHOLO",
+      "boss_reference": "Marduk Blackpool",
+      "item": 18692,
+      "title": "Death Knight Sabatons",
+      "boss_precedent": [],
+      "type": "complément"
+    },
+    {
+      "instance": "SCHOLO",
+      "boss_reference": "Vectus",
+      "item": 14577,
+      "title": "Skullsmoke Pants",
+      "boss_precedent": [],
+      "type": "complément"
+    },
+    {
+      "instance": "SCHOLO",
+      "boss_reference": "Vectus",
+      "item": 18691,
+      "title": "Dark Advisor's Pendant",
+      "boss_precedent": [],
+      "type": "complément"
+    },
+    {
+      "instance": "SCHOLO",
+      "boss_reference": "Ras Frostwhisper",
+      "item": 14487,
+      "title": "Bonechill Hammer",
+      "boss_precedent": [],
+      "type": "complément"
+    },
+    {
+      "instance": "SCHOLO",
+      "boss_reference": "Ras Frostwhisper",
+      "item": 14502,
+      "title": "Frostbite Girdle",
+      "boss_precedent": [],
+      "type": "complément"
+    },
+    {
+      "instance": "SCHOLO",
+      "boss_reference": "Ras Frostwhisper",
+      "item": 18694,
+      "title": "Shadowy Mail Greaves",
+      "boss_precedent": [],
+      "type": "complément"
+    },
+    {
+      "instance": "SCHOLO",
+      "boss_reference": "Ras Frostwhisper",
+      "item": 18696,
+      "title": "Intricately Runed Shield",
+      "boss_precedent": [],
+      "type": "complément"
+    },
+    {
+      "instance": "SCHOLO",
+      "boss_reference": "Ras Frostwhisper",
+      "item": 13952,
+      "title": "Iceblade Hacker",
+      "boss_precedent": [],
+      "type": "complément"
+    },
+    {
+      "instance": "SCHOLO",
+      "boss_reference": "Ras Frostwhisper",
+      "item": 14340,
+      "title": "Freezing Lich Robes",
+      "boss_precedent": [],
+      "type": "complément"
+    },
+    {
+      "instance": "SCHOLO",
+      "boss_reference": "Ras Frostwhisper",
+      "item": 14522,
+      "title": "Maelstrom Leggings",
+      "boss_precedent": [],
+      "type": "complément"
+    },
+    {
+      "instance": "SCHOLO",
+      "boss_reference": "Ras Frostwhisper",
+      "item": 14525,
+      "title": "Boneclenched Gauntlets",
+      "boss_precedent": [],
+      "type": "complément"
+    },
+    {
+      "instance": "SCHOLO",
+      "boss_reference": "Ras Frostwhisper",
+      "item": 18693,
+      "title": "Shivery Handwraps",
+      "boss_precedent": [],
+      "type": "complément"
+    },
+    {
+      "instance": "SCHOLO",
+      "boss_reference": "Lord Alexei Barov",
+      "item": 14637,
+      "title": "Cadaverous Armor",
+      "boss_precedent": [],
+      "type": "complément"
+    },
+    {
+      "instance": "SCHOLO",
+      "boss_reference": "Lord Alexei Barov",
+      "item": 18680,
+      "title": "Ancient Bone Bow",
+      "boss_precedent": [],
+      "type": "complément"
+    },
+    {
+      "instance": "SCHOLO",
+      "boss_reference": "Lord Alexei Barov",
+      "item": 18681,
+      "title": "Burial Shawl",
+      "boss_precedent": [],
+      "type": "complément"
+    },
+    {
+      "instance": "SCHOLO",
+      "boss_reference": "Lord Alexei Barov",
+      "item": 18682,
+      "title": "Ghoul Skin Leggings",
+      "boss_precedent": [],
+      "type": "complément"
+    },
+    {
+      "instance": "SCHOLO",
+      "boss_reference": "Lord Alexei Barov",
+      "item": 18683,
+      "title": "Hammer of the Vesper",
+      "boss_precedent": [],
+      "type": "complément"
+    },
+    {
+      "instance": "SCHOLO",
+      "boss_reference": "Lord Alexei Barov",
+      "item": 18684,
+      "title": "Dimly Opalescent Ring",
+      "boss_precedent": [],
+      "type": "complément"
+    },
+    {
+      "instance": "SCHOLO",
+      "boss_reference": "Lord Alexei Barov",
+      "item": 14611,
+      "title": "Bloodmail Hauberk",
+      "boss_precedent": [],
+      "type": "complément"
+    },
+    {
+      "instance": "SCHOLO",
+      "boss_reference": "Lord Alexei Barov",
+      "item": 14624,
+      "title": "Deathbone Chestplate",
+      "boss_precedent": [],
+      "type": "complément"
+    },
+    {
+      "instance": "SCHOLO",
+      "boss_reference": "Darkmaster Gandling",
+      "item": 13951,
+      "title": "Vigorsteel Vambraces",
+      "boss_precedent": [],
+      "type": "complément"
+    },
+    {
+      "instance": "SCHOLO",
+      "boss_reference": "Darkmaster Gandling",
+      "item": 13398,
+      "title": "Boots of the Shrieker",
+      "boss_precedent": [],
+      "type": "complément"
+    },
+    {
+      "instance": "SCHOLO",
+      "boss_reference": "Darkmaster Gandling",
+      "item": 13938,
+      "title": "Bonecreeper Stylus",
+      "boss_precedent": [],
+      "type": "complément"
+    },
+    {
+      "instance": "SCHOLO",
+      "boss_reference": "Darkmaster Gandling",
+      "item": 13944,
+      "title": "Tombstone Breastplate",
+      "boss_precedent": [],
+      "type": "complément"
+    },
+    {
+      "instance": "SCHOLO",
+      "boss_reference": "Darkmaster Gandling",
+      "item": 13953,
+      "title": "Silent Fang",
+      "boss_precedent": [],
+      "type": "complément"
+    },
+    {
+      "instance": "SCHOLO",
+      "boss_reference": "Darkmaster Gandling",
+      "item": 13964,
+      "title": "Witchblade",
+      "boss_precedent": [],
+      "type": "complément"
+    },
+    {
+      "instance": "SCHOLO",
+      "boss_reference": "Darkmaster Gandling",
+      "item": 22433,
+      "title": "Don Mauricio's Band of Domination",
+      "boss_precedent": [],
+      "type": "complément"
+    }
+  ],
+  "note": "Absence dans FDJ non considérée comme preuve de retrait. Objets probableLoot exclus, identifiants manquants ignorés."
+}

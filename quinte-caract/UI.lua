@@ -62,20 +62,42 @@ local function itemIcon(id)
 end
 
 local frame
-local state = { query = '', offset = 0, selected = nil, results = {} }
+local state = { query = '', offset = 0, selected = nil, results = {}, mainOpen = true, altOpen = false }
 local function view() return (QuinteCaractDB and QuinteCaractDB.view) == 'list' and 'list' or 'sheet' end
 local refreshPending = false
 
 function UI.Characters(query)
-    local needle, out = fold(query or ''), {}
+    local needle, out, families = fold(query or ''), {}, Q.Families()
     for key, c in pairs(QuinteCaractDB.characters) do
-        if type(c) == 'table' and ((c.level or 0) >= Q.MIN_LEVEL or c.source == 'self') and (needle == '' or fold(key):find(needle, 1, true)) then out[#out + 1] = { key = key, data = c } end
+        if type(c) == 'table' then
+            local main = Q.MainOf(key, c, families)
+            local principal = Quintessence.SameName(key, main)
+            if ((c.level or 0) >= Q.MIN_LEVEL or c.source == 'self' and principal)
+                and (needle == '' or fold(key):find(needle, 1, true)) then
+                out[#out + 1] = {key = key, data = c, principal = principal, main = main}
+            end
+        end
     end
     table.sort(out, function(a, b)
+        if a.principal ~= b.principal then return a.principal end
         local la, lb = a.data.level or 0, b.data.level or 0
         if la ~= lb then return la > lb end
         return a.key < b.key
     end)
+    return out
+end
+
+function UI.MenuRows(results, query)
+    local mains, alts, out = {}, {}, {}
+    for _, entry in ipairs(results) do
+        local list = entry.principal and mains or alts
+        list[#list + 1] = entry
+    end
+    for _, section in ipairs({{'mainOpen', 'Principaux', mains}, {'altOpen', 'Rerolls', alts}}) do
+        local open = state[section[1]] or (query or '') ~= ''
+        out[#out + 1] = {section = section[1], label = section[2] .. ' (' .. #section[3] .. ')', open = open}
+        if open then for _, entry in ipairs(section[3]) do out[#out + 1] = entry end end
+    end
     return out
 end
 
@@ -85,13 +107,15 @@ local function renderDetails()
     if not entry then d:Hide(); frame.detailsEmpty:Show(); return end
     frame.detailsEmpty:Hide(); d:Show()
     local c = entry
+    local main = Q.MainOf(state.selected, c)
     local canStats = Q.StatisticsOfficer and Q.StatisticsOfficer()
     d.statButton:SetShown(canStats and true or false)
     if not canStats then state.statistics = false end
     d.name:SetText('|c' .. classHex(c.class) .. Q.Safe(c.name) .. '|r' .. (c.source == 'sync' and ' |cff9aa4b8(reçu par la synchro)|r' or ''))
     d.meta:SetText('Niveau ' .. number(c.level) .. ' · ' .. Q.Safe(c.race or '?') .. ' ' .. Q.Safe(className(c.class))
         .. (c.spec and (' · ' .. Q.Safe(c.spec)) or '') .. (c.guildRank and (' · ' .. Q.Safe(c.guildRank)) or '')
-        .. (c.itemLevel and (' · iLvl ' .. number(c.itemLevel)) or ''))
+        .. (c.itemLevel and (' · iLvl ' .. number(c.itemLevel)) or '')
+        .. (Quintessence.SameName(state.selected, main) and ' · Principal' or (' · Reroll de ' .. Q.Safe(Quintessence.DisplayName(main)))))
     local s, lines = c.stats or {}, {}
     for _, pair in ipairs({ { 'health', 'Vie' }, { 'power', 'Mana' }, { 'strength', 'Force' }, { 'agility', 'Agilité' }, { 'stamina', 'Endurance' },
         { 'intellect', 'Intelligence' }, { 'spirit', 'Esprit' }, { 'armor', 'Armure' }, { 'attackPower', 'PA' }, { 'spellPower', 'Puiss. sorts' } }) do
@@ -199,12 +223,17 @@ local function renderDetails()
 end
 
 local function renderList()
-    local results = state.results
+    local results = UI.MenuRows(state.results, state.query)
     state.offset = math.max(0, math.min(state.offset, #results - ROWS))
     for i = 1, ROWS do
         local row, entry = frame.rows[i], results[state.offset + i]
         row.key = entry and entry.key
-        if entry then
+        row.section = entry and entry.section
+        if entry and entry.section then
+            row.label:SetText('|c' .. S.hex.gold .. entry.label .. '|r')
+            row.info:SetText(entry.open and '-' or '+')
+            row:SetSelected(false); row:Show()
+        elseif entry then
             local c = entry.data
             row.label:SetText('|c' .. classHex(c.class) .. Q.Safe(c.name or entry.key) .. '|r')
             row.info:SetText(number(c.level) .. (c.itemLevel and (' · ' .. number(c.itemLevel)) or ''))
@@ -212,14 +241,15 @@ local function renderList()
             row:Show()
         else row:Hide() end
     end
-    frame.count:SetText(#results .. ' personnage' .. (#results > 1 and 's' or ''))
+    frame.count:SetText(#state.results .. ' personnage' .. (#state.results > 1 and 's' or ''))
 end
 
 function UI.Refresh()
     if not frame or not frame:IsVisible() then return end
     state.results = UI.Characters(state.query)
-    if state.selected and not QuinteCaractDB.characters[state.selected] then state.selected = nil end
-    if not state.selected then state.selected = QuinteCaractDB.characters[Q.Key()] and Q.Key() or (state.results[1] and state.results[1].key) end
+    local found = false
+    for _, entry in ipairs(state.results) do if entry.key == state.selected then found = true; break end end
+    if not found then state.selected = state.results[1] and state.results[1].key end
     renderList(); renderDetails()
 end
 
@@ -233,7 +263,7 @@ local function create(parent)
     frame = CreateFrame('Frame', nil, parent)
     frame:SetAllPoints(parent)
     local search = S.Input(frame, LIST_W, 'Rechercher un personnage…')
-    search:SetPoint('TOPLEFT', 0, 0); search:SetMaxLetters(24)
+    search:SetPoint('TOPLEFT', 0, 0); search:SetMaxLetters(40)
     search:SetScript('OnTextChanged', function(box)
         state.query = box:GetText() or ''; box.placeholder:SetShown(state.query == ''); state.offset = 0
         Q.Run('recherche', UI.Refresh)
@@ -247,6 +277,9 @@ local function create(parent)
         row.label = text(row, 'GameFontHighlightSmall'); row.label:SetPoint('LEFT', 12, 0); row.label:SetPoint('RIGHT', -110, 0)
         row.info = text(row, 'GameFontDisableSmall', 'RIGHT'); row.info:SetPoint('RIGHT', -10, 0)
         row:SetScript('OnClick', function(self)
+            if self.section then
+                state[self.section] = not state[self.section]; Q.Run('menu des personnages', UI.Refresh); return
+            end
             if self.key then state.selected = self.key; Q.Run('sélection', function() renderList(); renderDetails() end) end
         end)
         frame.rows[i] = row
