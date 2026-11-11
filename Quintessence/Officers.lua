@@ -609,6 +609,23 @@ end
 
 local builders = { joueurs = createPlayers, chat = createChat, pack = createPack,
     journal = function(body) return Core.GuildLog.CreatePanel(body) end }
+local layoutTabs
+--- Onglet ajouté par un module (quinte-map 0.10.0 : « Log PvP »), visible des seuls officiers comme toute la section.
+--- tab = { id, label, width?, after? (id de l'onglet précédent, sinon avant « Versions »), create = function(body, w, h) }
+--- create renvoie la page (cadre avec page.refresh()), construite au premier affichage, w × h = zone sous les onglets.
+function O.AddTab(tab)
+    if type(tab) ~= 'table' or type(tab.id) ~= 'string' or type(tab.create) ~= 'function' or builders[tab.id] then return false end
+    for _, t in ipairs(TABS) do if t.id == tab.id then return false end end
+    local at
+    for i, t in ipairs(TABS) do
+        if t.id == tab.after then at = i + 1 end
+        if not at and t.id == 'versions' then at = i end
+    end
+    table.insert(TABS, at or (#TABS + 1), { id = tab.id, label = tostring(tab.label or tab.id), width = tonumber(tab.width) })
+    builders[tab.id] = function(body) return tab.create(body, W, BODY_H) end
+    if root then layoutTabs() end
+    return true
+end
 --- Affiche un onglet de la section.
 function O.Select(id)
     active = id
@@ -617,7 +634,8 @@ function O.Select(id)
             local body = root.body
             if id == 'annonces' then pages[id] = A.CreatePanel(body)
             elseif id == 'versions' then pages[id] = V.CreatePanel(body)
-            else pages[id] = builders[id](body) end
+            elseif builders[id] then pages[id] = builders[id](body)
+            else return O.Select('annonces') end
         end
         for key, page in pairs(pages) do page:SetShown(key == id) end
         for key, b in pairs(tabButtons) do b:SetActive(key == id) end
@@ -637,16 +655,24 @@ function O.Open(id)
     O.Select(id)
     return true
 end
-local function createRoot(parent)
-    root = CreateFrame('Frame', nil, parent); root:SetAllPoints(parent)
+-- Boutons des onglets dans l'ordre de TABS (un onglet ajouté après coup par un module y prend sa place)
+function layoutTabs()
     local x = 0
     for _, tab in ipairs(TABS) do
-        local width = tab.id == 'pack' and 112 or 90
-        local b = S.Button(root, tab.label, width, 26, 'ghost'); b:SetPoint('TOPLEFT', x, 0)
-        b:SetScript('OnClick', function() Core.Run('officiers', O.Select, tab.id) end)
-        tabButtons[tab.id] = b
+        local width = tab.width or (tab.id == 'pack' and 112 or 90)
+        local b = tabButtons[tab.id]
+        if not b then
+            b = S.Button(root, tab.label, width, 26, 'ghost')
+            b:SetScript('OnClick', function() Core.Run('officiers', O.Select, tab.id) end)
+            tabButtons[tab.id] = b
+        end
+        b:ClearAllPoints(); b:SetPoint('TOPLEFT', x, 0)
         x = x + width + 6
     end
+end
+local function createRoot(parent)
+    root = CreateFrame('Frame', nil, parent); root:SetAllPoints(parent)
+    layoutTabs()
     root.body = CreateFrame('Frame', nil, root)
     root.body:SetPoint('TOPLEFT', 0, -BODY_TOP); root.body:SetSize(W, H - BODY_TOP)
     root:SetScript('OnShow', function() Core.Run('officiers', O.Select, active) end)

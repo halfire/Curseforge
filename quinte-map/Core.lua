@@ -6,7 +6,7 @@ local addonName, Q = ...
   Règle Retail 12+ : uniquement nos propres cadres, aucune écriture dans les objets de Blizzard.
 ]]
 local Core = Quintessence
-Q.name, Q.version = addonName or 'quinte-map', '0.9.1'
+Q.name, Q.version = addonName or 'quinte-map', '0.10.0'
 Q.debug = { errors = {}, slow = {} }
 
 function Q.Call(fn, ...)
@@ -138,6 +138,8 @@ function Q.OnNetworkMessage(data, sender)
         Q.OnReceiveCampRemove(data, sender)
     elseif data.t == 'rare' and Q.OnReceiveRare then
         Q.OnReceiveRare(data, sender)
+    elseif (data.t == 'pvp' or data.t == 'pvpa') and Q.PvP and Q.PvP.Share then
+        Q.PvP.Share.OnMessage(data, sender) -- journal PvP chuchoté aux officiers (PvPShare.lua)
     end
 end
 

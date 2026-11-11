@@ -4,7 +4,8 @@ local _, Q = ...
 local P = { ready = false }
 Q.PvP = P
 local MAX_EVENTS, MAX_MATCHES, KEEP = 1000, 30, 28 * 86400
-local BYTE_BUDGET = 3 * 1024 * 1024
+local BYTE_BUDGET = 3 * 1024 * 1024 -- total du journal : relevés à soi d'abord, puis ceux reçus des membres (PvPShare.lua)
+P.MAX_EVENTS, P.MAX_MATCHES, P.KEEP, P.BYTE_BUDGET = MAX_EVENTS, MAX_MATCHES, KEEP, BYTE_BUDGET
 local weights = setmetatable({}, { __mode = "k" })
 local actors, recentKills = {}, {}
 local pendingDeath, alive = nil, true
@@ -24,9 +25,12 @@ local function get(fn, ...)
     local function plain(v) if not secret(v) then return v end end
     return plain(a), plain(b), plain(c), plain(d), plain(e), plain(f), plain(g), plain(h)
 end
+-- max : longueur ; toute autre valeur est ignorée (text(get(f)) reçoit aussi les valeurs suivantes de f : sur Forever,
+-- GetGuildInfo('player') donne le nom du grade en 2e valeur, qui faisait planter l'initialisation du journal en 0.9.x)
 local function text(v, max)
     if secret(v) or type(v) ~= 'string' or v == '' then return nil end
-    return v:sub(1, max or 120)
+    if type(max) ~= 'number' or secret(max) then max = 120 end
+    return v:sub(1, max)
 end
 local function number(v)
     if secret(v) or type(v) ~= 'number' or v ~= v or v == math.huge or v == -math.huge then return nil end
@@ -39,14 +43,15 @@ local function later(delay, fn)
     if C_Timer and C_Timer.After then C_Timer.After(delay, function() Q.Run('journal PvP différé', fn) end)
     else fn() end
 end
+P.Secret, P.Clock, P.Now, P.Later, P.Get, P.IsPlayerGUID = secret, clock, now, later, get, playerGuid
 local function actor(unit)
     local guid = text(get(UnitGUID, unit))
     if not guid then return nil end
-    local name = (unit == 'player' and text(get(Q.PlayerName))) or text(get(Quintessence.UnitFullName, unit))
+    local name = (unit == 'player' and text((get(Q.PlayerName)))) or text((get(Quintessence.UnitFullName, unit)))
     local _, class = get(UnitClass, unit)
     local faction = text(get(UnitFactionGroup, unit), 20)
     local a = { guid = guid, name = name, class = text(class, 20), level = number(get(UnitLevel, unit)), faction = faction,
-        race = text(get(UnitRace, unit), 60), guild = text(get(GetGuildInfo, unit)), sex = number(get(UnitSex, unit)) }
+        race = text(get(UnitRace, unit), 60), guild = text((get(GetGuildInfo, unit))), sex = number(get(UnitSex, unit)) }
     actors[guid] = { value = a, at = clock() }
     return a
 end
@@ -128,8 +133,17 @@ local function weight(v)
     for k, value in pairs(v) do n = n + 48 + weight(k) + weight(value) end
     return n
 end
+--- Poids estimé d'un relevé, gardé en cache tant que le relevé ne change pas (P.Forget le recalcule).
+function P.Weight(r)
+    if type(r) ~= 'table' then return weight(r) end
+    weights[r] = weights[r] or weight(r)
+    return weights[r]
+end
+function P.Forget(r) if r then weights[r] = nil end end
+P.Revision = 0 -- monte à chaque changement du journal (onglet Log PvP des officiers)
 local function enforceBudget(changed)
     if changed then weights[changed] = nil end
+    P.Revision = P.Revision + 1
     local total = 0
     for _, list in ipairs({ store.events, store.matches }) do
         for _, r in ipairs(list) do weights[r] = weights[r] or weight(r); total = total + weights[r] end
@@ -146,6 +160,10 @@ local function enforceBudget(changed)
         diag('budgetPruned')
     end
     store.diagnostics.estimatedBytes = total
+    -- Les relevés reçus des membres (officier) se partagent ce qui reste du même budget
+    if P.Share and P.Share.Enforce then P.Share.Enforce(BYTE_BUDGET - total) end
+    -- Nouveau relevé ou partie revue : envoi aux officiers en ligne (PvPShare.lua), jamais pendant la collecte
+    if changed and P.Share and P.Share.Changed then P.Share.Changed(changed) end
 end
 local function save(kind, other, evidence, captured)
     if not P.ready then return end
@@ -276,14 +294,18 @@ function P.UpdateMatch()
     local ctx = context()
     if ctx.mode ~= 'battleground' and ctx.mode ~= 'arena' then
         if match then
+            local left = match
             if not match.endedAt then match.leftAt = now(); match.status = 'left'; match.revision = match.revision + 1 end
             store.characters[owner.guid].activeMatchID = nil; match = nil
+            enforceBudget(left)
         end
         return
     end
     if match and match.context.instanceID ~= ctx.instanceID then
         match.status, match.leftAt = 'left', now(); match.revision = match.revision + 1
+        local left = match
         match = nil
+        enforceBudget(left)
     end
     if not match then
         match = { schema = 1, id = nextID(), reporter = owner, source = 'self', context = ctx,
@@ -370,11 +392,17 @@ function P.Init()
     trim(store.events, MAX_EVENTS, 'at'); trim(store.matches, MAX_MATCHES, 'at')
     P.UpdateMatch()
     enforceBudget()
+    if P.Share and P.Share.Start then P.Share.Start() end
 end
+function P.Store() return store end
+function P.Owner() return owner end
+function P.Character() return store and owner and store.characters[owner.guid] end
+function P.Context() return context() end
 function P.Debug()
     if not store then return end
     Q.Print(string.format('Journal PvP v%s : %s · %d événements · %d relevés BG/arène · %d retirés (28 jours / capacité).',
         tostring(store.schema), P.ready and 'actif' or 'en attente', #(store.events or {}), #(store.matches or {}), ((store.diagnostics or {}).pruned or 0) + ((store.diagnostics or {}).budgetPruned or 0)))
+    if P.Share and P.Share.Status then Q.Print('Partage aux officiers : ' .. P.Share.Status()) end
 end
 local f = CreateFrame('Frame')
 local events = { 'PLAYER_LOGIN', 'PLAYER_ENTERING_WORLD', 'PLAYER_GUILD_UPDATE', 'PLAYER_LOGOUT', 'PLAYER_DEAD', 'PLAYER_ALIVE', 'PLAYER_UNGHOST',
