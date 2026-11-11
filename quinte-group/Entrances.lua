@@ -161,10 +161,23 @@ local ZONE_FR = {
     ['Wetlands'] = 'Les Paluns', ['Winterspring'] = 'Berceau-de-l\'Hiver',
 }
 
---- La quête a-t-elle un lieu connu (donneur placé, ou dans le donjon) ?
-function Q.HasDungeonQuestPlace(questId)
-    local p = Q.DUNGEON_QUEST_PLACES and Q.DUNGEON_QUEST_PLACES[questId]
-    return (p and p.start) ~= nil
+local function questPlace(questId)
+    local finish = Q.REFERENCE_QUEST_TURNINS and Q.REFERENCE_QUEST_TURNINS[questId]
+    if finish and Q.IsOnQuest(questId) and C_QuestLog and C_QuestLog.IsComplete then
+        local ok, ready = pcall(C_QuestLog.IsComplete, questId)
+        if ok and not (issecretvalue and issecretvalue(ready)) and ready == true then return finish end
+    end
+    return Q.DUNGEON_QUEST_PLACES and Q.DUNGEON_QUEST_PLACES[questId]
+end
+--- La quête a-t-elle un repère sur la carte du monde ou le plan du donjon ?
+function Q.HasDungeonQuestPlace(questId, code)
+    local p = questPlace(questId)
+    return (p and p.start and (p.at or (p.x and p.y)) and true)
+        or (code and Quintessence.HasDungeonQuestPin and Quintessence.HasDungeonQuestPin(code, questId)) or false
+end
+function Quintessence.HasDungeonQuestWaypoint(questId)
+    local p = questPlace(questId)
+    return p and p.start and p.x and p.y and not p.at and true or false
 end
 --- Phrase décrivant où prendre une quête, nil si le lieu est inconnu.
 local function placeText(p, questId)
@@ -181,17 +194,23 @@ local function placeText(p, questId)
 end
 --- Un clic sur « Carte » : repère et carte sur le donneur ; quête prise dans le donjon, repère sur son entrée.
 function Q.ShowDungeonQuestPlace(questId, title, code, route)
-    local p = Q.DUNGEON_QUEST_PLACES and Q.DUNGEON_QUEST_PLACES[questId]
+    local p = questPlace(questId)
+    if not route and code and (not p or not p.x or p.at) and Quintessence.ShowDungeonQuestPin
+        and Quintessence.ShowDungeonQuestPin(code, questId) then return true end
     local name = Q.Safe(title or ('quête ' .. tostring(questId)))
     if not (p and p.start) then Q.Print('Lieu inconnu pour ' .. name .. '.'); return false end
     Q.Print(name .. ' : ' .. placeText(p, questId) .. '.')
     if p.at then return code ~= nil and Q.ShowDungeonEntrance(code, route) end
-    if not p.x then return false end
+    if not (p.x and p.y) then return false end
     local mapID = findMap(ZONE_FR[p.zone], p.zone, p.map)
     local placed = mapID and placeWaypoint(mapID, p.x, p.y, title, route, 'pickup')
     if mapID and C_Map and C_Map.OpenWorldMap then pcall(C_Map.OpenWorldMap, mapID) end
     if not placed then Q.Print('Repère impossible sur cette carte.') end
     return placed and true or false
+end
+function Quintessence.ShowDungeonQuestWaypoint(questId, title)
+    if not Quintessence.HasDungeonQuestWaypoint(questId) then return false end
+    return Q.ShowDungeonQuestPlace(questId, title)
 end
 --- Écrit dans le chat où prendre les quêtes encore à faire du donjon (une carte ne porte qu'un seul repère).
 function Q.PrintDungeonQuestPlaces(code)

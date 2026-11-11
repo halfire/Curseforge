@@ -31,7 +31,13 @@ local function addHiddenDungeonQuests(quests)
     if not dungeonQuestIDs then
         dungeonQuestIDs = {}
         for _, list in pairs(Q.DUNGEON_QUESTS) do
-            for _, q in ipairs(list) do dungeonQuestIDs[q[1]] = q end
+            for _, q in ipairs(list) do
+                dungeonQuestIDs[q[1]] = q
+                local info = Q.REFERENCE_QUEST_INFO and Q.REFERENCE_QUEST_INFO[q[1]]
+                for _, step in ipairs(info and info.prereqs or {}) do
+                    dungeonQuestIDs[step.id] = dungeonQuestIDs[step.id] or { step.id, 0, step.title }
+                end
+            end
         end
     end
     local seen = {}
@@ -41,7 +47,8 @@ local function addHiddenDungeonQuests(quests)
             local fn = C_QuestLog and C_QuestLog.GetTitleForQuestID
             local ok, title = false, nil
             if fn then ok, title = pcall(fn, id) end
-            quests[#quests + 1] = { id = id, title = (ok and type(title) == 'string' and title ~= '') and title or q[3], level = q[2] }
+            quests[#quests + 1] = { id = id, title = (ok and not (issecretvalue and issecretvalue(title))
+                and type(title) == 'string' and title ~= '') and title or q[3], level = q[2] }
         end
     end
     table.sort(quests, function(a, b) return a.id < b.id end)
@@ -156,6 +163,7 @@ function Q.OnReceiveQuestSync(data, sender)
     }
 
     if Q.UI and Q.UI.RefreshLeveling then Q.UI.RefreshLeveling() end
+    if Q.UI and Q.UI.RefreshDungeons then Q.UI.RefreshDungeons() end
 end
 
 -- Trouver les quêtes en commun entre le joueur et ses compagnons de guilde (myQuests : journal déjà lu, facultatif)
@@ -249,6 +257,7 @@ function Q.ForgetMemberQuests(name)
         list[key] = nil
         replied[key] = nil
         if Q.UI and Q.UI.RefreshLeveling then Q.UI.RefreshLeveling() end
+        if Q.UI and Q.UI.RefreshDungeons then Q.UI.RefreshDungeons() end
     end
 end
 

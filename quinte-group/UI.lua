@@ -56,19 +56,14 @@ local function showQuestTooltip(owner, q)
     if q.minLevel then GameTooltip:AddLine('Niveau requis : ' .. q.minLevel, 1, 1, 1) end
     if q.tag then GameTooltip:AddLine('(' .. q.tag .. ')', 1, 0.82, 0) end
     if q.note then GameTooltip:AddLine(q.note, 1, 0.82, 0, true) end
-    if q.chain then
-        -- Chaîne complète numérotée : prérequis, cette quête, suites (Wowhead Forever)
-        local STATE = { done = 'faite', log = 'en cours', todo = 'à faire', locked = 'à faire', low = 'à faire' }
+    if q.hasPrerequisites then
         GameTooltip:AddLine('Chaîne de quêtes :', 1, 0.82, 0)
-        for i, step in ipairs(q.chain) do
-            -- Même largeur de titre pour chaque étape, même dans une longue chaîne.
-            local label = i .. '/' .. #q.chain .. '  ' .. Q.Safe(step.title or ('quête ' .. step.id))
+        for i, step in ipairs(q.journey) do
+            local label = i .. '/' .. #q.journey .. '  ' .. Q.Safe(step.title or ('quête ' .. step.id))
             if step.here then
-                GameTooltip:AddLine(label .. ' ← celle-ci', 0.36, 0.82, 0.66, true)
+                GameTooltip:AddLine(label .. ' · quête du donjon', 0.36, 0.82, 0.66, true)
             else
-                local where = step.inDungeon and 'dans ce donjon' or (step.outside and 'hors du donjon' or nil)
-                local note = (q.narrative and 'parcours' or step.step or 'étape') .. (where and (', ' .. where) or '') .. ', ' .. (STATE[step.state] or 'à faire')
-                GameTooltip:AddLine(label .. ' (' .. note .. ')', 1, 1, 1, true)
+                GameTooltip:AddLine(label .. ' · ' .. step.status, 1, 1, 1, true)
             end
         end
     elseif q.prev then
@@ -77,11 +72,14 @@ local function showQuestTooltip(owner, q)
     end
     if q.start then GameTooltip:AddLine('Donneur : ' .. Q.Safe(q.start), 1, 1, 1, true) end
     if not q.known then GameTooltip:AddLine('Classe et quête précédente non vérifiées', 0.6, 0.6, 0.6, true) end
-    if q.state == 'log' then
+    if q.state == 'log' and not q.virtual then
         GameTooltip:AddLine(q.shareable and 'Partageable avec le groupe' or 'Ne peut pas être partagée', 1, 0.82, 0)
     end
     if #q.holders > 0 then GameTooltip:AddLine('L\'ont : ' .. Q.Safe(table.concat(q.holders, ', ')), 1, 1, 1, true) end
     if #q.groupMissing > 0 then GameTooltip:AddLine('Pas dans le journal de : ' .. Q.Safe(table.concat(q.groupMissing, ', ')), 1, 1, 1, true) end
+    if owner.questGroupCount then
+        GameTooltip:AddLine(owner.questGroupCount .. ' dans le groupe (d’après les journaux reçus)', 1, 0.82, 0, true)
+    end
     GameTooltip:Show()
 end
 
@@ -650,6 +648,10 @@ local function createDungeonsPanel(parent)
         icon:SetSize(18, 18); icon:SetPoint('LEFT', 8, 0)
         icon:SetTexCoord(0.08, 0.92, 0.08, 0.92)
 
+        local branch = r:CreateTexture(nil, 'ARTWORK')
+        branch:SetPoint('TOPLEFT', 16, 0); branch:SetSize(1, 41)
+        branch:SetColorTexture(unpack(S.colors.line)); branch:Hide()
+
         local itemName = S.Text(r, 12, S.colors.text)
         itemName:SetPoint('LEFT', 32, 0); itemName:SetWidth(310)
 
@@ -657,16 +659,18 @@ local function createDungeonsPanel(parent)
         membersList:SetPoint('RIGHT', -10, 0); membersList:SetWidth(IW - 360)
 
         local chain = S.Button(r, '+', 22, 20, 'ghost'); chain:SetPoint('LEFT', 4, 0); chain:Hide()
+        local count = S.Text(r, 11, S.colors.gold, 'RIGHT')
+        count:SetPoint('RIGHT', -7, 0); count:SetWidth(34); count:Hide()
         local action = S.Button(r, 'Partager', 64, 20, 'ghost')
-        action:SetPoint('RIGHT', -6, 0)
+        action:SetPoint('RIGHT', -46, 0)
         action:Hide()
 
         -- Repère sur le donneur de la quête
         local place = S.Button(r, 'Carte', 46, 20, 'ghost')
-        place:SetPoint('RIGHT', -74, 0)
+        place:SetPoint('RIGHT', -114, 0)
         place:Hide()
         local route = S.Button(r, 'Chemin', 54, 20, 'ghost')
-        route:SetPoint('RIGHT', -124, 0)
+        route:SetPoint('RIGHT', -164, 0)
         route:Hide()
 
         r:SetScript('OnEnter', function(self)
@@ -679,6 +683,8 @@ local function createDungeonsPanel(parent)
             frame = r,
             chain = chain,
             icon = icon,
+            branch = branch,
+            count = count,
             itemName = itemName,
             membersList = membersList,
             action = action,
@@ -838,6 +844,7 @@ function UI.RefreshDungeons()
     if dungeonState.showQuests then
         local todo, toShare = 0, 0
         local grouped = IsInGroup and IsInGroup() and true or false
+        local counts, groupSize = Q.PartyQuestCounts()
         for _, q in ipairs(quests) do
             if q.state == 'todo' and not q.virtual then todo = todo + 1 end
             if q.shareable then toShare = toShare + 1 end
@@ -852,39 +859,42 @@ function UI.RefreshDungeons()
             local r, q = p.lootRows[i], quests[dungeonState.lootOffset + i]
             if q and i <= QUEST_ROWS then
                 r.frame:ClearAllPoints(); r.frame:SetPoint('TOPLEFT', 1, -2 - (i - 1) * 42); r.frame:SetHeight(41)
-                r.itemName:ClearAllPoints(); r.itemName:SetPoint('TOPLEFT', 32, -4)
-                r.membersList:ClearAllPoints(); r.membersList:SetPoint('BOTTOMLEFT', 32, 4)
+                local inset = q.virtual and 30 or 0
+                r.itemName:ClearAllPoints(); r.itemName:SetPoint('TOPLEFT', 32 + inset, -4)
+                r.membersList:ClearAllPoints(); r.membersList:SetPoint('BOTTOMLEFT', 32 + inset, 4)
+                r.icon:ClearAllPoints(); r.icon:SetPoint('LEFT', 8 + inset, 0)
+                r.branch:SetShown(q.virtual == true)
                 r.membersList:SetJustifyH('LEFT')
                 r.frame:Show(); r.frame.itemID = nil; r.frame.quest = q
-                r.icon:SetTexture('Interface\\Icons\\INV_Misc_Note_01')
-                -- Numérotation stable : aucune perte de largeur dans les longues chaînes.
-                local indent = ''
+                r.icon:SetTexture(q.virtual and q.state == 'done' and 'Interface\\RaidFrame\\ReadyCheck-Ready'
+                    or 'Interface\\Icons\\INV_Misc_Note_01')
                 local progress = q.hasPrerequisites and ('  ' .. q.journeyDone .. '/' .. q.journeyTotal) or ''
                 r.chain:SetShown(q.hasPrerequisites and true or false)
                 r.icon:SetShown(not q.hasPrerequisites)
                 r.chain:SetLabel(dungeonState.expandedQuests[q.id] and '-' or '+')
                 r.chain:SetScript('OnClick', function() dungeonState.expandedQuests[q.id] = not dungeonState.expandedQuests[q.id]; UI.RefreshDungeons() end)
-                if q.virtual then
-                    -- Étape de la chaîne faite hors de ce donjon : ligne d'information, sans action
-                    r.itemName:SetText(string.format('%s|c%s%s (%s)|r', indent, S.hex.muted, Q.Safe(q.title or ('quête ' .. q.id)), q.tag))
-                    r.itemName:SetWidth(IW - 42)
-                    r.membersList:SetWidth(IW - 42)
-                    r.action:Hide()
-                    r.place:SetShown(Q.HasDungeonQuestPlace(q.id)); r.route:SetShown(Q.HasDungeonQuestPlace(q.id))
-                    r.place:SetScript('OnClick', function() Q.ShowDungeonQuestPlace(q.id, q.title, selectedNeeds.code) end)
-                    r.route:SetScript('OnClick', function() Q.ShowDungeonQuestPlace(q.id, q.title, selectedNeeds.code, true) end)
-                    r.membersList:SetText('|c' .. (q.state == 'done' and S.hex.mint or S.hex.muted) .. q.stateText .. (q.narrative and ' · parcours Wowhead, étapes possiblement facultatives' or '') .. '|r')
-                else
-                r.itemName:SetText(string.format('%s|c%s[%d]|r %s%s', indent, S.hex.gold, q.level, Q.Safe(q.title),
-                    (q.tag and (' |c' .. S.hex.muted .. '(' .. q.tag .. ')|r') or '') .. progress))
-                r.itemName:SetWidth(IW - 216)
-                r.membersList:SetWidth(IW - 216)
-                r.place:SetShown(q.state ~= 'done' and Q.HasDungeonQuestPlace(q.id))
+                local canRoute = Q.HasDungeonQuestPlace(q.id)
+                local hasPlace = canRoute or Q.HasDungeonQuestPlace(q.id, selectedNeeds.code)
+                r.place:SetShown(hasPlace)
+                r.route:SetShown(canRoute and q.state ~= 'done')
                 r.place:SetScript('OnClick', function() Q.Run('lieu de quête', Q.ShowDungeonQuestPlace, q.id, q.title, selectedNeeds.code) end)
-                r.route:SetShown(q.state ~= 'done' and Q.HasDungeonQuestPlace(q.id))
-                r.route:SetScript('OnClick', function()
-                    Q.Run('chemin quête', Q.ShowDungeonQuestPlace, q.id, q.title, selectedNeeds.code, true)
-                end)
+                r.route:SetScript('OnClick', function() Q.Run('chemin quête', Q.ShowDungeonQuestPlace, q.id, q.title, selectedNeeds.code, true) end)
+                r.frame.questGroupCount = groupSize > 0 and string.format('%d/%d', counts[q.id] or 0, groupSize) or nil
+                r.count:SetShown(groupSize > 0)
+                if r.frame.questGroupCount then r.count:SetText(r.frame.questGroupCount) end
+                if q.virtual then
+                    -- L'étape reste sous sa quête du donjon et garde son propre repère.
+                    local color = q.state == 'done' and S.hex.mint or q.state == 'log' and S.hex.gold or S.hex.text
+                    r.itemName:SetText(string.format('|c%s%d. %s|r', color, q.stepIndex, Q.Safe(q.title)))
+                    r.itemName:SetWidth(IW - 258 - inset)
+                    r.membersList:SetWidth(IW - 258 - inset)
+                    r.action:Hide()
+                    r.membersList:SetText('Prérequis · |c' .. color .. q.stateText .. '|r')
+                else
+                r.itemName:SetText(string.format('|c%s[%d]|r %s%s', S.hex.gold, q.level, Q.Safe(q.title),
+                    (q.tag and (' |c' .. S.hex.muted .. '(' .. q.tag .. ')|r') or '') .. progress))
+                r.itemName:SetWidth(IW - 258)
+                r.membersList:SetWidth(IW - 258)
                 local text
                 if q.state == 'log' then
                     text = q.complete and ('|c' .. S.hex.gold .. 'à rendre|r') or ('|c' .. S.hex.mint .. 'en cours|r')
@@ -938,6 +948,8 @@ function UI.RefreshDungeons()
             r.frame.itemID = lt.id
             r.frame.quest = nil
             r.chain:Hide(); r.icon:Show()
+            r.icon:ClearAllPoints(); r.icon:SetPoint('LEFT', 8, 0)
+            r.branch:Hide(); r.count:Hide()
             r.action:Hide()
             r.place:Hide()
             r.route:Hide()

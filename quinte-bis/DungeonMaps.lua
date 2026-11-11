@@ -348,3 +348,13 @@ function Core.ShowDungeonMap(code)
     local ok, result = Q.Run('plan du donjon', Q.ShowDungeonMap, code)
     return ok and result
 end
+function Core.HasDungeonQuestPin(code, id)
+    return M.QuestFloor and M.QuestFloor(M.Data(code), { id = id }) ~= nil
+end
+function Core.ShowDungeonQuestPin(code, id)
+    if not Core.HasDungeonQuestPin(code, id) or not Core.ShowDungeonMap(code) or not embedded then return false end
+    for _, quest in ipairs(M.QuestMapRecords(code)) do
+        if quest.id == id then return M.SelectQuest(embedded, quest, true) end
+    end
+    return false
+end

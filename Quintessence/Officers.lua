@@ -15,7 +15,8 @@ local _, Core = ...
   - Notes : une par joueur, 200 caractères, la plus récente gagne. Elles ne partent qu'en chuchotement vers les officiers
     en ligne (canal 'qoff'), jamais sur le canal de guilde que tout membre peut lire. Un message d'un non-officier est jeté.
   - Chat : le canal officier du jeu, avec son historique (200 lignes) ; envoi à un clic ou à la touche Entrée.
-  Le site lit seulement le relevé (`roster`, page /statistiques, envoi par un officier).
+  - Journal : le journal de guilde du jeu (invitations, arrivées, départs, renvois, grades), GuildLog.lua.
+  Le site lit le relevé (`roster`, page /statistiques, envoi par un officier) et le journal (`guildLog.events`).
   Notes et chat restent en jeu : le site ne les lit jamais.
 ]]
 local O = {}
@@ -226,7 +227,10 @@ function scanAdapter.Need(_, remote)
         if type(row) ~= 'table' or type(row.key) ~= 'string' or #row.key > 100 or type(row.v) ~= 'number' then return {} end
         local e = roster[row.key]
         if row.v <= at + 600 and row.v > at - KEEP_GONE and not (type(e) == 'table' and (tonumber(e.v) or 0) >= row.v) then
-            out[#out + 1] = { key = row.key }
+            -- La version voulue fait partie de la demande : la bibliothèque ne garde qu'une demande identique à la fois, et
+            -- deux addons qui publient presque ensemble annoncent deux versions. Sans `v`, la demande de la plus récente était
+            -- jetée comme doublon de la première : celle-ci gagnait jusqu'au résumé suivant (15 min). `v` ignoré à l'export.
+            out[#out + 1] = { key = row.key, v = row.v }
         end
     end
     return out
@@ -412,6 +416,8 @@ function O.OnMessage(data, sender)
         local changed = false
         for i = 1, math.min(#data.list, 200) do changed = mergeNote(data.list[i], at) or changed end
         if changed then O.Refresh() end
+    elseif (data.t == 'glog' or data.t == 'gask') and Core.GuildLog then
+        Core.GuildLog.OnMessage(data, sender, at) -- journal de guilde, entre officiers seulement (GuildLog.lua)
     end
 end
 function O.AskNotes()
@@ -446,7 +452,8 @@ end
 -- Interface
 -- ---------------------------------------------------------------------------------------------------------------------
 local TABS = {
-    { id = 'annonces', label = 'Annonces' }, { id = 'joueurs', label = 'Joueurs' }, { id = 'chat', label = 'Chat' },
+    { id = 'annonces', label = 'Annonces' }, { id = 'joueurs', label = 'Joueurs' }, { id = 'journal', label = 'Journal' },
+    { id = 'chat', label = 'Chat' },
     { id = 'versions', label = 'Versions' }, { id = 'pack', label = 'Pack complet' },
 }
 local root, active = nil, 'annonces'
@@ -600,7 +607,8 @@ local function createPack(parent)
     return p
 end
 
-local builders = { joueurs = createPlayers, chat = createChat, pack = createPack }
+local builders = { joueurs = createPlayers, chat = createChat, pack = createPack,
+    journal = function(body) return Core.GuildLog.CreatePanel(body) end }
 --- Affiche un onglet de la section.
 function O.Select(id)
     active = id

@@ -642,7 +642,6 @@ local function create(parent)
 
     local tabDefs = {
         { id = 'sos', label = 'SOS PvP sauvage', w = 148 },
-        { id = 'vendetta', label = 'Vendetta (Vengeance)', w = 166 },
         { id = 'camps', label = 'Feux de campement', w = 158 },
         { id = 'rares', label = 'Rares repérés', w = 130 },
     }
@@ -667,7 +666,6 @@ local function create(parent)
     content:SetPoint('BOTTOMRIGHT', 0, 0)
 
     tabs.sos = createSOSPanel(content)
-    tabs.vendetta = createVendettaPanel(content)
     tabs.camps = createCampPanel(content)
     tabs.rares = createRarePanel(content)
 
@@ -689,7 +687,8 @@ end
 function UI.Open(tabId)
     if not Q.ready and Q.Init then Q.Init() end
     if Q.SOSOnly() then tabId = tabId and 'sos' or nil end
-    if tabId and (tabId == 'sos' or tabId == 'vendetta' or tabId == 'camps' or tabId == 'rares') then
+    if tabId == 'vendetta' then tabId = 'sos' end
+    if tabId and (tabId == 'sos' or tabId == 'camps' or tabId == 'rares') then
         activeTab = tabId
     end
     Quintessence.UI.Open('map')

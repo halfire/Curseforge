@@ -6,7 +6,7 @@ local addonName, Q = ...
   Règle Retail 12+ : uniquement nos propres cadres, aucune écriture dans les objets de Blizzard.
 ]]
 local Core = Quintessence
-Q.name, Q.version = addonName or 'quinte-map', '0.8.0'
+Q.name, Q.version = addonName or 'quinte-map', '0.9.1'
 Q.debug = { errors = {}, slow = {} }
 
 function Q.Call(fn, ...)
@@ -168,18 +168,14 @@ SlashCmdList.QUINTEMAP = function(message)
         elseif cmd == 'safe' or cmd == 'clear' then
             if Q.ClearSOS then Q.ClearSOS() end
         elseif cmd == 'vendetta' or cmd == 'kos' or cmd == 'vengeance' then
-            if arg and arg ~= '' and Q.ReportKillByEnemy then
-                Q.ReportKillByEnemy(arg)
-            else
-                Q.UI.Open('vendetta')
-            end
+            Q.Debug() -- Ancien alias : diagnostic du journal, aucune alerte ni saisie.
         elseif cmd == 'camp' then
             if Q.DeployCamp then Q.DeployCamp() end
         elseif cmd == 'debug' then
             Q.Debug()
         else
             if Q.SOSOnly() then return Q.Print('/qmap : ouvrir le SOS · /qsos : lancer un SOS · /qmap safe : lever mon alerte') end
-            Q.Print('/qmap : ouvrir la carte tactique · /qsos : lancer un SOS · /qmap vendetta [nom] : cible à venger · /qmap camp : poser un campement')
+            Q.Print('/qmap : ouvrir la carte tactique · /qsos : lancer un SOS · /qmap camp : poser un campement')
         end
     end)
 end
@@ -194,6 +190,7 @@ end
 
 function Q.Debug()
     Q.Print('Module Quinte-map v' .. Q.version)
+    if Q.PvP then Q.PvP.Debug() end
     local sosCount = Q.GetActiveSOSCount and Q.GetActiveSOSCount() or 0
     local vendettaCount = Q.GetActiveVendettaCount and Q.GetActiveVendettaCount() or 0
     local campCount = Q.GetActiveCampCount and Q.GetActiveCampCount() or 0

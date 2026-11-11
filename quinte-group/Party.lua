@@ -51,7 +51,7 @@ function Q.IsOnQuest(id)
     local fn = C_QuestLog and C_QuestLog.IsOnQuest
     if fn then
         local ok, value = pcall(fn, id)
-        if ok and value == true then return true end
+        if ok and not isSecret(value) and value == true then return true end
     end
     return false
 end
@@ -68,6 +68,43 @@ local function complete(id)
     return ok and not isSecret(value) and value == true
 end
 local function sameTitle(title) return type(title) == 'string' and not isSecret(title) and title:lower() or nil end
+
+--- Compte les journaux connus du groupe actuel par identifiant exact ; le total inclut les membres sans journal reçu.
+function Q.PartyQuestCounts()
+    local ok, size = pcall(GetNumGroupMembers)
+    if not ok or isSecret(size) or type(size) ~= 'number' or size < 2 or size > 40 then return {}, 0 end
+    local raid = IsInRaid and IsInRaid()
+    local me = Quintessence.CanonicalKey(Q.PlayerName())
+    local roster, latest, counts = {}, {}, {}
+    for i = 1, raid and size or size - 1 do
+        local name = Quintessence.UnitFullName((raid and 'raid' or 'party') .. i)
+        local key = name and Quintessence.CanonicalKey(name)
+        if key then roster[key] = true end
+    end
+    if me then roster[me] = nil end
+    local now = Q.Now()
+    for _, info in pairs(QuinteGroupDB.memberQuests or {}) do
+        if type(info) == 'table' and type(info.name) == 'string' and type(info.quests) == 'table' then
+            local key, updated = Quintessence.CanonicalKey(info.name), tonumber(info.updated) or 0
+            if roster[key] and now - updated <= GROUP_LOG_TTL and (not latest[key] or updated > latest[key].updated) then
+                latest[key] = { quests = info.quests, updated = updated }
+            end
+        end
+    end
+    local function add(journal)
+        local seen = {}
+        for _, q in ipairs(journal) do
+            local id = type(q) == 'table' and q.id
+            if type(id) == 'number' and id > 0 and not seen[id] then
+                counts[id] = (counts[id] or 0) + 1
+                seen[id] = true
+            end
+        end
+    end
+    add(Q.GetMyQuests())
+    for _, info in pairs(latest) do add(info.quests) end
+    return counts, size
+end
 
 --- Vrai si le jeu permet de partager cette quête de mon journal.
 function Q.CanShareQuest(id)

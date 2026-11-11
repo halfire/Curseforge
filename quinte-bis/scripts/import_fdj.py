@@ -62,7 +62,7 @@ def main():
     starts=native(fdj.QUEST_START_MAPS);pins=native(fdj.MAP_QUEST_PINS);displays=native(fdj.STATIC_DISPLAY_IDS)
     used['Core/Journal.lua']=hashlib.sha256((src/'Core/Journal.lua').read_bytes()).hexdigest()
     zones.update({1416:'Alterac Mountains',1424:'Hillsbrad Foothills',1418:'Badlands',1443:'Desolace',1440:'Ashenvale',1444:'Feralas',1449:"Un'Goro Crater",1422:'Western Plaguelands',1423:'Eastern Plaguelands',1446:'Tanaris',1427:'Searing Gorge',1428:'Burning Steppes'})
-    outmaps={};quests={};questmeta={};places={};portraits={};loot={};assets={};equipment={};owners={}
+    outmaps={};quests={};questmeta={};places={};portraits={};loot={};assets={};equipment={};owners={};turnins={}
     frq=native(vm.execute('return '+literal((src/'Localization/Content_frFR.lua').read_text(),'FDJ.ContentLocales.frFR.quests =')))
     used['Localization/Content_frFR.lua']=hashlib.sha256((src/'Localization/Content_frFR.lua').read_bytes()).hexdigest()
     def asset(path):
@@ -137,6 +137,8 @@ def main():
             questmeta[qid]={'title':q['name'],'prereqs':prereqs,'class':{'WARRIOR':1,'PALADIN':2,'HUNTER':4,'ROGUE':8,'PRIEST':16,'SHAMAN':64,'MAGE':128,'WARLOCK':256,'DRUID':1024}.get(q.get('classOnly'),baseline.get(qid,{}).get('class')),'start':q.get('pickup'),'finish':q.get('turnin'),'objective':q.get('objective')}
             for sid,meta in [(qid,{**info,**q})]+[(s['id'],details.get(s['id'],{})) for s in prereqs]:
                 p=point(meta.get('startMap') or meta.get('map') or starts.get(sourceid if sid==qid else sid))
+                destination=point(meta.get('turninMap'))
+                if destination:turnins[sid]=destination
                 if p:places[sid]=p
                 elif meta.get('pickup'):places.setdefault(sid,{'start':meta['pickup'],'at':'inside' if meta.get('startsInDungeon') else None})
                 if sid not in questmeta:questmeta[sid]={'title':next((s['title'] for s in prereqs if s['id']==sid),'quête '+str(sid)),'start':meta.get('pickup')}
@@ -162,7 +164,10 @@ def main():
             for spot in p.get('spots',[]):
                 for q in spot.get('quests',[]):
                     for act in q.get('acts',[]):
-                        interior.setdefault(code,{}).setdefault(owners.get(q.get('main',q['id']),q.get('main',q['id'])),[]).append({'x':p['x'],'y':p['y'],'floor':p.get('floor',1)+base,'target':spot.get('name') or spot.get('npc') or 'Objectif','kind':{'start':'start','end':'finish'}.get(act,'objective'),'reference':True})
+                        ids={q['id'],owners.get(q.get('main',q['id']),q.get('main',q['id']))}
+                        for qid in ids:
+                            if qid>0:interior.setdefault(code,{}).setdefault(qid,[]).append({'x':p['x'],'y':p['y'],'floor':p.get('floor',1)+base,'target':spot.get('name') or spot.get('npc') or 'Objectif','kind':{'start':'start','end':'finish'}.get(act,'objective'),'reference':True})
+
     for qid, meta in questmeta.items():
         translated=frq.get(qid,{})
         if translated.get('name'):meta['title']=translated['name']
@@ -172,8 +177,8 @@ def main():
             step['title']=frq.get(step['id'],{}).get('name',step['title'])
     for rows in quests.values():
         for row in rows:row[2]=questmeta[row[0]]['title']
-    write(ROOT/'DungeonReference.lua',{'REFERENCE_MAPS':outmaps,'REFERENCE_PORTRAITS':portraits,'REFERENCE_QUESTS':quests,'REFERENCE_QUEST_INFO':questmeta,'REFERENCE_QUEST_PLACES':places,'REFERENCE_QUEST_PINS':interior,'REFERENCE_EQUIPMENT':equipment})
-    write(GROUP/'DungeonReference.lua',{'REFERENCE_QUESTS':quests,'REFERENCE_QUEST_INFO':questmeta,'REFERENCE_QUEST_PLACES':places})
+    write(ROOT/'DungeonReference.lua',{'REFERENCE_MAPS':outmaps,'REFERENCE_PORTRAITS':portraits,'REFERENCE_QUESTS':quests,'REFERENCE_QUEST_INFO':questmeta,'REFERENCE_QUEST_PLACES':places,'REFERENCE_QUEST_TURNINS':turnins,'REFERENCE_QUEST_PINS':interior,'REFERENCE_EQUIPMENT':equipment})
+    write(GROUP/'DungeonReference.lua',{'REFERENCE_QUESTS':quests,'REFERENCE_QUEST_INFO':questmeta,'REFERENCE_QUEST_PLACES':places,'REFERENCE_QUEST_TURNINS':turnins})
     vm.execute('assert(loadstring(...))("bis",BASE)',(ROOT/'DungeonLoot.lua').read_text())
     existing=native(vm.globals().BASE.DUNGEON_LOOT)
     prior={}

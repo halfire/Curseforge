@@ -17,12 +17,15 @@ function Q.QuestJourney(id)
         if state == 'done' then completed = completed + 1 end
         local title = read(C_QuestLog and C_QuestLog.GetTitleForQuestID, sid)
         local meta = Q.REFERENCE_QUEST_INFO[sid]
+        local complete = state == 'log' and read(C_QuestLog and C_QuestLog.IsComplete, sid) == true
         rows[#rows + 1] = { id = sid, title = type(title) == 'string' and title ~= '' and title or fallback,
             state = state, here = main, start = meta and meta.start, pins = {},
-            status = state == 'done' and 'Terminée' or state == 'log' and 'En cours' or 'À faire' }
+            complete = complete,
+            status = state == 'done' and 'Terminée' or complete and 'À rendre' or state == 'log' and 'En cours' or 'À faire' }
     end
     for _, step in ipairs(info.prereqs or {}) do add(step.id, step.title, false) end
     add(id, info.title, true)
+    for index, step in ipairs(rows) do step.stepIndex = index; step.depth = step.here and 0 or 1 end
     return rows, completed, #rows
 end
 function Q.QuestDisplayRows(quests, expanded)
@@ -45,9 +48,12 @@ function Q.QuestDisplayRows(quests, expanded)
     return out
 end
 -- Un clic sur une étape ouvre son donneur ; aucun point intérieur n'est transformé en coordonnée extérieure.
-function Q.ShowJourneyPlace(id, title, code)
-    if Q.ShowDungeonQuestPlace then return Q.ShowDungeonQuestPlace(id, title, code) end
-    local place = Q.REFERENCE_QUEST_PLACES[id]
+function Q.ShowJourneyPlace(id, title)
+    if Quintessence.HasDungeonQuestWaypoint and Quintessence.HasDungeonQuestWaypoint(id) then
+        return Quintessence.ShowDungeonQuestWaypoint(id, title)
+    end
+    local ready = read(C_QuestLog and C_QuestLog.IsOnQuest, id) == true and read(C_QuestLog and C_QuestLog.IsComplete, id) == true
+    local place = ready and Q.REFERENCE_QUEST_TURNINS and Q.REFERENCE_QUEST_TURNINS[id] or Q.REFERENCE_QUEST_PLACES[id]
     if not place or not place.map or not place.x or not place.y then
         Q.Print('Emplacement du donneur non renseigné pour ' .. Q.Safe(title) .. '.'); return false
     end

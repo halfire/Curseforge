@@ -35,6 +35,9 @@ Le cadrage utile des nouveaux plans suit leurs UV (683/1024, 1365/2048…), pas 
 Les repères de quêtes intérieurs restent sur leur étage ; les coordonnées des donneurs extérieurs ne sont jamais
 projetées sur l'image intérieure. Nikova est indiquée au centre de la patrouille fournie, sans inventer un point fixe
 pour toute sa promenade. Pas de reproduction du suivi animant sa position.
+Les repères fournis sont reliés à l'étape exacte, y compris si elle est un prérequis, et à la quête principale si
+la référence les associe. Plusieurs positions documentées du même objectif sont conservées. Un ancien point
+complémentaire est repris quand il correspond à un boss connu ou au même fond de carte et au même étage.
 
 ## Quêtes
 
@@ -47,6 +50,9 @@ Les chaînes de FDJ sont des prérequis, pas les séries narratives de Wowhead. 
 principale, qui reste affichée en premier avec sa puce. Le compteur comprend les prérequis et la quête principale,
 chacun une fois. Seule une quête rendue (`IsQuestFlaggedCompleted`) est terminée ; une quête prête à rendre ne fait
 pas avancer le compteur. L'état est relu sur les événements de quêtes, sans sauvegarde supplémentaire.
+Chaque prérequis est numéroté et décalé sous la quête principale. « Carte » mène au bon étage si le repère est
+intérieur ; pour une quête prête à rendre, les coordonnées de retour `turninMap` de la référence sont utilisées
+quand elles sont renseignées.
 
 Cinq fins de chaîne de FDJ sont rattachées à l'étape effective du donjon : 1806 → 1654 (Paladin), 92819 → 92753
 (Mortemines), 2948 → 2945 (anneau de Gnomeregan), 98824 → 95810 (relique d'Excavation) et 98423 → 96393 (Thanes).

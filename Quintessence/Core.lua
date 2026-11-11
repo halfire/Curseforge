@@ -13,7 +13,7 @@ local addonName, Core = ...
   Règle Retail 12+ : aucune écriture dans une table, une fonction ou un cadre de Blizzard.
 ]]
 Quintessence = Core -- seule globale publique de la suite (nom propre, jamais une globale de Blizzard)
-Core.name, Core.version = addonName or 'Quintessence', '1.43.0'
+Core.name, Core.version = addonName or 'Quintessence', '1.44.1'
 Core.modules, Core.syncModules, Core.channels, Core.debug = {}, {}, {}, { errors = {}, slow = {} }
 
 function Core.Call(fn, ...)
@@ -343,6 +343,8 @@ SlashCmdList.QUINTESSENCE = function(message)
         elseif command == 'test' then Core.Test()
         elseif command == 'versions' or command == 'version' then
             if Core.Versions then Core.Versions.Check(); if Core.Officers then Core.Officers.Open('versions') end end
+        elseif command == 'journal' then
+            if not (Core.Officers and Core.Officers.Open('journal')) then Core.Print('Journal de guilde : réservé aux officiers (rangs 0 et 1).') end
         elseif command == 'chemin' then Core.Navigation.Command(value)
         elseif command == 'minimap' then Core.MinimapToggle()
         elseif command == 'taille' or command == 'size' or command == 'scale' then
@@ -358,7 +360,7 @@ SlashCmdList.QUINTESSENCE = function(message)
             Core.SetTheme(value)
         elseif Core.modules[command] then Core.UI.Open(command)
         else
-            Core.Print('/quinte : ouvrir la fenêtre · /quinte <module> · /quinte versions · /quinte sync on|off|now · /quinte test · /quinte debug · /quinte minimap · /quinte taille 50-200 · /quinte interface moderne|classique')
+            Core.Print('/quinte : ouvrir la fenêtre · /quinte <module> · /quinte versions · /quinte journal · /quinte sync on|off|now · /quinte test · /quinte debug · /quinte minimap · /quinte taille 50-200 · /quinte interface moderne|classique')
         end
     end)
 end
@@ -402,6 +404,7 @@ function Core.Debug()
         end
     end
     if Core.Versions then Core.Print('Versions : ' .. Core.Versions.Summary() .. ' · /quinte versions pour vérifier la guilde') end
+    if Core.GuildLog then Core.Print('Journal de guilde : ' .. Core.GuildLog.Summary()) end
     for context, ms in pairs(Core.debug.slow) do Core.Print('Traitement lent : ' .. Core.Safe(context) .. ' ' .. ms .. ' ms') end
     for _, errorText in ipairs(Core.debug.errors) do Core.Print('|cffff6060Erreur session :|r ' .. Core.Safe(errorText)) end
     if QuintessenceDB and type(QuintessenceDB.lastErrors) == 'table' and #QuintessenceDB.lastErrors > 0 and #Core.debug.errors == 0 then

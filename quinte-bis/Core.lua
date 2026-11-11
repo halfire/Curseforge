@@ -1,6 +1,6 @@
 local addonName, Q = ...
 -- quinte-bis : listes BiS des membres et besoins par donjon, pour savoir qui emmener où (module de Quintessence).
-Q.name, Q.version, Q.revision = addonName or 'quinte-bis', '0.12.0', 0
+Q.name, Q.version, Q.revision = addonName or 'quinte-bis', '0.12.1', 0
 Q.debug = { errors = {}, slow = {} }
 
 function Q.Call(fn, ...)
