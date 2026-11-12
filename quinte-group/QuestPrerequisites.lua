@@ -20,6 +20,7 @@ function Q.QuestJourney(id)
         local complete = state == 'log' and read(C_QuestLog and C_QuestLog.IsComplete, sid) == true
         rows[#rows + 1] = { id = sid, title = type(title) == 'string' and title ~= '' and title or fallback,
             state = state, here = main, start = meta and meta.start, pins = {},
+            finish = meta and meta.finish, objective = meta and meta.objectiveFR, note = meta and meta.noteFR,
             complete = complete,
             status = state == 'done' and 'Terminée' or complete and 'À rendre' or state == 'log' and 'En cours' or 'À faire' }
     end

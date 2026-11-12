@@ -3,11 +3,12 @@ et le pack du site, pour les membres (MEMBER_ADDONS).
 
 Les projets doivent être des dossiers frères (Quintessence/, quinte-craft/, …). Chaque addon est d'abord construit avec
 son propre scripts/build.py, à la version lue dans son code, puis les ZIP sont fusionnés.
-Usage : python3 scripts/build_suite.py
+Usage : python3 scripts/build_suite.py --channel beta
+Promotion : --channel release --promote-beta --validated-sha256 <empreinte>
 Copiés dans le site, avec chacun leur pack.json, et en ligne au prochain déploiement : pack des membres dans
 ../site/site/telechargements/, pack complet dans ../site/site/storage/pack-complet/ (servi aux officiers connectés).
 """
-import re,subprocess,sys,zipfile
+import argparse, hashlib, re, subprocess, sys, zipfile
 from pathlib import Path
 root=Path(__file__).resolve().parents[1]
 workspace=root.parent
@@ -50,6 +51,20 @@ def version_of(folder,source):
     match=re.search(r"\.version\b[^\n]*?'(\d+\.\d+\.\d+)'",text)
     if not match:raise SystemExit(f'Version introuvable dans {folder}/{source}')
     return match.group(1)
+
+parser=argparse.ArgumentParser(description='Construire une bêta ou promouvoir les archives validées en Release.')
+parser.add_argument('--channel', choices=['beta','release'], default='beta')
+parser.add_argument('--promote-beta', action='store_true', help='Promotion sans reconstruire les sources')
+parser.add_argument('--validated-sha256', help='Empreinte du pack membres bêta effectivement validé')
+args=parser.parse_args()
+if args.channel == 'release' and not args.promote_beta:
+    parser.error('Une Release exige --promote-beta après validation de la bêta.')
+if args.promote_beta:
+    if args.channel != 'release': parser.error('--promote-beta exige --channel release')
+    from release_channels import promote
+    if not args.validated_sha256: parser.error('Donner --validated-sha256 avec l’empreinte de la bêta validée.')
+    promote(workspace, args.validated_sha256)
+    sys.exit(0)
 
 built=[]
 for folder,source in ADDONS:
@@ -97,33 +112,11 @@ if site_dir.is_dir():
             if old.name!=zip_path.name:old.unlink()
         (folder/zip_path.name).write_bytes(zip_path.read_bytes())
         (folder/'pack.json').write_text(json.dumps({'file':zip_path.name,'version':core_version,'size':zip_path.stat().st_size,
-            'built':datetime.date.today().isoformat(),'addons':[[f,v] for f,v,_ in rows]},ensure_ascii=False,indent=1)+'\n',encoding='utf-8')
+            'full_sha256':hashlib.sha256(target.read_bytes()).hexdigest(),'channel':'beta','sha256':hashlib.sha256(zip_path.read_bytes()).hexdigest(),'built':datetime.date.today().isoformat(),'addons':[[f,v] for f,v,_ in rows]},ensure_ascii=False,indent=1)+'\n',encoding='utf-8')
         print(folder/zip_path.name)
-    downloads=site_dir/'telechargements'
+    downloads=site_dir/'telechargements'/'beta'
     for old in downloads.glob('Quintessence-pack-complet-v*.zip'):old.unlink()
     publish(downloads,member_target,'Quintessence-pack-v*.zip',members)
-    publish(site_dir/'storage'/'pack-complet',target,'Quintessence-pack-complet-v*.zip',built)
-# Dépôt CurseForge (dossier frère Curseforge/, poussé à la main) : seulement les addons montrés aux membres, sans les
-# README ni CHANGELOG, qui parlent des autres modules. Le .toc du conteneur porte l'édition : les onglets en plus sont cachés.
-CURSEFORGE=MEMBER_ADDONS
-cf_dir=workspace/'Curseforge'
-if cf_dir.is_dir():
-    import json,shutil
-    versions={folder:(version,path) for folder,version,path in built}
-    # Migration : le moteur fait désormais partie du conteneur.
-    shutil.rmtree(cf_dir/'ShortestPathForever',ignore_errors=True)
-    for folder in CURSEFORGE:
-        shutil.rmtree(cf_dir/folder,ignore_errors=True)
-        with zipfile.ZipFile(versions[folder][1]) as z:
-            for info in z.infolist():
-                name=info.filename
-                if info.is_dir() or name.endswith(('/README.md','/CHANGELOG.md')):continue
-                content=z.read(info)
-                if name=='Quintessence/Quintessence.toc':
-                    content=content.replace(b'## Version:',b'## X-Quinte-Edition: curseforge\n## Version:',1)
-                    if b'X-Quinte-Edition' not in content:raise SystemExit('Edition absente du .toc')
-                out_file=cf_dir/name;out_file.parent.mkdir(parents=True,exist_ok=True);out_file.write_bytes(content)
-    (cf_dir/'pack.json').write_text(json.dumps({'version':core_version,'addons':[[f,versions[f][0]] for f in CURSEFORGE]},ensure_ascii=False,indent=1)+'\n',encoding='utf-8')
-    print(cf_dir)
+    publish(site_dir/'storage'/'pack-complet'/'beta',target,'Quintessence-pack-complet-v*.zip',built)
 print(target)
 print(contents)

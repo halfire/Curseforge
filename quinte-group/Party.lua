@@ -278,7 +278,8 @@ function Q.DungeonQuests(code)
         local info = Q.DUNGEON_QUEST_INFO and Q.DUNGEON_QUEST_INFO[id]
         local reference = Q.REFERENCE_QUEST_INFO and Q.REFERENCE_QUEST_INFO[id]
         if reference then
-            info = { class = reference.class, start = reference.start, chain = {} }
+            info = { class = reference.class, start = reference.start, finish = reference.finish,
+                objective = reference.objectiveFR, note = reference.noteFR, chain = {} }
             for _, step in ipairs(reference.prereqs or {}) do
                 info.chain[#info.chain + 1] = { step.id, step.title }
                 if not done(step.id) then info.prev, info.prevTitle = step.id, step.title end
@@ -350,6 +351,7 @@ function Q.DungeonQuests(code)
                 holders = holders, groupHas = groupHas, groupMissing = groupMissing,
                 known = info ~= nil or q[6] ~= nil, classes = classMask and classNames(classMask) or nil,
                 minLevel = minLevel, start = (place and place.start) or (info and info.start),
+                finish = info and info.finish, objective = info and info.objective,
                 prev = prev, prevState = prevState,
                 prevTitle = prev and questTitle(prev, (info and info.prevTitle) or knownTitle(prev)) or nil,
                 tag = tag, chain = chain, note = info and info.note, narrative = info and info.narrative }

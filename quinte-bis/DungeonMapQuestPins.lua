@@ -66,7 +66,10 @@ function M.QuestRecords(code)
         end
         rows[#rows + 1] = { id = id, title = type(title) == 'string' and title ~= '' and title or raw[3],
             state = status, complete = complete, status = complete and 'À rendre' or STATE[status],
-            start = meta.start or (reference and reference.start), finish = meta.finish, objective = meta.objective,
+            start = (reference and reference.start) or meta.start,
+            finish = (reference and reference.finish) or meta.finish,
+            objective = (reference and reference.objectiveFR) or meta.objective,
+            note = reference and reference.noteFR,
             pins = questPins(code, id) }
     end
     cache[code] = { version = version, rows = rows }
@@ -79,6 +82,7 @@ local function tooltip(quest, located)
     if quest.start and quest.start ~= '' then GameTooltip:AddLine('Départ : ' .. Q.Safe(quest.start), 1, 1, 1, true) end
     if quest.finish and quest.finish ~= '' then GameTooltip:AddLine('Retour : ' .. Q.Safe(quest.finish), 1, 1, 1, true) end
     if quest.objective and quest.objective ~= '' then GameTooltip:AddLine(Q.Safe(quest.objective), 1, 1, 1, true) end
+    if quest.note and quest.note ~= '' then GameTooltip:AddLine(Q.Safe(quest.note), 1, 1, 1, true) end
     if not located then GameTooltip:AddLine('Position non renseignée.', 0.7, 0.7, 0.7, true) end
     GameTooltip:Show()
 end

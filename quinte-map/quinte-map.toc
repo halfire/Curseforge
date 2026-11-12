@@ -16,4 +16,3 @@ Camping.lua
 Rares.lua
 Pins.lua
 UI.lua
-PvPLog.lua

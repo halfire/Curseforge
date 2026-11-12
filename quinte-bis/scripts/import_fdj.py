@@ -3,6 +3,7 @@
 Aucun code d'interface FDJ n'est chargé dans WoW ; les données sont normalisées pour nos composants.
 """
 import argparse, hashlib, json, re, shutil
+from datetime import date
 from pathlib import Path
 from lupa.lua51 import LuaRuntime
 ROOT=Path(__file__).resolve().parents[1]
@@ -34,13 +35,27 @@ def lua(v):
     if isinstance(v,(int,float)):return str(v)
     if isinstance(v,list):return '{'+','.join(lua(x) for x in v)+'}'
     return '{'+','.join('['+lua(k)+']='+lua(x) for k,x in sorted(v.items(),key=lambda kv:str(kv[0])))+'}'
-def write(path,fields):
-    path.write_text('-- Généré par scripts/import_fdj.py ; référence fournie ForeverDungeonJournal 2.0 (10/11/2026).\nlocal _, Q = ...\n'+'\n'.join('Q.'+k+' = '+lua(v) for k,v in fields.items())+'\n')
+def write(path,fields,source="ForeverDungeonJournal 2.0 (10/11/2026)"):
+    path.write_text('-- Généré par scripts/import_fdj.py ; référence fournie '+source+'.\nlocal _, Q = ...\n'+'\n'.join('Q.'+k+' = '+lua(v) for k,v in sorted(fields.items()))+'\n')
 def main():
-    ap=argparse.ArgumentParser();ap.add_argument('source',type=Path);args=ap.parse_args();src=args.source
+    ap=argparse.ArgumentParser();ap.add_argument('source',type=Path)
+    ap.add_argument('--quests-only', action='store_true', help='Mettre à jour seulement les quêtes et leurs repères')
+    args=ap.parse_args();src=args.source
+    version=re.search(r'^## Version:\s*(.+)$',(src/'ForeverDungeonJournal.toc').read_text(),re.M).group(1)
+    source=f'ForeverDungeonJournal {version}, dossier fourni le {date.today().isoformat()}'
     vm=LuaRuntime(unpack_returned_tuples=True,register_eval=False,register_builtins=False)
     vm.execute("os=nil;io=nil;package=nil;require=nil;dofile=nil;loadfile=nil;python=nil;FDJ={Constants={ALBA_FAIRMOON_LOCATION='Alba Fairmoon'},FOREVER_QUEST_XP_FALLBACK={}};_G.ForeverDungeonJournal_NS=FDJ;CreateFrame=function() return {RegisterEvent=function()end,SetScript=function()end} end")
     used={}
+    for filename in ('ForeverDungeonJournal.toc', 'Localization/Content_frFR.lua'):
+        used[filename]=hashlib.sha256((src/filename).read_bytes()).hexdigest()
+    previous={}
+    if args.quests_only:
+        vm.execute('PREVIOUS={}')
+        vm.execute('assert(loadstring(...))("bis",PREVIOUS)',(ROOT/'DungeonReference.lua').read_text())
+        previous=native(vm.globals().PREVIOUS)
+    # Les mises à jour tierces choisissent parfois le donneur selon la faction.
+    vm.execute('UnitFactionGroup=function() return "Alliance" end')
+    vm.execute('assert(loadstring(...))("ForeverDungeonJournal",FDJ)',(src/'Localization/Content_frFR.lua').read_text())
     vm.execute('BASE={}')
     vm.execute('assert(loadstring(...))("bis",BASE)',(ROOT/'DungeonMapQuestInfo.lua').read_text())
     baseline=native(vm.globals().BASE.DUNGEON_MAP_QUEST_INFO)
@@ -53,9 +68,18 @@ def main():
     known_places=native(vm.globals().BASE.DUNGEON_QUEST_PLACES)
     zones={p['map']:p.get('zone') for p in known_places.values() if p.get('map') and p.get('zone')}
 
+    new_content=src/'Localization/Content_NewDungeons.lua'
+    if new_content.exists():
+        used['Localization/Content_NewDungeons.lua']=hashlib.sha256(new_content.read_bytes()).hexdigest()
+        vm.execute('assert(loadstring(...))("ForeverDungeonJournal",FDJ)',new_content.read_text())
+
     for f in ['Data/Dungeons.lua','Data/SharedLoot.lua','Data/Bosses.lua','Data/QuestMaps.lua','Data/QuestChains.lua','Data/QuestRewards.lua','Data/QuestShareability.lua','Data/QuestUpdates.lua']:
         text=(src/f).read_text();used[f]=hashlib.sha256((src/f).read_bytes()).hexdigest()
         vm.execute('assert(loadstring(...))("ForeverDungeonJournal",FDJ)',text)
+    verified=src/'Localization/Content_Verified.lua'
+    if verified.exists():
+        used['Localization/Content_Verified.lua']=hashlib.sha256(verified.read_bytes()).hexdigest()
+        vm.execute('assert(loadstring(...))("ForeverDungeonJournal",FDJ)',verified.read_text())
     expr=literal((src/'Core/Journal.lua').read_text(),'FDJ.DUNGEON_MAPS =')
     maps=native(vm.execute('return '+expr));fdj=vm.globals().FDJ
     db=native(fdj.DB);chains=native(fdj.QUEST_PREREQ_CHAINS);details=native(fdj.QUEST_PREREQ_DETAILS)
@@ -63,7 +87,10 @@ def main():
     used['Core/Journal.lua']=hashlib.sha256((src/'Core/Journal.lua').read_bytes()).hexdigest()
     zones.update({1416:'Alterac Mountains',1424:'Hillsbrad Foothills',1418:'Badlands',1443:'Desolace',1440:'Ashenvale',1444:'Feralas',1449:"Un'Goro Crater",1422:'Western Plaguelands',1423:'Eastern Plaguelands',1446:'Tanaris',1427:'Searing Gorge',1428:'Burning Steppes'})
     outmaps={};quests={};questmeta={};places={};portraits={};loot={};assets={};equipment={};owners={};turnins={}
-    frq=native(vm.execute('return '+literal((src/'Localization/Content_frFR.lua').read_text(),'FDJ.ContentLocales.frFR.quests =')))
+    frq=native(fdj.ContentLocales.frFR.quests)
+    translations=ROOT/'scripts/data/fdj_quest_fr.json'
+    for key, fields in json.loads(translations.read_text()).items():
+        frq.setdefault(int(key),{}).update(fields)
     used['Localization/Content_frFR.lua']=hashlib.sha256((src/'Localization/Content_frFR.lua').read_bytes()).hexdigest()
     def asset(path):
         if not isinstance(path,str) or 'ForeverDungeonJournal\\Media\\' not in path:return path
@@ -81,11 +108,11 @@ def main():
         for b in bosses:
             if not isinstance(b,dict) or not b.get('name'):continue
             npc=b.get('npcID') or b.get('portraitNpcID');display=b.get('displayID') or displays.get(npc)
-            if display:
+            if display and not args.quests_only:
                 portrait=src/f'Media/Portraits/{display}.tga'
                 portraits[b['name']]={'display':display}
                 if portrait.exists():portraits[b['name']]['image']=asset('Interface\\AddOns\\ForeverDungeonJournal\\Media\\Portraits\\'+str(display))
-            if b.get('customIcon'):
+            if b.get('customIcon') and not args.quests_only:
                 custom=b['customIcon']
                 portraits[b['name']]={'image':asset(custom)} if 'ForeverDungeonJournal' in custom else {'icon':custom}
             items=b.get('loot',[])
@@ -102,8 +129,9 @@ def main():
         if name in maps:
             m=maps[name];floors=m.get('floors',[]);bossmap=m.get('bosses',[])
             for f in floors:
-                if 'texture' in f:f['image']=asset(f.pop('texture'))
-                for patch in f.get('patches',[]):patch['image']=asset(patch.pop('tex'))
+                if 'texture' in f and not args.quests_only:f['image']=asset(f.pop('texture'))
+                if not args.quests_only:
+                    for patch in f.get('patches',[]):patch['image']=asset(patch.pop('tex'))
             base=len(outmaps.get(code,{}).get('floors',[]))
             for b in bossmap:b['floor']=b.get('floor',1)+base
             for p in m.get('entrances',[]):p['floor']=p.get('floor',1)+base
@@ -112,17 +140,19 @@ def main():
             else:outmaps[code]=m
         for q in d.get('quests',[]):
             if not isinstance(q,dict) or not q.get('id') or q.get('faction')=='Horde':continue
+            # Récolte extérieure seulement : pas de quête de donjon démontrée pour ce numéro.
+            if q['id']==92067:continue
             sourceid=q['id']
             if sourceid <= 0:
                 if q.get('name') not in known_names:continue
                 q={**q,'id':known_names[q['name']]}
             qid=q['id'];chain=chains.get(sourceid,chains.get(qid,[]))
             # FDJ choisit parfois la récompense hors donjon comme tête de chaîne ; le GM veut l'étape du donjon.
-            replacement={1806:1654,92819:92753,2948:2945,98824:95810,98423:96393}.get(qid)
+            replacement={1806:1654,92819:92753,2948:2945,98824:95810,98423:96393,96016:96264,1782:1701,2361:2201,2439:2278,95263:95262,96337:96335}.get(qid)
             if replacement:
                 target=replacement
                 q=next((candidate for candidate in d.get('quests',[]) if candidate.get('id')==target),{'id':target,'name':baseline.get(target,{}).get('title') or next((st['name'] for st in chain if st.get('id')==target),q['name']),'level':q.get('level'),'requires':q.get('requires'),'classOnly':q.get('classOnly')})
-                q={**q,'hideFromMainList':False};qid=target
+                q={**q,**details.get(target,{}),'hideFromMainList':False};qid=target
             prereqs=[];seen=set()
             for step in chain:
                 sid=step.get('id')
@@ -130,18 +160,23 @@ def main():
                 if sid and sid>0 and sid not in seen:prereqs.append({'id':sid,'title':step.get('name')});seen.add(sid)
             owners[sourceid]=qid
             info=details.get(qid,{})
+            combined={**info,**q}
             # La fiche de référence distingue déjà les étapes masquées de la vraie quête du donjon.
             if not q.get('hideFromMainList'):
                 quests.setdefault(code,[])
                 if not any(x[0]==qid for x in quests[code]):quests[code].append([qid,(known_rows[qid][1] if isinstance(known_rows[qid],list) else known_rows[qid][2]) if qid in known_rows else q.get('level') or 1,q['name'],(known_rows[qid][3] if isinstance(known_rows[qid],list) else known_rows[qid][4]) if qid in known_rows else q.get('requires') or 1])
-            questmeta[qid]={'title':q['name'],'prereqs':prereqs,'class':{'WARRIOR':1,'PALADIN':2,'HUNTER':4,'ROGUE':8,'PRIEST':16,'SHAMAN':64,'MAGE':128,'WARLOCK':256,'DRUID':1024}.get(q.get('classOnly'),baseline.get(qid,{}).get('class')),'start':q.get('pickup'),'finish':q.get('turnin'),'objective':q.get('objective')}
+                current=next(row for row in quests[code] if row[0]==qid)
+                # Correction explicite dans cette mise à jour ; autres niveaux déjà recoupés conservés.
+                if qid == 92457:
+                    current[3]=max(current[3] or 1,combined.get('requires') or 1)
+            questmeta[qid]={'title':q['name'],'prereqs':prereqs,'class':{'WARRIOR':1,'PALADIN':2,'HUNTER':4,'ROGUE':8,'PRIEST':16,'SHAMAN':64,'MAGE':128,'WARLOCK':256,'DRUID':1024}.get(q.get('classOnly'),baseline.get(qid,{}).get('class')),'start':combined.get('pickup'),'finish':combined.get('turnin'),'objective':combined.get('objective'),'note':combined.get('note'),'description':combined.get('description')}
             for sid,meta in [(qid,{**info,**q})]+[(s['id'],details.get(s['id'],{})) for s in prereqs]:
                 p=point(meta.get('startMap') or meta.get('map') or starts.get(sourceid if sid==qid else sid))
                 destination=point(meta.get('turninMap'))
                 if destination:turnins[sid]=destination
                 if p:places[sid]=p
                 elif meta.get('pickup'):places.setdefault(sid,{'start':meta['pickup'],'at':'inside' if meta.get('startsInDungeon') else None})
-                if sid not in questmeta:questmeta[sid]={'title':next((s['title'] for s in prereqs if s['id']==sid),'quête '+str(sid)),'start':meta.get('pickup')}
+                if sid not in questmeta:questmeta[sid]={'title':next((s['title'] for s in prereqs if s['id']==sid),'quête '+str(sid)),'start':meta.get('pickup'),'finish':meta.get('turnin'),'objective':meta.get('objective'),'note':meta.get('note'),'description':meta.get('description')}
     mentioned={q.get('id') for d in db.values() for q in d.get('quests',[]) if isinstance(q,dict)}
     for chain in chains.values():
         for step in chain:
@@ -171,14 +206,47 @@ def main():
     for qid, meta in questmeta.items():
         translated=frq.get(qid,{})
         if translated.get('name'):meta['title']=translated['name']
-        for target,source in [('start','pickup'),('finish','turnin'),('objective','objective')]:
-            if translated.get(source):meta[target]=translated[source]
+        for target,field in [('start','pickup'),('finish','turnin'),('objective','objective'),('note','note'),('description','description')]:
+            if translated.get(field):meta[target]=translated[field]
+        meta['objectiveFR']=translated.get('objective')
+        meta['noteFR']=translated.get('note')
+        if qid in places and not places[qid].get('map') and translated.get('pickup'):
+            places[qid]['start']=translated['pickup']
         for step in meta.get('prereqs',[]):
             step['title']=frq.get(step['id'],{}).get('name',step['title'])
     for rows in quests.values():
         for row in rows:row[2]=questmeta[row[0]]['title']
-    write(ROOT/'DungeonReference.lua',{'REFERENCE_MAPS':outmaps,'REFERENCE_PORTRAITS':portraits,'REFERENCE_QUESTS':quests,'REFERENCE_QUEST_INFO':questmeta,'REFERENCE_QUEST_PLACES':places,'REFERENCE_QUEST_TURNINS':turnins,'REFERENCE_QUEST_PINS':interior,'REFERENCE_EQUIPMENT':equipment})
-    write(GROUP/'DungeonReference.lua',{'REFERENCE_QUESTS':quests,'REFERENCE_QUEST_INFO':questmeta,'REFERENCE_QUEST_PLACES':places,'REFERENCE_QUEST_TURNINS':turnins})
+    fields={'REFERENCE_QUESTS':quests,'REFERENCE_QUEST_INFO':questmeta,'REFERENCE_QUEST_PLACES':places,
+            'REFERENCE_QUEST_TURNINS':turnins,'REFERENCE_QUEST_PINS':interior}
+    if args.quests_only:
+        # Une absence dans la nouvelle référence ne supprime pas un fait déjà connu.
+        for key in ('REFERENCE_QUEST_INFO','REFERENCE_QUEST_PLACES','REFERENCE_QUEST_TURNINS'):
+            merged=dict(previous.get(key,{}))
+            for qid, value in fields[key].items():
+                merged[qid]={**merged.get(qid,{}),**{k:v for k,v in value.items() if v is not None}}
+            fields[key]=merged
+        for code, rows in previous['REFERENCE_QUESTS'].items():
+            current=quests.setdefault(code,[])
+            seen={row[0] for row in current}
+            for row in rows:
+                if row[0] not in seen:current.append(row)
+        for code, old in previous['REFERENCE_QUEST_PINS'].items():
+            target=interior.setdefault(code,{})
+            for qid, points in old.items():
+                if qid not in target:target[qid]=points
+        previous.update(fields)
+        write(ROOT/'DungeonReference.lua',previous,source)
+    else:
+        fields.update({'REFERENCE_MAPS':outmaps,'REFERENCE_PORTRAITS':portraits,'REFERENCE_EQUIPMENT':equipment})
+        write(ROOT/'DungeonReference.lua',fields,source)
+    write(GROUP/'DungeonReference.lua',{key:fields[key] for key in (
+        'REFERENCE_QUESTS','REFERENCE_QUEST_INFO','REFERENCE_QUEST_PLACES','REFERENCE_QUEST_TURNINS')},source)
+    if args.quests_only:
+        report={'source':source,'files':used}
+        (GROUP/'ThirdParty/FDJ-quest-update.json').write_text(json.dumps(report,ensure_ascii=False,indent=2)+'\n')
+        (ROOT/'scripts/data/fdj_quest_update.json').write_text(json.dumps(report,ensure_ascii=False,indent=2)+'\n')
+        print({'source':source,'quests':sum(len(rows) for rows in quests.values()),'places':len(fields['REFERENCE_QUEST_PLACES'])})
+        return
     vm.execute('assert(loadstring(...))("bis",BASE)',(ROOT/'DungeonLoot.lua').read_text())
     existing=native(vm.globals().BASE.DUNGEON_LOOT)
     prior={}

@@ -25,6 +25,7 @@ local function rankOf(name)
     for _, row in ipairs(roster()) do if Core.SameName(row.name, name) then return row.rank end end
 end
 function Q.StatisticsOfficer(name)
+    if not name then return false end -- Edition membres : envoi seulement.
     local rank = rankOf(name)
     return rank ~= nil and rank <= 1
 end

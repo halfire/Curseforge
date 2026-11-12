@@ -6,7 +6,7 @@ version=sys.argv[1] if len(sys.argv)>1 else os.environ.get('CI_COMMIT_TAG','v0.1
 if not re.fullmatch(r'v\d+\.\d+\.\d+',version):raise SystemExit('Expected version vX.Y.Z')
 dist=root/'dist';dist.mkdir(exist_ok=True)
 output=dist/f'Quintessence-{version}.zip'
-files=[*root.glob('*.lua'),root/'Quintessence.toc',root/'README.md',root/'CHANGELOG.md',root/'LICENSE',root/'COPYING',root/'THIRD_PARTY.md',root/'Navigation/engine.json',*list((root/'Libs').rglob('*')),*list((root/'Navigation').rglob('*')),*list((root/'scripts').glob('*.py'))]
+files=[*root.glob('*.lua'),root/'Quintessence.toc',root/'README.md',root/'CHANGELOG.md',root/'LICENSE',root/'COPYING',root/'THIRD_PARTY.md',root/'Navigation/engine.json',*list((root/'Libs').rglob('*')),*list((root/'Navigation').rglob('*')),*list((root/'scripts').glob('*.py')),root/'scripts/member_runtime.lua']
 with zipfile.ZipFile(output,'w',zipfile.ZIP_DEFLATED) as z:
     for file in sorted(set(files)):
         if file.is_dir():continue

@@ -71,6 +71,8 @@ local function showQuestTooltip(owner, q)
         GameTooltip:AddLine('Suite de : ' .. Q.Safe(q.prevTitle or ('quête ' .. q.prev)) .. ' (' .. where .. ')', 1, 1, 1, true)
     end
     if q.start then GameTooltip:AddLine('Donneur : ' .. Q.Safe(q.start), 1, 1, 1, true) end
+    if q.finish then GameTooltip:AddLine('Retour : ' .. Q.Safe(q.finish), 1, 1, 1, true) end
+    if q.objective then GameTooltip:AddLine(Q.Safe(q.objective), 1, 1, 1, true) end
     if not q.known then GameTooltip:AddLine('Classe et quête précédente non vérifiées', 0.6, 0.6, 0.6, true) end
     if q.state == 'log' and not q.virtual then
         GameTooltip:AddLine(q.shareable and 'Partageable avec le groupe' or 'Ne peut pas être partagée', 1, 0.82, 0)

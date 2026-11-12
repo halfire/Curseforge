@@ -75,3 +75,28 @@ recettes et composants sont exclus de cette liste BiS. Aucune table des raids n'
 Suites BiS et group, nouvelles régressions sur les puces (vrais boutons, défilement, compteur et états), plans de tous
 les donjons, ressources et empreintes, coordonnées/étages, UV/retouches/portraits, absence d'écriture sur Blizzard,
 ponts entre la carte M et le butin, et suite Forever globale. Tout est **simulé**, aucun rendu ni collecte validé en jeu.
+
+## Complément fourni le 12/11/2026
+
+Le dossier « ForeverDungeonJournal 2 » déclare la version 2.0.3 ; certains commentaires internes
+mentionnent déjà 2.0.4. La version du .toc identifie la source.
+Le mode ciblé suivant actualise les quêtes, leurs lieux et leurs relations au plan.
+
+```sh
+PYTHONPATH=.tools/pylib python3 quinte-bis/scripts/import_fdj.py --quests-only '/chemin/ForeverDungeonJournal 2'
+```
+
+Les deux verrous restent nécessaires. Le mode ciblé conserve les faits précédents absents de cette
+référence. Il tient compte des traductions Content_NewDungeons et Content_Verified dans l’ordre de
+chargement de FDJ et choisit les donneurs Alliance. Le complément français rédigé localement est dans
+scripts/data/fdj_quest_fr.json ; les titres du client restent prioritaires.
+
+Comparaison avec 0.12.1/0.23.0 dans scripts/data/fdj_quest_changes.json. Le catalogue gagne 17 entrées
+principales, 38 fiches de donneurs (positions ou indications) et 33 lieux de retour. Les nouvelles fins
+hors donjon sont rattachées à 1701, 96264, 2201, 2278, 95262 et 96335. La quête extérieure 92067 n’est
+pas ajoutée. Les notes d’incertitude sur Blackmaw et Shaper sont visibles. Les objectifs/notes français
+sont transmis aux infobulles des lignes principales et des prérequis, dans Group et dans les plans BiS.
+
+Empreintes de cette source dans scripts/data/fdj_quest_update.json et dans
+quinte-group/ThirdParty/FDJ-quest-update.json. Le manifeste historique des images reste fdj_sources.json.
+Validation en simulateur, y compris clic Carte et filtrage de classe.
