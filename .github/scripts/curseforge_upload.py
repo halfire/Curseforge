@@ -13,12 +13,16 @@ Sans jeton ou sans projet, l'envoi échoue en disant lequel manque (avant il res
 import io
 import json
 import os
+import re
 import sys
 import urllib.error
 import urllib.request
 import uuid
 import zipfile
 from pathlib import Path
+
+MEMBER_ADDONS = {'Quintessence', 'quinte-craft', 'quinte-caract', 'quinte-bis', 'quinte-group', 'quinte-map'}
+OFFICER_FILES = {'Announce.lua', 'Officers.lua', 'GuildLog.lua', 'PvPLog.lua'}
 
 USER_AGENT = 'quintessence-pack-upload'
 
@@ -32,13 +36,15 @@ def request(base, token, path, data=None, content_type=None):
         with urllib.request.urlopen(req, timeout=120) as response:
             return json.load(response)
     except urllib.error.HTTPError as error:
-        body = error.read().decode('utf-8', 'replace')[:800]
+        body = 'Consulte le tableau de bord CurseForge (contenu masqué pour protéger le jeton).'
         print(f'::error title=CurseForge::Réponse {error.code} sur {path} : ' + body.replace('\n', ' '))
         raise SystemExit(1)
 
 
 def build_zip(folder, addons):
     """ZIP des seuls dossiers d'addons listés dans pack.json."""
+    if {name for name, _ in addons} != MEMBER_ADDONS or len(addons) != len(MEMBER_ADDONS):
+        raise SystemExit('CurseForge accepte uniquement les six addons membres.')
     out = io.BytesIO()
     with zipfile.ZipFile(out, 'w', zipfile.ZIP_DEFLATED) as target:
         for name, _ in addons:
@@ -47,6 +53,8 @@ def build_zip(folder, addons):
                 raise SystemExit(f'.toc manquant : {name}')
             for file in sorted(base.rglob('*')):
                 if file.is_file():
+                    if file.is_symlink() or file.name in OFFICER_FILES:
+                        raise SystemExit('Fichier officier ou lien interdit dans CurseForge : ' + file.name)
                     target.write(file, file.relative_to(folder).as_posix())
     return out.getvalue()
 
@@ -98,6 +106,8 @@ def main():
         raise SystemExit('CF_PROJECT_ID doit être un numéro.')
     base = os.environ.get('CF_API_BASE', 'https://wow.curseforge.com').rstrip('/')
     pack = json.loads((folder / 'pack.json').read_text(encoding='utf-8'))
+    if pack.get('channel') != 'release' or not re.fullmatch(r'[a-f0-9]{64}', str(pack.get('validated_beta_sha256', ''))):
+        raise SystemExit('Seule une Release promue depuis une bêta validée peut être envoyée.')
     content = build_zip(folder, pack['addons'])
     changelog = '\n'.join(f'- {name} {version}' for name, version in pack['addons'])
     metadata = {
