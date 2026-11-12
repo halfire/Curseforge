@@ -22,7 +22,7 @@ jobs:
           python-version: '3.12'
       - name: Envoyer le pack
         env:
-          CF_API_KEY: ${{ secrets.CF_API_KEY }}
+          CF_API_KEY: ${{ secrets.CF_API_KEY || secrets.CURSEFORGE }}
           CF_PROJECT_ID: ${{ vars.CF_PROJECT_ID || secrets.CF_PROJECT_ID }}
           CF_GAME_VERSIONS: ${{ vars.CF_GAME_VERSIONS || secrets.CF_GAME_VERSIONS }}
         run: python3 .github/scripts/curseforge_upload.py .

@@ -7,3 +7,5 @@ Ce dépôt est généré lors de la **promotion d’une Bêta validée en Releas
 Le générateur retire Announce.lua, Officers.lua, GuildLog.lua et PvPLog.lua et leurs entrées .toc. Members.lua garde seulement le repérage des destinataires officiers pour l’envoi des observations personnelles des membres. Aucun panneau officier, recrutement ou conduite de raid n’est distribué. Crédits, sources et licences sont conservés.
 
 Pousser un nouveau pack.json Release sur main déclenche Pack CurseForge, environnement `release`. Configurer le secret CF_API_KEY et la variable CF_PROJECT_ID dans **ce dépôt GitHub**. CF_GAME_VERSIONS permet de préciser le nom exact du client. L’envoi refuse une bêta, une composition différente et les fichiers officiers ; il échoue si les réglages manquent. Aucun envoi n’est lancé par une construction locale.
+
+T83 : projet CurseForge 1786751, variable GitHub CF_PROJECT_ID. Le workflow accepte le secret existant CURSEFORGE en repli de CF_API_KEY ; aucune valeur de clé lue ni manipulée. Ancienne variable PROJECT (786751) ignorée.
