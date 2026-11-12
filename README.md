@@ -9,3 +9,5 @@ Le générateur retire Announce.lua, Officers.lua, GuildLog.lua et PvPLog.lua et
 Pousser un nouveau pack.json Release sur main déclenche Pack CurseForge, environnement `release`. Configurer le secret CF_API_KEY et la variable CF_PROJECT_ID dans **ce dépôt GitHub**. CF_GAME_VERSIONS permet de préciser le nom exact du client. L’envoi refuse une bêta, une composition différente et les fichiers officiers ; il échoue si les réglages manquent. Aucun envoi n’est lancé par une construction locale.
 
 T83 : projet CurseForge 1786751, variable GitHub CF_PROJECT_ID. Le workflow accepte le secret existant CURSEFORGE en repli de CF_API_KEY ; aucune valeur de clé lue ni manipulée. Ancienne variable PROJECT (786751) ignorée.
+
+Déploiement vérifié le 12 novembre 2026 : [Pack CurseForge #44](https://github.com/halfire/Curseforge/actions/runs/43320808953) réussi (commit 178c476). Release 1.44.3 reçue par le projet 1786751, fichier 9582601, client Forever 1.60.1. Statut initial CurseForge « Processing » ; approbation de modération distincte. Les futurs changements de pack.json Release sur main déclenchent le même envoi.

@@ -44,7 +44,7 @@ Le moteur de voyage intégré provient de **Shortest Path Forever**, par **cjber
 6. Après validation de la bêta et promotion (voir README), pousser le dépôt généré : Pack CurseForge s’exécute au changement de pack.json. On peut aussi lancer Actions → Pack CurseForge → Run workflow. Le premier fichier déclenche l’examen du projet ; l’envoi réussi ne signifie pas que la modération a déjà approuvé le projet.
 7. Vérifier le fichier dans Files, son statut et le contenu du ZIP. Le premier fichier doit être une **Release** pour la diffusion normale dans l’application.
 
-Le code et les documents sont prêts localement. Le projet distant et ses secrets ne sont pas créés par ces fichiers. La première promotion générera l’archive conforme au nouveau contrôle ; l’ancien pack.json ne porte pas la preuve de validation et sera refusé par l’envoi.
+Configuration effectuée le 12 novembre 2026 (T83) : projet 1786751 existant, variable CF_PROJECT_ID corrigée et secret préexistant CURSEFORGE relié au workflow. Premier envoi réussi par GitHub Actions #44 : Release 1.44.3, fichier 9582601, Forever 1.60.1. Le fichier est reçu en Processing ; l’approbation CurseForge reste distincte. Les étapes de création ci-dessus servent désormais de documentation pour une réinstallation.
 
 Sources officielles consultées le 12 novembre 2026 :
 - [Créer et soumettre un projet](https://support.curseforge.com/support/solutions/articles/9000197241-creating-and-submitting-a-project)
