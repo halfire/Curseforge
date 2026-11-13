@@ -48,11 +48,9 @@ def main():
     used={}
     for filename in ('ForeverDungeonJournal.toc', 'Localization/Content_frFR.lua'):
         used[filename]=hashlib.sha256((src/filename).read_bytes()).hexdigest()
-    previous={}
-    if args.quests_only:
-        vm.execute('PREVIOUS={}')
-        vm.execute('assert(loadstring(...))("bis",PREVIOUS)',(ROOT/'DungeonReference.lua').read_text())
-        previous=native(vm.globals().PREVIOUS)
+    vm.execute('PREVIOUS={}')
+    vm.execute('assert(loadstring(...))("bis",PREVIOUS)',(ROOT/'DungeonReference.lua').read_text())
+    previous=native(vm.globals().PREVIOUS)
     # Les mises à jour tierces choisissent parfois le donneur selon la faction.
     vm.execute('UnitFactionGroup=function() return "Alliance" end')
     vm.execute('assert(loadstring(...))("ForeverDungeonJournal",FDJ)',(src/'Localization/Content_frFR.lua').read_text())
@@ -218,27 +216,25 @@ def main():
         for row in rows:row[2]=questmeta[row[0]]['title']
     fields={'REFERENCE_QUESTS':quests,'REFERENCE_QUEST_INFO':questmeta,'REFERENCE_QUEST_PLACES':places,
             'REFERENCE_QUEST_TURNINS':turnins,'REFERENCE_QUEST_PINS':interior}
-    if args.quests_only:
-        # Une absence dans la nouvelle référence ne supprime pas un fait déjà connu.
-        for key in ('REFERENCE_QUEST_INFO','REFERENCE_QUEST_PLACES','REFERENCE_QUEST_TURNINS'):
-            merged=dict(previous.get(key,{}))
-            for qid, value in fields[key].items():
-                merged[qid]={**merged.get(qid,{}),**{k:v for k,v in value.items() if v is not None}}
-            fields[key]=merged
-        for code, rows in previous['REFERENCE_QUESTS'].items():
-            current=quests.setdefault(code,[])
-            seen={row[0] for row in current}
-            for row in rows:
-                if row[0] not in seen:current.append(row)
-        for code, old in previous['REFERENCE_QUEST_PINS'].items():
-            target=interior.setdefault(code,{})
-            for qid, points in old.items():
-                if qid not in target:target[qid]=points
-        previous.update(fields)
-        write(ROOT/'DungeonReference.lua',previous,source)
-    else:
-        fields.update({'REFERENCE_MAPS':outmaps,'REFERENCE_PORTRAITS':portraits,'REFERENCE_EQUIPMENT':equipment})
-        write(ROOT/'DungeonReference.lua',fields,source)
+    # Une absence dans la nouvelle référence ne supprime pas un fait déjà connu.
+    for key in ('REFERENCE_QUEST_INFO','REFERENCE_QUEST_PLACES','REFERENCE_QUEST_TURNINS'):
+        merged=dict(previous.get(key,{}))
+        for qid, value in fields[key].items():
+            merged[qid]={**merged.get(qid,{}),**{k:v for k,v in value.items() if v is not None}}
+        fields[key]=merged
+    for code, rows in previous['REFERENCE_QUESTS'].items():
+        current=quests.setdefault(code,[])
+        seen={row[0] for row in current}
+        for row in rows:
+            if row[0] not in seen:current.append(row)
+    for code, old in previous['REFERENCE_QUEST_PINS'].items():
+        target=interior.setdefault(code,{})
+        for qid, points in old.items():
+            if qid not in target:target[qid]=points
+    previous.update(fields)
+    if not args.quests_only:
+        previous.update({'REFERENCE_MAPS':outmaps,'REFERENCE_PORTRAITS':portraits,'REFERENCE_EQUIPMENT':equipment})
+    write(ROOT/'DungeonReference.lua',previous,source)
     write(GROUP/'DungeonReference.lua',{key:fields[key] for key in (
         'REFERENCE_QUESTS','REFERENCE_QUEST_INFO','REFERENCE_QUEST_PLACES','REFERENCE_QUEST_TURNINS')},source)
     if args.quests_only:
@@ -262,7 +258,7 @@ def main():
                 previous=prior.get(code,{}).get(iid,[])
                 if boss['name'] not in previous:audit.append({'instance':code,'boss_reference':boss['name'],'item':iid,'title':title,'boss_precedent':previous,'type':'rencontre partagée ou groupée' if previous else 'complément'})
     (ROOT/'scripts/data/fdj_loot_audit.json').write_text(json.dumps({'differences':audit,'note':'Absence dans FDJ non considérée comme preuve de retrait. Objets probableLoot exclus, identifiants manquants ignorés.'},ensure_ascii=False,indent=2)+'\n')
-    manifest={'source':'ForeverDungeonJournal 2.0, dossier fourni par le GM le 10/11/2026','files':used,'assets':assets,'maps':len(outmaps),'quests':sum(len(x) for x in quests.values()),'places':len(places)}
+    manifest={'source':source,'files':used,'assets':assets,'maps':len(outmaps),'quests':sum(len(x) for x in quests.values()),'places':len(places)}
     (GROUP/'ThirdParty').mkdir(exist_ok=True)
     (GROUP/'ThirdParty/FDJ-sources.json').write_text(json.dumps({'source':manifest['source'],'files':used},ensure_ascii=False,indent=2)+'\n')
     (ROOT/'scripts/data/fdj_sources.json').write_text(json.dumps(manifest,ensure_ascii=False,indent=2)+'\n')

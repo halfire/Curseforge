@@ -90,6 +90,14 @@
     },
     {
       "instance": "DROWNED",
+      "boss_reference": "Deathless Marrow",
+      "item": 274607,
+      "title": "Viscera Spaulders",
+      "boss_precedent": [],
+      "type": "complément"
+    },
+    {
+      "instance": "DROWNED",
       "boss_reference": "Primeval Elemental",
       "item": 274612,
       "title": "Waterlogged Burial Shroud",
@@ -133,6 +141,14 @@
       "boss_reference": "Umbra",
       "item": 286662,
       "title": "Deep-Dweller's Grips",
+      "boss_precedent": [],
+      "type": "complément"
+    },
+    {
+      "instance": "DROWNED",
+      "boss_reference": "Umbra",
+      "item": 286658,
+      "title": "Umbral Scaled Belt",
       "boss_precedent": [],
       "type": "complément"
     },
@@ -242,6 +258,14 @@
     },
     {
       "instance": "KROLDOK",
+      "boss_reference": "War Handler Ashka",
+      "item": 275003,
+      "title": "Worgbinder's Treads",
+      "boss_precedent": [],
+      "type": "complément"
+    },
+    {
+      "instance": "KROLDOK",
       "boss_reference": "Nar'gurk",
       "item": 275004,
       "title": "Chain of the Corruptor",
@@ -307,6 +331,14 @@
     {
       "instance": "KROLDOK",
       "boss_reference": "Overlord Mugg",
+      "item": 275008,
+      "title": "Mugg's Crosser",
+      "boss_precedent": [],
+      "type": "complément"
+    },
+    {
+      "instance": "KROLDOK",
+      "boss_reference": "Overlord Mugg",
       "item": 275010,
       "title": "Strongly Scented Hood",
       "boss_precedent": [],
@@ -315,8 +347,24 @@
     {
       "instance": "ALCAZ",
       "boss_reference": "Overseer Wrex",
+      "item": 276733,
+      "title": "Grips of Control",
+      "boss_precedent": [],
+      "type": "complément"
+    },
+    {
+      "instance": "ALCAZ",
+      "boss_reference": "Overseer Wrex",
       "item": 276734,
       "title": "Wrex's Pinky Ring",
+      "boss_precedent": [],
+      "type": "complément"
+    },
+    {
+      "instance": "ALCAZ",
+      "boss_reference": "Overseer Wrex",
+      "item": 276732,
+      "title": "Alcaz Willcrusher",
       "boss_precedent": [],
       "type": "complément"
     },
@@ -347,8 +395,88 @@
     {
       "instance": "ALCAZ",
       "boss_reference": "Tidemistress Ca'zass",
+      "item": 276735,
+      "title": "Tidesong Wand",
+      "boss_precedent": [],
+      "type": "complément"
+    },
+    {
+      "instance": "ALCAZ",
+      "boss_reference": "Tidemistress Ca'zass",
       "item": 276736,
       "title": "Seascale Bracers",
+      "boss_precedent": [],
+      "type": "complément"
+    },
+    {
+      "instance": "ALCAZ",
+      "boss_reference": "Tidemistress Ca'zass",
+      "item": 276737,
+      "title": "Cloak of the Tidemistress",
+      "boss_precedent": [],
+      "type": "complément"
+    },
+    {
+      "instance": "ALCAZ",
+      "boss_reference": "Katerina the Cleaner",
+      "item": 276739,
+      "title": "Cutthroat Chestguard",
+      "boss_precedent": [],
+      "type": "complément"
+    },
+    {
+      "instance": "ALCAZ",
+      "boss_reference": "Katerina the Cleaner",
+      "item": 276738,
+      "title": "Katerina's Shanker",
+      "boss_precedent": [],
+      "type": "complément"
+    },
+    {
+      "instance": "ALCAZ",
+      "boss_reference": "Katerina the Cleaner",
+      "item": 276740,
+      "title": "Sentimental Locket",
+      "boss_precedent": [],
+      "type": "complément"
+    },
+    {
+      "instance": "ALCAZ",
+      "boss_reference": "Blazeroar",
+      "item": 276744,
+      "title": "Zarla's Snack Pouch",
+      "boss_precedent": [],
+      "type": "complément"
+    },
+    {
+      "instance": "ALCAZ",
+      "boss_reference": "Blazeroar",
+      "item": 276745,
+      "title": "Beastbond Robe",
+      "boss_precedent": [],
+      "type": "complément"
+    },
+    {
+      "instance": "ALCAZ",
+      "boss_reference": "Blazeroar",
+      "item": 276746,
+      "title": "Defias Enforcer's Legguards",
+      "boss_precedent": [],
+      "type": "complément"
+    },
+    {
+      "instance": "BLACKMAW",
+      "boss_reference": "Impaan the Imprisoner",
+      "item": 280057,
+      "title": "Robes of Dark Summons",
+      "boss_precedent": [],
+      "type": "complément"
+    },
+    {
+      "instance": "BLACKMAW",
+      "boss_reference": "Bonesnout the Unbroken",
+      "item": 280059,
+      "title": "Tuskblade Halberd",
       "boss_precedent": [],
       "type": "complément"
     },
@@ -378,6 +506,46 @@
     },
     {
       "instance": "BLACKMAW",
+      "boss_reference": "Gortek the Apprentice",
+      "item": 280078,
+      "title": "Apprentice's Protective Treads",
+      "boss_precedent": [],
+      "type": "complément"
+    },
+    {
+      "instance": "BLACKMAW",
+      "boss_reference": "Tunnelweb Matriarch",
+      "item": 280085,
+      "title": "Tunnelweb Pincer",
+      "boss_precedent": [],
+      "type": "complément"
+    },
+    {
+      "instance": "BLACKMAW",
+      "boss_reference": "Tunnelweb Matriarch",
+      "item": 280086,
+      "title": "Octofinger Gauntlets",
+      "boss_precedent": [],
+      "type": "complément"
+    },
+    {
+      "instance": "BLACKMAW",
+      "boss_reference": "Withermaw",
+      "item": 280063,
+      "title": "Bloodfur Bulwark",
+      "boss_precedent": [],
+      "type": "complément"
+    },
+    {
+      "instance": "BLACKMAW",
+      "boss_reference": "Withermaw",
+      "item": 280062,
+      "title": "Cloak of the Fleshborer",
+      "boss_precedent": [],
+      "type": "complément"
+    },
+    {
+      "instance": "BLACKMAW",
       "boss_reference": "Withermaw",
       "item": 280064,
       "title": "Withering Grips",
@@ -394,9 +562,33 @@
     },
     {
       "instance": "BLACKMAW",
+      "boss_reference": "Blackmaw Behemoth",
+      "item": 280067,
+      "title": "Blackmaw Chain Belt",
+      "boss_precedent": [],
+      "type": "complément"
+    },
+    {
+      "instance": "BLACKMAW",
+      "boss_reference": "Unbound Spirit",
+      "item": 280072,
+      "title": "Cowl of Dark Ambition",
+      "boss_precedent": [],
+      "type": "complément"
+    },
+    {
+      "instance": "BLACKMAW",
       "boss_reference": "Unbound Spirit",
       "item": 280071,
       "title": "Flamebreak Talisman",
+      "boss_precedent": [],
+      "type": "complément"
+    },
+    {
+      "instance": "BLACKMAW",
+      "boss_reference": "Varrox Bleakhoof",
+      "item": 280076,
+      "title": "Horns of Varrox",
       "boss_precedent": [],
       "type": "complément"
     },
@@ -459,6 +651,14 @@
     {
       "instance": "SHAPER",
       "boss_reference": "Thunderhoof",
+      "item": 280018,
+      "title": "Hammer of Thundering Hooves",
+      "boss_precedent": [],
+      "type": "complément"
+    },
+    {
+      "instance": "SHAPER",
+      "boss_reference": "Thunderhoof",
       "item": 280020,
       "title": "Deep Jungle Rifle",
       "boss_precedent": [],
@@ -469,6 +669,14 @@
       "boss_reference": "Thunderhoof",
       "item": 280019,
       "title": "Dinofrill Casque",
+      "boss_precedent": [],
+      "type": "complément"
+    },
+    {
+      "instance": "SHAPER",
+      "boss_reference": "Direhorn Matriarch",
+      "item": 280045,
+      "title": "Regal Direhorn Drape",
       "boss_precedent": [],
       "type": "complément"
     },
@@ -490,9 +698,65 @@
     },
     {
       "instance": "SHAPER",
+      "boss_reference": "Cinder",
+      "item": 280029,
+      "title": "Cinderedge Crescent",
+      "boss_precedent": [],
+      "type": "complément"
+    },
+    {
+      "instance": "SHAPER",
+      "boss_reference": "Cinder",
+      "item": 280028,
+      "title": "Heartflame Gauntlets",
+      "boss_precedent": [],
+      "type": "complément"
+    },
+    {
+      "instance": "SHAPER",
+      "boss_reference": "Bolt",
+      "item": 280031,
+      "title": "Sparklance Wand",
+      "boss_precedent": [],
+      "type": "complément"
+    },
+    {
+      "instance": "SHAPER",
       "boss_reference": "Bolt",
       "item": 280032,
       "title": "Bolt's Charged Eyeball",
+      "boss_precedent": [],
+      "type": "complément"
+    },
+    {
+      "instance": "SHAPER",
+      "boss_reference": "Snowtalon",
+      "item": 280026,
+      "title": "Albinofur Grips",
+      "boss_precedent": [],
+      "type": "complément"
+    },
+    {
+      "instance": "SHAPER",
+      "boss_reference": "Snowtalon",
+      "item": 280027,
+      "title": "Crownroar Chestplate",
+      "boss_precedent": [],
+      "type": "complément"
+    },
+    {
+      "instance": "SHAPER",
+      "boss_reference": "Vitrix",
+      "item": 280031,
+      "title": "Sparklance Wand",
+      "boss_precedent": [],
+      "type": "complément"
+    },
+    {
+      "instance": "SHAPER",
+      "boss_reference": "Vitrix",
+      "item": 280028,
+      "title": "Heartflame Gauntlets",
       "boss_precedent": [],
       "type": "complément"
     },
@@ -637,6 +901,134 @@
       "type": "rencontre partagée ou groupée"
     },
     {
+      "instance": "ULDA",
+      "boss_reference": "Archaedas",
+      "item": 274432,
+      "title": "Stone Keeper Spire",
+      "boss_precedent": [],
+      "type": "complément"
+    },
+    {
+      "instance": "ZF",
+      "boss_reference": "Theka the Martyr",
+      "item": 274641,
+      "title": "Theka's Last Breath",
+      "boss_precedent": [],
+      "type": "complément"
+    },
+    {
+      "instance": "ZF",
+      "boss_reference": "Theka the Martyr",
+      "item": 274639,
+      "title": "Sacrificial Chain Vest",
+      "boss_precedent": [],
+      "type": "complément"
+    },
+    {
+      "instance": "ZF",
+      "boss_reference": "Theka the Martyr",
+      "item": 274638,
+      "title": "Sandfury Pauldrons",
+      "boss_precedent": [],
+      "type": "complément"
+    },
+    {
+      "instance": "ZF",
+      "boss_reference": "Witch Doctor Zum'rah",
+      "item": 274642,
+      "title": "Blood Ritual Ring",
+      "boss_precedent": [],
+      "type": "complément"
+    },
+    {
+      "instance": "ZF",
+      "boss_reference": "Nekrum Gutchewer",
+      "item": 274644,
+      "title": "Undying Headdress",
+      "boss_precedent": [],
+      "type": "complément"
+    },
+    {
+      "instance": "ZF",
+      "boss_reference": "Nekrum Gutchewer",
+      "item": 274645,
+      "title": "Desert Ziggurat Drape",
+      "boss_precedent": [],
+      "type": "complément"
+    },
+    {
+      "instance": "ZF",
+      "boss_reference": "Nekrum Gutchewer",
+      "item": 274643,
+      "title": "Gutcutter Hatchet",
+      "boss_precedent": [],
+      "type": "complément"
+    },
+    {
+      "instance": "ZF",
+      "boss_reference": "Hydromancer Velratha",
+      "item": 274653,
+      "title": "Deep Ritual Girdle",
+      "boss_precedent": [],
+      "type": "complément"
+    },
+    {
+      "instance": "ZF",
+      "boss_reference": "Gahz'rilla",
+      "item": 274657,
+      "title": "Hydra Leather Legs",
+      "boss_precedent": [],
+      "type": "complément"
+    },
+    {
+      "instance": "ZF",
+      "boss_reference": "Zerillis",
+      "item": 274658,
+      "title": "Dune Hacker",
+      "boss_precedent": [],
+      "type": "complément"
+    },
+    {
+      "instance": "ZF",
+      "boss_reference": "Sandarr Dunereaver",
+      "item": 274660,
+      "title": "Sandarr's Shoulders",
+      "boss_precedent": [],
+      "type": "complément"
+    },
+    {
+      "instance": "ZF",
+      "boss_reference": "Sandarr Dunereaver",
+      "item": 274659,
+      "title": "Bloodsand Belt",
+      "boss_precedent": [],
+      "type": "complément"
+    },
+    {
+      "instance": "ZF",
+      "boss_reference": "Dustwraith",
+      "item": 12469,
+      "title": "Mutilator",
+      "boss_precedent": [],
+      "type": "complément"
+    },
+    {
+      "instance": "ZF",
+      "boss_reference": "Ruuzlu",
+      "item": 274654,
+      "title": "Sandfury Guillotine",
+      "boss_precedent": [],
+      "type": "complément"
+    },
+    {
+      "instance": "ZF",
+      "boss_reference": "Ruuzlu",
+      "item": 274655,
+      "title": "Peacekeeper Wand",
+      "boss_precedent": [],
+      "type": "complément"
+    },
+    {
       "instance": "ZF",
       "boss_reference": "Chief Ukorz Sandscalp",
       "item": 11086,
@@ -662,6 +1054,97 @@
     },
     {
       "instance": "ST",
+      "boss_reference": "Morphaz & Hazzas",
+      "item": 10795,
+      "title": "Drakeclaw Band",
+      "boss_precedent": [
+        "Dreamscythe",
+        "Weaver",
+        "Morphaz",
+        "Hazzas"
+      ],
+      "type": "rencontre partagée ou groupée"
+    },
+    {
+      "instance": "ST",
+      "boss_reference": "Morphaz & Hazzas",
+      "item": 10797,
+      "title": "Firebreather",
+      "boss_precedent": [
+        "Dreamscythe",
+        "Weaver",
+        "Morphaz",
+        "Hazzas"
+      ],
+      "type": "rencontre partagée ou groupée"
+    },
+    {
+      "instance": "ST",
+      "boss_reference": "Morphaz & Hazzas",
+      "item": 12243,
+      "title": "Smoldering Claw",
+      "boss_precedent": [
+        "Dreamscythe",
+        "Weaver",
+        "Morphaz",
+        "Hazzas"
+      ],
+      "type": "rencontre partagée ou groupée"
+    },
+    {
+      "instance": "ST",
+      "boss_reference": "Morphaz & Hazzas",
+      "item": 12463,
+      "title": "Drakefang Butcher",
+      "boss_precedent": [
+        "Dreamscythe",
+        "Weaver",
+        "Morphaz",
+        "Hazzas"
+      ],
+      "type": "rencontre partagée ou groupée"
+    },
+    {
+      "instance": "ST",
+      "boss_reference": "Morphaz & Hazzas",
+      "item": 12464,
+      "title": "Bloodfire Talons",
+      "boss_precedent": [
+        "Dreamscythe",
+        "Weaver",
+        "Morphaz",
+        "Hazzas"
+      ],
+      "type": "rencontre partagée ou groupée"
+    },
+    {
+      "instance": "ST",
+      "boss_reference": "Morphaz & Hazzas",
+      "item": 12465,
+      "title": "Nightfall Drape",
+      "boss_precedent": [
+        "Dreamscythe",
+        "Weaver",
+        "Morphaz",
+        "Hazzas"
+      ],
+      "type": "rencontre partagée ou groupée"
+    },
+    {
+      "instance": "ST",
+      "boss_reference": "Morphaz & Hazzas",
+      "item": 12466,
+      "title": "Dawnspire Cord",
+      "boss_precedent": [
+        "Dreamscythe",
+        "Weaver",
+        "Morphaz",
+        "Hazzas"
+      ],
+      "type": "rencontre partagée ou groupée"
+    },
+    {
+      "instance": "ST",
       "boss_reference": "Jammal'an the Prophet",
       "item": 10806,
       "title": "Vestments of the Atal'ai Prophet",
@@ -675,6 +1158,97 @@
       "title": "Gloves of the Atal'ai Prophet",
       "boss_precedent": [],
       "type": "complément"
+    },
+    {
+      "instance": "ST",
+      "boss_reference": "Dreamscythe & Weaver",
+      "item": 10795,
+      "title": "Drakeclaw Band",
+      "boss_precedent": [
+        "Dreamscythe",
+        "Weaver",
+        "Morphaz",
+        "Hazzas"
+      ],
+      "type": "rencontre partagée ou groupée"
+    },
+    {
+      "instance": "ST",
+      "boss_reference": "Dreamscythe & Weaver",
+      "item": 10797,
+      "title": "Firebreather",
+      "boss_precedent": [
+        "Dreamscythe",
+        "Weaver",
+        "Morphaz",
+        "Hazzas"
+      ],
+      "type": "rencontre partagée ou groupée"
+    },
+    {
+      "instance": "ST",
+      "boss_reference": "Dreamscythe & Weaver",
+      "item": 12243,
+      "title": "Smoldering Claw",
+      "boss_precedent": [
+        "Dreamscythe",
+        "Weaver",
+        "Morphaz",
+        "Hazzas"
+      ],
+      "type": "rencontre partagée ou groupée"
+    },
+    {
+      "instance": "ST",
+      "boss_reference": "Dreamscythe & Weaver",
+      "item": 12463,
+      "title": "Drakefang Butcher",
+      "boss_precedent": [
+        "Dreamscythe",
+        "Weaver",
+        "Morphaz",
+        "Hazzas"
+      ],
+      "type": "rencontre partagée ou groupée"
+    },
+    {
+      "instance": "ST",
+      "boss_reference": "Dreamscythe & Weaver",
+      "item": 12464,
+      "title": "Bloodfire Talons",
+      "boss_precedent": [
+        "Dreamscythe",
+        "Weaver",
+        "Morphaz",
+        "Hazzas"
+      ],
+      "type": "rencontre partagée ou groupée"
+    },
+    {
+      "instance": "ST",
+      "boss_reference": "Dreamscythe & Weaver",
+      "item": 12465,
+      "title": "Nightfall Drape",
+      "boss_precedent": [
+        "Dreamscythe",
+        "Weaver",
+        "Morphaz",
+        "Hazzas"
+      ],
+      "type": "rencontre partagée ou groupée"
+    },
+    {
+      "instance": "ST",
+      "boss_reference": "Dreamscythe & Weaver",
+      "item": 12466,
+      "title": "Dawnspire Cord",
+      "boss_precedent": [
+        "Dreamscythe",
+        "Weaver",
+        "Morphaz",
+        "Hazzas"
+      ],
+      "type": "rencontre partagée ou groupée"
     },
     {
       "instance": "ST",
@@ -705,6 +1279,46 @@
       "boss_reference": "Shade of Eranikus",
       "item": 10837,
       "title": "Tooth of Eranikus",
+      "boss_precedent": [],
+      "type": "complément"
+    },
+    {
+      "instance": "ST",
+      "boss_reference": "Avatar of Hakkar",
+      "item": 12462,
+      "title": "Embrace of the Wind Serpent",
+      "boss_precedent": [],
+      "type": "complément"
+    },
+    {
+      "instance": "ST",
+      "boss_reference": "Avatar of Hakkar",
+      "item": 10838,
+      "title": "Might of Hakkar",
+      "boss_precedent": [],
+      "type": "complément"
+    },
+    {
+      "instance": "ST",
+      "boss_reference": "Avatar of Hakkar",
+      "item": 10842,
+      "title": "Windscale Sarong",
+      "boss_precedent": [],
+      "type": "complément"
+    },
+    {
+      "instance": "ST",
+      "boss_reference": "Avatar of Hakkar",
+      "item": 10844,
+      "title": "Spire of Hakkar",
+      "boss_precedent": [],
+      "type": "complément"
+    },
+    {
+      "instance": "ST",
+      "boss_reference": "Avatar of Hakkar",
+      "item": 10846,
+      "title": "Bloodshot Greaves",
       "boss_precedent": [],
       "type": "complément"
     },
@@ -838,6 +1452,38 @@
     },
     {
       "instance": "BRD",
+      "boss_reference": "Theldren",
+      "item": 22330,
+      "title": "Shroud of Arcane Mastery",
+      "boss_precedent": [],
+      "type": "complément"
+    },
+    {
+      "instance": "BRD",
+      "boss_reference": "Theldren",
+      "item": 22305,
+      "title": "Ironweave Mantle",
+      "boss_precedent": [],
+      "type": "complément"
+    },
+    {
+      "instance": "BRD",
+      "boss_reference": "Theldren",
+      "item": 22317,
+      "title": "Lefty's Brass Knuckle",
+      "boss_precedent": [],
+      "type": "complément"
+    },
+    {
+      "instance": "BRD",
+      "boss_reference": "Theldren",
+      "item": 22318,
+      "title": "Malgen's Long Bow",
+      "boss_precedent": [],
+      "type": "complément"
+    },
+    {
+      "instance": "BRD",
       "boss_reference": "Pyromancer Loregrain",
       "item": 11747,
       "title": "Flamestrider Robes",
@@ -915,6 +1561,14 @@
       "boss_reference": "Lord Incendius",
       "item": 11765,
       "title": "Pyremail Wristguards",
+      "boss_precedent": [],
+      "type": "complément"
+    },
+    {
+      "instance": "BRD",
+      "boss_reference": "Lord Incendius",
+      "item": 11768,
+      "title": "Incendic Bracers",
       "boss_precedent": [],
       "type": "complément"
     },
@@ -1040,6 +1694,14 @@
     },
     {
       "instance": "BRD",
+      "boss_reference": "Phalanx",
+      "item": 11743,
+      "title": "Rockfist",
+      "boss_precedent": [],
+      "type": "complément"
+    },
+    {
+      "instance": "BRD",
       "boss_reference": "Ambassador Flamelash",
       "item": 11812,
       "title": "Cape of the Fire Salamander",
@@ -1059,6 +1721,14 @@
       "boss_reference": "Ambassador Flamelash",
       "item": 11832,
       "title": "Burst of Knowledge",
+      "boss_precedent": [],
+      "type": "complément"
+    },
+    {
+      "instance": "BRD",
+      "boss_reference": "Ambassador Flamelash",
+      "item": 11808,
+      "title": "Circle of Flame",
       "boss_precedent": [],
       "type": "complément"
     },
@@ -1104,6 +1774,30 @@
     },
     {
       "instance": "BRD",
+      "boss_reference": "The Seven",
+      "item": 11923,
+      "title": "The Hammer of Grace",
+      "boss_precedent": [],
+      "type": "complément"
+    },
+    {
+      "instance": "BRD",
+      "boss_reference": "The Seven",
+      "item": 11925,
+      "title": "Ghostshroud",
+      "boss_precedent": [],
+      "type": "complément"
+    },
+    {
+      "instance": "BRD",
+      "boss_reference": "The Seven",
+      "item": 11929,
+      "title": "Haunting Specter Leggings",
+      "boss_precedent": [],
+      "type": "complément"
+    },
+    {
+      "instance": "BRD",
       "boss_reference": "Magmus",
       "item": 22395,
       "title": "Totem of Rage",
@@ -1123,6 +1817,14 @@
       "boss_reference": "Magmus",
       "item": 11746,
       "title": "Golem Skull Helm",
+      "boss_precedent": [],
+      "type": "complément"
+    },
+    {
+      "instance": "BRD",
+      "boss_reference": "Emperor Dagran Thaurissan",
+      "item": 11684,
+      "title": "Ironfoe",
       "boss_precedent": [],
       "type": "complément"
     },
@@ -2264,6 +2966,22 @@
     },
     {
       "instance": "STRAT",
+      "boss_reference": "Malor the Zealous",
+      "item": 276398,
+      "title": "Scarlet Malice",
+      "boss_precedent": [],
+      "type": "complément"
+    },
+    {
+      "instance": "STRAT",
+      "boss_reference": "Malor the Zealous",
+      "item": 276399,
+      "title": "Plate of the Scarlet Bastion",
+      "boss_precedent": [],
+      "type": "complément"
+    },
+    {
+      "instance": "STRAT",
       "boss_reference": "Postmaster Malown",
       "item": 13393,
       "title": "Malown's Slam",
@@ -2672,6 +3390,30 @@
     },
     {
       "instance": "SCHOLO",
+      "boss_reference": "Kirtonos the Herald",
+      "item": 13955,
+      "title": "Stoneform Shoulders",
+      "boss_precedent": [],
+      "type": "complément"
+    },
+    {
+      "instance": "SCHOLO",
+      "boss_reference": "Kirtonos the Herald",
+      "item": 13956,
+      "title": "Clutch of Andros",
+      "boss_precedent": [],
+      "type": "complément"
+    },
+    {
+      "instance": "SCHOLO",
+      "boss_reference": "Kirtonos the Herald",
+      "item": 13983,
+      "title": "Gravestone War Axe",
+      "boss_precedent": [],
+      "type": "complément"
+    },
+    {
+      "instance": "SCHOLO",
       "boss_reference": "Jandice Barov",
       "item": 14545,
       "title": "Ghostloom Leggings",
@@ -2864,9 +3606,734 @@
     },
     {
       "instance": "SCHOLO",
-      "boss_reference": "Lord Alexei Barov",
+      "boss_reference": "Instructor Malicia",
+      "item": 23201,
+      "title": "Libram of Divinity",
+      "boss_precedent": [],
+      "type": "complément"
+    },
+    {
+      "instance": "SCHOLO",
+      "boss_reference": "Instructor Malicia",
+      "item": 23200,
+      "title": "Totem of Sustaining",
+      "boss_precedent": [],
+      "type": "complément"
+    },
+    {
+      "instance": "SCHOLO",
+      "boss_reference": "Instructor Malicia",
+      "item": 18680,
+      "title": "Ancient Bone Bow",
+      "boss_precedent": [],
+      "type": "complément"
+    },
+    {
+      "instance": "SCHOLO",
+      "boss_reference": "Instructor Malicia",
+      "item": 14614,
+      "title": "Bloodmail Belt",
+      "boss_precedent": [],
+      "type": "complément"
+    },
+    {
+      "instance": "SCHOLO",
+      "boss_reference": "Instructor Malicia",
+      "item": 14616,
+      "title": "Bloodmail Boots",
+      "boss_precedent": [],
+      "type": "complément"
+    },
+    {
+      "instance": "SCHOLO",
+      "boss_reference": "Instructor Malicia",
+      "item": 14615,
+      "title": "Bloodmail Gauntlets",
+      "boss_precedent": [],
+      "type": "complément"
+    },
+    {
+      "instance": "SCHOLO",
+      "boss_reference": "Instructor Malicia",
+      "item": 14611,
+      "title": "Bloodmail Hauberk",
+      "boss_precedent": [],
+      "type": "complément"
+    },
+    {
+      "instance": "SCHOLO",
+      "boss_reference": "Instructor Malicia",
+      "item": 14612,
+      "title": "Bloodmail Legguards",
+      "boss_precedent": [],
+      "type": "complément"
+    },
+    {
+      "instance": "SCHOLO",
+      "boss_reference": "Instructor Malicia",
+      "item": 18681,
+      "title": "Burial Shawl",
+      "boss_precedent": [],
+      "type": "complément"
+    },
+    {
+      "instance": "SCHOLO",
+      "boss_reference": "Instructor Malicia",
       "item": 14637,
       "title": "Cadaverous Armor",
+      "boss_precedent": [],
+      "type": "complément"
+    },
+    {
+      "instance": "SCHOLO",
+      "boss_reference": "Instructor Malicia",
+      "item": 14636,
+      "title": "Cadaverous Belt",
+      "boss_precedent": [],
+      "type": "complément"
+    },
+    {
+      "instance": "SCHOLO",
+      "boss_reference": "Instructor Malicia",
+      "item": 14640,
+      "title": "Cadaverous Gloves",
+      "boss_precedent": [],
+      "type": "complément"
+    },
+    {
+      "instance": "SCHOLO",
+      "boss_reference": "Instructor Malicia",
+      "item": 14638,
+      "title": "Cadaverous Leggings",
+      "boss_precedent": [],
+      "type": "complément"
+    },
+    {
+      "instance": "SCHOLO",
+      "boss_reference": "Instructor Malicia",
+      "item": 14641,
+      "title": "Cadaverous Walkers",
+      "boss_precedent": [],
+      "type": "complément"
+    },
+    {
+      "instance": "SCHOLO",
+      "boss_reference": "Instructor Malicia",
+      "item": 14624,
+      "title": "Deathbone Chestplate",
+      "boss_precedent": [],
+      "type": "complément"
+    },
+    {
+      "instance": "SCHOLO",
+      "boss_reference": "Instructor Malicia",
+      "item": 14622,
+      "title": "Deathbone Gauntlets",
+      "boss_precedent": [],
+      "type": "complément"
+    },
+    {
+      "instance": "SCHOLO",
+      "boss_reference": "Instructor Malicia",
+      "item": 14620,
+      "title": "Deathbone Girdle",
+      "boss_precedent": [],
+      "type": "complément"
+    },
+    {
+      "instance": "SCHOLO",
+      "boss_reference": "Instructor Malicia",
+      "item": 14623,
+      "title": "Deathbone Legguards",
+      "boss_precedent": [],
+      "type": "complément"
+    },
+    {
+      "instance": "SCHOLO",
+      "boss_reference": "Instructor Malicia",
+      "item": 14621,
+      "title": "Deathbone Sabatons",
+      "boss_precedent": [],
+      "type": "complément"
+    },
+    {
+      "instance": "SCHOLO",
+      "boss_reference": "Instructor Malicia",
+      "item": 18684,
+      "title": "Dimly Opalescent Ring",
+      "boss_precedent": [],
+      "type": "complément"
+    },
+    {
+      "instance": "SCHOLO",
+      "boss_reference": "Instructor Malicia",
+      "item": 18682,
+      "title": "Ghoul Skin Leggings",
+      "boss_precedent": [],
+      "type": "complément"
+    },
+    {
+      "instance": "SCHOLO",
+      "boss_reference": "Instructor Malicia",
+      "item": 18683,
+      "title": "Hammer of the Vesper",
+      "boss_precedent": [],
+      "type": "complément"
+    },
+    {
+      "instance": "SCHOLO",
+      "boss_reference": "Doctor Theolen Krastinov",
+      "item": 23201,
+      "title": "Libram of Divinity",
+      "boss_precedent": [],
+      "type": "complément"
+    },
+    {
+      "instance": "SCHOLO",
+      "boss_reference": "Doctor Theolen Krastinov",
+      "item": 23200,
+      "title": "Totem of Sustaining",
+      "boss_precedent": [],
+      "type": "complément"
+    },
+    {
+      "instance": "SCHOLO",
+      "boss_reference": "Doctor Theolen Krastinov",
+      "item": 18680,
+      "title": "Ancient Bone Bow",
+      "boss_precedent": [],
+      "type": "complément"
+    },
+    {
+      "instance": "SCHOLO",
+      "boss_reference": "Doctor Theolen Krastinov",
+      "item": 14614,
+      "title": "Bloodmail Belt",
+      "boss_precedent": [],
+      "type": "complément"
+    },
+    {
+      "instance": "SCHOLO",
+      "boss_reference": "Doctor Theolen Krastinov",
+      "item": 14616,
+      "title": "Bloodmail Boots",
+      "boss_precedent": [],
+      "type": "complément"
+    },
+    {
+      "instance": "SCHOLO",
+      "boss_reference": "Doctor Theolen Krastinov",
+      "item": 14615,
+      "title": "Bloodmail Gauntlets",
+      "boss_precedent": [],
+      "type": "complément"
+    },
+    {
+      "instance": "SCHOLO",
+      "boss_reference": "Doctor Theolen Krastinov",
+      "item": 14611,
+      "title": "Bloodmail Hauberk",
+      "boss_precedent": [],
+      "type": "complément"
+    },
+    {
+      "instance": "SCHOLO",
+      "boss_reference": "Doctor Theolen Krastinov",
+      "item": 14612,
+      "title": "Bloodmail Legguards",
+      "boss_precedent": [],
+      "type": "complément"
+    },
+    {
+      "instance": "SCHOLO",
+      "boss_reference": "Doctor Theolen Krastinov",
+      "item": 18681,
+      "title": "Burial Shawl",
+      "boss_precedent": [],
+      "type": "complément"
+    },
+    {
+      "instance": "SCHOLO",
+      "boss_reference": "Doctor Theolen Krastinov",
+      "item": 14637,
+      "title": "Cadaverous Armor",
+      "boss_precedent": [],
+      "type": "complément"
+    },
+    {
+      "instance": "SCHOLO",
+      "boss_reference": "Doctor Theolen Krastinov",
+      "item": 14636,
+      "title": "Cadaverous Belt",
+      "boss_precedent": [],
+      "type": "complément"
+    },
+    {
+      "instance": "SCHOLO",
+      "boss_reference": "Doctor Theolen Krastinov",
+      "item": 14640,
+      "title": "Cadaverous Gloves",
+      "boss_precedent": [],
+      "type": "complément"
+    },
+    {
+      "instance": "SCHOLO",
+      "boss_reference": "Doctor Theolen Krastinov",
+      "item": 14638,
+      "title": "Cadaverous Leggings",
+      "boss_precedent": [],
+      "type": "complément"
+    },
+    {
+      "instance": "SCHOLO",
+      "boss_reference": "Doctor Theolen Krastinov",
+      "item": 14641,
+      "title": "Cadaverous Walkers",
+      "boss_precedent": [],
+      "type": "complément"
+    },
+    {
+      "instance": "SCHOLO",
+      "boss_reference": "Doctor Theolen Krastinov",
+      "item": 14624,
+      "title": "Deathbone Chestplate",
+      "boss_precedent": [],
+      "type": "complément"
+    },
+    {
+      "instance": "SCHOLO",
+      "boss_reference": "Doctor Theolen Krastinov",
+      "item": 14622,
+      "title": "Deathbone Gauntlets",
+      "boss_precedent": [],
+      "type": "complément"
+    },
+    {
+      "instance": "SCHOLO",
+      "boss_reference": "Doctor Theolen Krastinov",
+      "item": 14620,
+      "title": "Deathbone Girdle",
+      "boss_precedent": [],
+      "type": "complément"
+    },
+    {
+      "instance": "SCHOLO",
+      "boss_reference": "Doctor Theolen Krastinov",
+      "item": 14623,
+      "title": "Deathbone Legguards",
+      "boss_precedent": [],
+      "type": "complément"
+    },
+    {
+      "instance": "SCHOLO",
+      "boss_reference": "Doctor Theolen Krastinov",
+      "item": 14621,
+      "title": "Deathbone Sabatons",
+      "boss_precedent": [],
+      "type": "complément"
+    },
+    {
+      "instance": "SCHOLO",
+      "boss_reference": "Doctor Theolen Krastinov",
+      "item": 18684,
+      "title": "Dimly Opalescent Ring",
+      "boss_precedent": [],
+      "type": "complément"
+    },
+    {
+      "instance": "SCHOLO",
+      "boss_reference": "Doctor Theolen Krastinov",
+      "item": 18682,
+      "title": "Ghoul Skin Leggings",
+      "boss_precedent": [],
+      "type": "complément"
+    },
+    {
+      "instance": "SCHOLO",
+      "boss_reference": "Doctor Theolen Krastinov",
+      "item": 18683,
+      "title": "Hammer of the Vesper",
+      "boss_precedent": [],
+      "type": "complément"
+    },
+    {
+      "instance": "SCHOLO",
+      "boss_reference": "Lorekeeper Polkelt",
+      "item": 23201,
+      "title": "Libram of Divinity",
+      "boss_precedent": [],
+      "type": "complément"
+    },
+    {
+      "instance": "SCHOLO",
+      "boss_reference": "Lorekeeper Polkelt",
+      "item": 23200,
+      "title": "Totem of Sustaining",
+      "boss_precedent": [],
+      "type": "complément"
+    },
+    {
+      "instance": "SCHOLO",
+      "boss_reference": "Lorekeeper Polkelt",
+      "item": 18680,
+      "title": "Ancient Bone Bow",
+      "boss_precedent": [],
+      "type": "complément"
+    },
+    {
+      "instance": "SCHOLO",
+      "boss_reference": "Lorekeeper Polkelt",
+      "item": 14614,
+      "title": "Bloodmail Belt",
+      "boss_precedent": [],
+      "type": "complément"
+    },
+    {
+      "instance": "SCHOLO",
+      "boss_reference": "Lorekeeper Polkelt",
+      "item": 14616,
+      "title": "Bloodmail Boots",
+      "boss_precedent": [],
+      "type": "complément"
+    },
+    {
+      "instance": "SCHOLO",
+      "boss_reference": "Lorekeeper Polkelt",
+      "item": 14615,
+      "title": "Bloodmail Gauntlets",
+      "boss_precedent": [],
+      "type": "complément"
+    },
+    {
+      "instance": "SCHOLO",
+      "boss_reference": "Lorekeeper Polkelt",
+      "item": 14611,
+      "title": "Bloodmail Hauberk",
+      "boss_precedent": [],
+      "type": "complément"
+    },
+    {
+      "instance": "SCHOLO",
+      "boss_reference": "Lorekeeper Polkelt",
+      "item": 14612,
+      "title": "Bloodmail Legguards",
+      "boss_precedent": [],
+      "type": "complément"
+    },
+    {
+      "instance": "SCHOLO",
+      "boss_reference": "Lorekeeper Polkelt",
+      "item": 18681,
+      "title": "Burial Shawl",
+      "boss_precedent": [],
+      "type": "complément"
+    },
+    {
+      "instance": "SCHOLO",
+      "boss_reference": "Lorekeeper Polkelt",
+      "item": 14637,
+      "title": "Cadaverous Armor",
+      "boss_precedent": [],
+      "type": "complément"
+    },
+    {
+      "instance": "SCHOLO",
+      "boss_reference": "Lorekeeper Polkelt",
+      "item": 14636,
+      "title": "Cadaverous Belt",
+      "boss_precedent": [],
+      "type": "complément"
+    },
+    {
+      "instance": "SCHOLO",
+      "boss_reference": "Lorekeeper Polkelt",
+      "item": 14640,
+      "title": "Cadaverous Gloves",
+      "boss_precedent": [],
+      "type": "complément"
+    },
+    {
+      "instance": "SCHOLO",
+      "boss_reference": "Lorekeeper Polkelt",
+      "item": 14638,
+      "title": "Cadaverous Leggings",
+      "boss_precedent": [],
+      "type": "complément"
+    },
+    {
+      "instance": "SCHOLO",
+      "boss_reference": "Lorekeeper Polkelt",
+      "item": 14641,
+      "title": "Cadaverous Walkers",
+      "boss_precedent": [],
+      "type": "complément"
+    },
+    {
+      "instance": "SCHOLO",
+      "boss_reference": "Lorekeeper Polkelt",
+      "item": 14624,
+      "title": "Deathbone Chestplate",
+      "boss_precedent": [],
+      "type": "complément"
+    },
+    {
+      "instance": "SCHOLO",
+      "boss_reference": "Lorekeeper Polkelt",
+      "item": 14622,
+      "title": "Deathbone Gauntlets",
+      "boss_precedent": [],
+      "type": "complément"
+    },
+    {
+      "instance": "SCHOLO",
+      "boss_reference": "Lorekeeper Polkelt",
+      "item": 14620,
+      "title": "Deathbone Girdle",
+      "boss_precedent": [],
+      "type": "complément"
+    },
+    {
+      "instance": "SCHOLO",
+      "boss_reference": "Lorekeeper Polkelt",
+      "item": 14623,
+      "title": "Deathbone Legguards",
+      "boss_precedent": [],
+      "type": "complément"
+    },
+    {
+      "instance": "SCHOLO",
+      "boss_reference": "Lorekeeper Polkelt",
+      "item": 14621,
+      "title": "Deathbone Sabatons",
+      "boss_precedent": [],
+      "type": "complément"
+    },
+    {
+      "instance": "SCHOLO",
+      "boss_reference": "Lorekeeper Polkelt",
+      "item": 18684,
+      "title": "Dimly Opalescent Ring",
+      "boss_precedent": [],
+      "type": "complément"
+    },
+    {
+      "instance": "SCHOLO",
+      "boss_reference": "Lorekeeper Polkelt",
+      "item": 18682,
+      "title": "Ghoul Skin Leggings",
+      "boss_precedent": [],
+      "type": "complément"
+    },
+    {
+      "instance": "SCHOLO",
+      "boss_reference": "Lorekeeper Polkelt",
+      "item": 18683,
+      "title": "Hammer of the Vesper",
+      "boss_precedent": [],
+      "type": "complément"
+    },
+    {
+      "instance": "SCHOLO",
+      "boss_reference": "Lorekeeper Polkelt",
+      "item": 14626,
+      "title": "Necropile Robe",
+      "boss_precedent": [
+        "Instructor Malicia",
+        "Doctor Theolen Krastinov",
+        "The Ravenian",
+        "Lord Alexei Barov"
+      ],
+      "type": "rencontre partagée ou groupée"
+    },
+    {
+      "instance": "SCHOLO",
+      "boss_reference": "The Ravenian",
+      "item": 23201,
+      "title": "Libram of Divinity",
+      "boss_precedent": [],
+      "type": "complément"
+    },
+    {
+      "instance": "SCHOLO",
+      "boss_reference": "The Ravenian",
+      "item": 23200,
+      "title": "Totem of Sustaining",
+      "boss_precedent": [],
+      "type": "complément"
+    },
+    {
+      "instance": "SCHOLO",
+      "boss_reference": "The Ravenian",
+      "item": 18680,
+      "title": "Ancient Bone Bow",
+      "boss_precedent": [],
+      "type": "complément"
+    },
+    {
+      "instance": "SCHOLO",
+      "boss_reference": "The Ravenian",
+      "item": 14614,
+      "title": "Bloodmail Belt",
+      "boss_precedent": [],
+      "type": "complément"
+    },
+    {
+      "instance": "SCHOLO",
+      "boss_reference": "The Ravenian",
+      "item": 14616,
+      "title": "Bloodmail Boots",
+      "boss_precedent": [],
+      "type": "complément"
+    },
+    {
+      "instance": "SCHOLO",
+      "boss_reference": "The Ravenian",
+      "item": 14615,
+      "title": "Bloodmail Gauntlets",
+      "boss_precedent": [],
+      "type": "complément"
+    },
+    {
+      "instance": "SCHOLO",
+      "boss_reference": "The Ravenian",
+      "item": 14611,
+      "title": "Bloodmail Hauberk",
+      "boss_precedent": [],
+      "type": "complément"
+    },
+    {
+      "instance": "SCHOLO",
+      "boss_reference": "The Ravenian",
+      "item": 14612,
+      "title": "Bloodmail Legguards",
+      "boss_precedent": [],
+      "type": "complément"
+    },
+    {
+      "instance": "SCHOLO",
+      "boss_reference": "The Ravenian",
+      "item": 18681,
+      "title": "Burial Shawl",
+      "boss_precedent": [],
+      "type": "complément"
+    },
+    {
+      "instance": "SCHOLO",
+      "boss_reference": "The Ravenian",
+      "item": 14637,
+      "title": "Cadaverous Armor",
+      "boss_precedent": [],
+      "type": "complément"
+    },
+    {
+      "instance": "SCHOLO",
+      "boss_reference": "The Ravenian",
+      "item": 14636,
+      "title": "Cadaverous Belt",
+      "boss_precedent": [],
+      "type": "complément"
+    },
+    {
+      "instance": "SCHOLO",
+      "boss_reference": "The Ravenian",
+      "item": 14640,
+      "title": "Cadaverous Gloves",
+      "boss_precedent": [],
+      "type": "complément"
+    },
+    {
+      "instance": "SCHOLO",
+      "boss_reference": "The Ravenian",
+      "item": 14638,
+      "title": "Cadaverous Leggings",
+      "boss_precedent": [],
+      "type": "complément"
+    },
+    {
+      "instance": "SCHOLO",
+      "boss_reference": "The Ravenian",
+      "item": 14641,
+      "title": "Cadaverous Walkers",
+      "boss_precedent": [],
+      "type": "complément"
+    },
+    {
+      "instance": "SCHOLO",
+      "boss_reference": "The Ravenian",
+      "item": 14624,
+      "title": "Deathbone Chestplate",
+      "boss_precedent": [],
+      "type": "complément"
+    },
+    {
+      "instance": "SCHOLO",
+      "boss_reference": "The Ravenian",
+      "item": 14622,
+      "title": "Deathbone Gauntlets",
+      "boss_precedent": [],
+      "type": "complément"
+    },
+    {
+      "instance": "SCHOLO",
+      "boss_reference": "The Ravenian",
+      "item": 14620,
+      "title": "Deathbone Girdle",
+      "boss_precedent": [],
+      "type": "complément"
+    },
+    {
+      "instance": "SCHOLO",
+      "boss_reference": "The Ravenian",
+      "item": 14623,
+      "title": "Deathbone Legguards",
+      "boss_precedent": [],
+      "type": "complément"
+    },
+    {
+      "instance": "SCHOLO",
+      "boss_reference": "The Ravenian",
+      "item": 14621,
+      "title": "Deathbone Sabatons",
+      "boss_precedent": [],
+      "type": "complément"
+    },
+    {
+      "instance": "SCHOLO",
+      "boss_reference": "The Ravenian",
+      "item": 18684,
+      "title": "Dimly Opalescent Ring",
+      "boss_precedent": [],
+      "type": "complément"
+    },
+    {
+      "instance": "SCHOLO",
+      "boss_reference": "The Ravenian",
+      "item": 18682,
+      "title": "Ghoul Skin Leggings",
+      "boss_precedent": [],
+      "type": "complément"
+    },
+    {
+      "instance": "SCHOLO",
+      "boss_reference": "The Ravenian",
+      "item": 18683,
+      "title": "Hammer of the Vesper",
+      "boss_precedent": [],
+      "type": "complément"
+    },
+    {
+      "instance": "SCHOLO",
+      "boss_reference": "Lord Alexei Barov",
+      "item": 23201,
+      "title": "Libram of Divinity",
+      "boss_precedent": [],
+      "type": "complément"
+    },
+    {
+      "instance": "SCHOLO",
+      "boss_reference": "Lord Alexei Barov",
+      "item": 23200,
+      "title": "Totem of Sustaining",
       "boss_precedent": [],
       "type": "complément"
     },
@@ -2881,8 +4348,136 @@
     {
       "instance": "SCHOLO",
       "boss_reference": "Lord Alexei Barov",
+      "item": 14614,
+      "title": "Bloodmail Belt",
+      "boss_precedent": [],
+      "type": "complément"
+    },
+    {
+      "instance": "SCHOLO",
+      "boss_reference": "Lord Alexei Barov",
+      "item": 14616,
+      "title": "Bloodmail Boots",
+      "boss_precedent": [],
+      "type": "complément"
+    },
+    {
+      "instance": "SCHOLO",
+      "boss_reference": "Lord Alexei Barov",
+      "item": 14615,
+      "title": "Bloodmail Gauntlets",
+      "boss_precedent": [],
+      "type": "complément"
+    },
+    {
+      "instance": "SCHOLO",
+      "boss_reference": "Lord Alexei Barov",
+      "item": 14611,
+      "title": "Bloodmail Hauberk",
+      "boss_precedent": [],
+      "type": "complément"
+    },
+    {
+      "instance": "SCHOLO",
+      "boss_reference": "Lord Alexei Barov",
+      "item": 14612,
+      "title": "Bloodmail Legguards",
+      "boss_precedent": [],
+      "type": "complément"
+    },
+    {
+      "instance": "SCHOLO",
+      "boss_reference": "Lord Alexei Barov",
       "item": 18681,
       "title": "Burial Shawl",
+      "boss_precedent": [],
+      "type": "complément"
+    },
+    {
+      "instance": "SCHOLO",
+      "boss_reference": "Lord Alexei Barov",
+      "item": 14637,
+      "title": "Cadaverous Armor",
+      "boss_precedent": [],
+      "type": "complément"
+    },
+    {
+      "instance": "SCHOLO",
+      "boss_reference": "Lord Alexei Barov",
+      "item": 14636,
+      "title": "Cadaverous Belt",
+      "boss_precedent": [],
+      "type": "complément"
+    },
+    {
+      "instance": "SCHOLO",
+      "boss_reference": "Lord Alexei Barov",
+      "item": 14640,
+      "title": "Cadaverous Gloves",
+      "boss_precedent": [],
+      "type": "complément"
+    },
+    {
+      "instance": "SCHOLO",
+      "boss_reference": "Lord Alexei Barov",
+      "item": 14638,
+      "title": "Cadaverous Leggings",
+      "boss_precedent": [],
+      "type": "complément"
+    },
+    {
+      "instance": "SCHOLO",
+      "boss_reference": "Lord Alexei Barov",
+      "item": 14641,
+      "title": "Cadaverous Walkers",
+      "boss_precedent": [],
+      "type": "complément"
+    },
+    {
+      "instance": "SCHOLO",
+      "boss_reference": "Lord Alexei Barov",
+      "item": 14624,
+      "title": "Deathbone Chestplate",
+      "boss_precedent": [],
+      "type": "complément"
+    },
+    {
+      "instance": "SCHOLO",
+      "boss_reference": "Lord Alexei Barov",
+      "item": 14622,
+      "title": "Deathbone Gauntlets",
+      "boss_precedent": [],
+      "type": "complément"
+    },
+    {
+      "instance": "SCHOLO",
+      "boss_reference": "Lord Alexei Barov",
+      "item": 14620,
+      "title": "Deathbone Girdle",
+      "boss_precedent": [],
+      "type": "complément"
+    },
+    {
+      "instance": "SCHOLO",
+      "boss_reference": "Lord Alexei Barov",
+      "item": 14623,
+      "title": "Deathbone Legguards",
+      "boss_precedent": [],
+      "type": "complément"
+    },
+    {
+      "instance": "SCHOLO",
+      "boss_reference": "Lord Alexei Barov",
+      "item": 14621,
+      "title": "Deathbone Sabatons",
+      "boss_precedent": [],
+      "type": "complément"
+    },
+    {
+      "instance": "SCHOLO",
+      "boss_reference": "Lord Alexei Barov",
+      "item": 18684,
+      "title": "Dimly Opalescent Ring",
       "boss_precedent": [],
       "type": "complément"
     },
@@ -2904,15 +4499,55 @@
     },
     {
       "instance": "SCHOLO",
-      "boss_reference": "Lord Alexei Barov",
-      "item": 18684,
-      "title": "Dimly Opalescent Ring",
+      "boss_reference": "Lady Illucia Barov",
+      "item": 23201,
+      "title": "Libram of Divinity",
       "boss_precedent": [],
       "type": "complément"
     },
     {
       "instance": "SCHOLO",
-      "boss_reference": "Lord Alexei Barov",
+      "boss_reference": "Lady Illucia Barov",
+      "item": 23200,
+      "title": "Totem of Sustaining",
+      "boss_precedent": [],
+      "type": "complément"
+    },
+    {
+      "instance": "SCHOLO",
+      "boss_reference": "Lady Illucia Barov",
+      "item": 18680,
+      "title": "Ancient Bone Bow",
+      "boss_precedent": [],
+      "type": "complément"
+    },
+    {
+      "instance": "SCHOLO",
+      "boss_reference": "Lady Illucia Barov",
+      "item": 14614,
+      "title": "Bloodmail Belt",
+      "boss_precedent": [],
+      "type": "complément"
+    },
+    {
+      "instance": "SCHOLO",
+      "boss_reference": "Lady Illucia Barov",
+      "item": 14616,
+      "title": "Bloodmail Boots",
+      "boss_precedent": [],
+      "type": "complément"
+    },
+    {
+      "instance": "SCHOLO",
+      "boss_reference": "Lady Illucia Barov",
+      "item": 14615,
+      "title": "Bloodmail Gauntlets",
+      "boss_precedent": [],
+      "type": "complément"
+    },
+    {
+      "instance": "SCHOLO",
+      "boss_reference": "Lady Illucia Barov",
       "item": 14611,
       "title": "Bloodmail Hauberk",
       "boss_precedent": [],
@@ -2920,11 +4555,136 @@
     },
     {
       "instance": "SCHOLO",
-      "boss_reference": "Lord Alexei Barov",
+      "boss_reference": "Lady Illucia Barov",
+      "item": 14612,
+      "title": "Bloodmail Legguards",
+      "boss_precedent": [],
+      "type": "complément"
+    },
+    {
+      "instance": "SCHOLO",
+      "boss_reference": "Lady Illucia Barov",
+      "item": 18681,
+      "title": "Burial Shawl",
+      "boss_precedent": [],
+      "type": "complément"
+    },
+    {
+      "instance": "SCHOLO",
+      "boss_reference": "Lady Illucia Barov",
+      "item": 14637,
+      "title": "Cadaverous Armor",
+      "boss_precedent": [],
+      "type": "complément"
+    },
+    {
+      "instance": "SCHOLO",
+      "boss_reference": "Lady Illucia Barov",
+      "item": 14636,
+      "title": "Cadaverous Belt",
+      "boss_precedent": [],
+      "type": "complément"
+    },
+    {
+      "instance": "SCHOLO",
+      "boss_reference": "Lady Illucia Barov",
+      "item": 14640,
+      "title": "Cadaverous Gloves",
+      "boss_precedent": [],
+      "type": "complément"
+    },
+    {
+      "instance": "SCHOLO",
+      "boss_reference": "Lady Illucia Barov",
+      "item": 14638,
+      "title": "Cadaverous Leggings",
+      "boss_precedent": [],
+      "type": "complément"
+    },
+    {
+      "instance": "SCHOLO",
+      "boss_reference": "Lady Illucia Barov",
+      "item": 14641,
+      "title": "Cadaverous Walkers",
+      "boss_precedent": [],
+      "type": "complément"
+    },
+    {
+      "instance": "SCHOLO",
+      "boss_reference": "Lady Illucia Barov",
       "item": 14624,
       "title": "Deathbone Chestplate",
       "boss_precedent": [],
       "type": "complément"
+    },
+    {
+      "instance": "SCHOLO",
+      "boss_reference": "Lady Illucia Barov",
+      "item": 14622,
+      "title": "Deathbone Gauntlets",
+      "boss_precedent": [],
+      "type": "complément"
+    },
+    {
+      "instance": "SCHOLO",
+      "boss_reference": "Lady Illucia Barov",
+      "item": 14620,
+      "title": "Deathbone Girdle",
+      "boss_precedent": [],
+      "type": "complément"
+    },
+    {
+      "instance": "SCHOLO",
+      "boss_reference": "Lady Illucia Barov",
+      "item": 14623,
+      "title": "Deathbone Legguards",
+      "boss_precedent": [],
+      "type": "complément"
+    },
+    {
+      "instance": "SCHOLO",
+      "boss_reference": "Lady Illucia Barov",
+      "item": 14621,
+      "title": "Deathbone Sabatons",
+      "boss_precedent": [],
+      "type": "complément"
+    },
+    {
+      "instance": "SCHOLO",
+      "boss_reference": "Lady Illucia Barov",
+      "item": 18684,
+      "title": "Dimly Opalescent Ring",
+      "boss_precedent": [],
+      "type": "complément"
+    },
+    {
+      "instance": "SCHOLO",
+      "boss_reference": "Lady Illucia Barov",
+      "item": 18682,
+      "title": "Ghoul Skin Leggings",
+      "boss_precedent": [],
+      "type": "complément"
+    },
+    {
+      "instance": "SCHOLO",
+      "boss_reference": "Lady Illucia Barov",
+      "item": 18683,
+      "title": "Hammer of the Vesper",
+      "boss_precedent": [],
+      "type": "complément"
+    },
+    {
+      "instance": "SCHOLO",
+      "boss_reference": "Lady Illucia Barov",
+      "item": 14626,
+      "title": "Necropile Robe",
+      "boss_precedent": [
+        "Instructor Malicia",
+        "Doctor Theolen Krastinov",
+        "The Ravenian",
+        "Lord Alexei Barov"
+      ],
+      "type": "rencontre partagée ou groupée"
     },
     {
       "instance": "SCHOLO",

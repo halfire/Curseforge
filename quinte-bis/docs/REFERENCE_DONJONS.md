@@ -100,3 +100,19 @@ sont transmis aux infobulles des lignes principales et des prérequis, dans Grou
 Empreintes de cette source dans scripts/data/fdj_quest_update.json et dans
 quinte-group/ThirdParty/FDJ-quest-update.json. Le manifeste historique des images reste fdj_sources.json.
 Validation en simulateur, y compris clic Carte et filtrage de classe.
+
+## Source fournie le 13/11/2026
+
+Dossier « ForeverDungeonJournal 3 2 », version du .toc toujours 2.0.3 : les empreintes distinguent
+cette livraison de celle du 12/11. Reconstruction complète avec import_fdj.py et ce dossier.
+Le manifeste fdj_sources.json cite désormais la version et la date réelles.
+
+Quêtes : aucune différence de contenu utile, 228 entrées conservées ; deux entrées absentes de la
+liste source restent connues. L'import complet applique maintenant la conservation des fiches,
+lieux et retours déjà utilisée par --quests-only. Butin : 100 nouveaux objets uniques, 247 nouvelles
+attributions rencontre/objet (dont des regroupements), aucun objet unique retiré. Les douze anciennes
+attributions de Dreamscythe, Weaver, Morphaz et Hazzas deviennent des rencontres par paire ; plan
+du Temple mis à jour et neuf portraits supplémentaires référencés. Aucune nouvelle image nécessaire.
+Comparaison exacte : scripts/data/fdj_update_20261113.json. Les quêtes, coordonnées, classes et
+prérequis antérieurs restent vérifiés par les suites existantes ; les cent objets sont recherchés
+dans le catalogue final réellement chargé. Vérification en simulateur uniquement.

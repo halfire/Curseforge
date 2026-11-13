@@ -126,6 +126,28 @@ local function placeWaypoint(mapID, x, y, title, route, kind)
     end)
     return ok
 end
+-- Carte du monde : C_Map.OpenWorldMap est protégée en combat. Le jeu la bloque (ADDON_ACTION_BLOCKED, BugGrabber du GM
+-- le 12/11/2026, bouton Carte d'une quête de donjon) sans erreur Lua, donc `pcall` ne voit rien : en combat on ne
+-- l'appelle pas, elle s'ouvre à la fin du combat (PLAYER_REGEN_ENABLED). Le repère et le texte du chat sont posés tout de suite.
+local pendingMap, mapWaiter
+local function openWorldMap(mapID)
+    if not (C_Map and C_Map.OpenWorldMap) then return end
+    if InCombatLockdown and InCombatLockdown() then
+        pendingMap = mapID
+        if not mapWaiter then
+            mapWaiter = CreateFrame('Frame')
+            Q.Call(mapWaiter.RegisterEvent, mapWaiter, 'PLAYER_REGEN_ENABLED')
+            mapWaiter:SetScript('OnEvent', function()
+                local id = pendingMap
+                pendingMap = nil
+                if id then Q.Run('carte', openWorldMap, id) end
+            end)
+        end
+        Q.Print('La carte s\'ouvrira à la fin du combat (le jeu l\'interdit aux addons en combat).')
+        return
+    end
+    pcall(C_Map.OpenWorldMap, mapID)
+end
 --- Un clic : repère, flèche et carte ouverte sur l'entrée ; la position est toujours écrite dans le chat.
 function Q.ShowDungeonEntrance(code, route)
     local e = Q.ENTRANCES[code]
@@ -136,7 +158,7 @@ function Q.ShowDungeonEntrance(code, route)
     local text = string.format('%s : %s (%s, %s)%s. %s', name, zone.fr, e.x, e.y, e.approx and ', position approximative' or '', e.note)
     local mapID = Q.EntranceMap(e.zone)
     local placed = mapID and placeWaypoint(mapID, e.x, e.y, name, route, 'dungeon')
-    if mapID and C_Map and C_Map.OpenWorldMap then pcall(C_Map.OpenWorldMap, mapID) end
+    if mapID then openWorldMap(mapID) end
     Q.Print(text .. (placed and '' or ' Repère impossible sur cette carte.'))
     return placed and true or false
 end
@@ -204,7 +226,7 @@ function Q.ShowDungeonQuestPlace(questId, title, code, route)
     if not (p.x and p.y) then return false end
     local mapID = findMap(ZONE_FR[p.zone], p.zone, p.map)
     local placed = mapID and placeWaypoint(mapID, p.x, p.y, title, route, 'pickup')
-    if mapID and C_Map and C_Map.OpenWorldMap then pcall(C_Map.OpenWorldMap, mapID) end
+    if mapID then openWorldMap(mapID) end
     if not placed then Q.Print('Repère impossible sur cette carte.') end
     return placed and true or false
 end

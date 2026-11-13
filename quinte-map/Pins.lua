@@ -14,18 +14,17 @@ local function getBestMapID()
     return nil
 end
 
--- Carte du monde ouverte par C_Map.OpenWorldMap : fonction du jeu prévue pour les addons, sans taint. La carte de
--- Forever n'a aucun cadre sécurisé : elle s'ouvre aussi en combat (un SOS PvP se lit en plein combat). Si le jeu la
--- refuse quand même en combat, on l'ouvre à la fin du combat (PLAYER_REGEN_ENABLED). Avant, le bouton Carte ne posait
--- qu'un repère et un lien dans le chat : il fallait encore cliquer sur le lien (deux clics).
+-- Carte du monde ouverte par C_Map.OpenWorldMap, fonction du jeu prévue pour les addons. Elle est protégée en combat :
+-- le jeu la bloque (ADDON_ACTION_BLOCKED, vu chez le GM le 12/11/2026 avec quinte-group) sans erreur Lua, donc `pcall`
+-- ne voit rien. En combat on ne l'appelle pas : elle s'ouvre à la fin du combat (PLAYER_REGEN_ENABLED). Avant, le
+-- bouton Carte ne posait qu'un repère et un lien dans le chat : il fallait encore cliquer sur le lien (deux clics).
 local pendingMap
 local function openWorldMap(mapID)
     if not (C_Map and C_Map.OpenWorldMap) then return 'absent' end
+    if InCombatLockdown and InCombatLockdown() then pendingMap = mapID or true; return 'combat' end
     local ok
     if mapID then ok = pcall(C_Map.OpenWorldMap, mapID) else ok = pcall(C_Map.OpenWorldMap) end
-    if ok then return 'ok' end
-    if InCombatLockdown and InCombatLockdown() then pendingMap = mapID or true; return 'combat' end
-    return 'erreur'
+    return ok and 'ok' or 'erreur'
 end
 
 --- Place un repère Waypoint Blizzard (flèche 3D de suivi + repère diamant sur la carte) ou TomTom

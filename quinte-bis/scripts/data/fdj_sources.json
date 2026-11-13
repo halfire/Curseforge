@@ -1,16 +1,19 @@
 {
-  "source": "ForeverDungeonJournal 2.0, dossier fourni par le GM le 10/11/2026",
+  "source": "ForeverDungeonJournal 2.0.3, dossier fourni le 2026-11-13",
   "files": {
-    "Data/Dungeons.lua": "c82ffae42e3b7aad06e6323fd6c6c022391e39e128d559661f4dca04a9bb6260",
-    "Data/SharedLoot.lua": "bbd7652fc20df938be8f718eb7375fb3559c853a949ae040dc5d4f969fefc7ff",
-    "Data/Bosses.lua": "b2513507fa77923345722116536427ee49c7fee577b49d548493c78a43fd1af4",
-    "Data/QuestMaps.lua": "7b973f1d21f4c99c9babd454f964a901fee6ca90c86671d5e055213f36d552f5",
-    "Data/QuestChains.lua": "8c1eaabd2961955dbd80db35e1e890d89ff8f6fdb46f6ca8dc4ac2db8befbdc4",
-    "Data/QuestRewards.lua": "c0bb274ff95768a49347c8ce0dcf0cf8345fd7da73264811dbe5dcbefb9a7c49",
+    "ForeverDungeonJournal.toc": "442016bd3bdec218a2da0412a9bd0b4da2162f1bebb24ac64ebfa69b5d98c9c2",
+    "Localization/Content_frFR.lua": "1878decf0005be90d1f2194064dd4afb7cfa031a35aae2cb036a25d61defedf8",
+    "Localization/Content_NewDungeons.lua": "9b8acc60efb332a0877e17c0d17d007811eeecdc1187b925708378cf35f3f1e8",
+    "Data/Dungeons.lua": "68200b235457fa37b34355af7e494857d9871f8251d94db7c8c458446df7864e",
+    "Data/SharedLoot.lua": "0026801396eb0baa261494e05fce0f68db1bc6965a3ddae554bdb336f9040dce",
+    "Data/Bosses.lua": "56f6f5fdd8210c8a9d8485c8eb9c5a6bca9386122e7e982f91920616f0bdd584",
+    "Data/QuestMaps.lua": "eb4cd3c130cea876b70c0173ee3111aa5791a03edba7f35a08427c85537cb2fd",
+    "Data/QuestChains.lua": "9741c962d669aee8041ec9323839e478202b9cb85ba74ef2b01ab94b1166818d",
+    "Data/QuestRewards.lua": "4d15d445855a13ea628a46d3c968995fb98a44ece8ac10f525996be60f03a8ce",
     "Data/QuestShareability.lua": "3b1e65b5d0ac89cd020e657044c48e1d63a2db94ed4156b04d3e6dcf6139497b",
-    "Data/QuestUpdates.lua": "d718f134e95d5eea0755ca2d76224d0bcc2a12c343173bb0502c3ece44e92ea4",
-    "Core/Journal.lua": "a708b994a608ee88cd50ec86035ac71462892c8f3a245818245b39a9d333fc7c",
-    "Localization/Content_frFR.lua": "7f6ea49fd3346d645ca5652830fa764196bc173cd03c803b57dda4c6f799fc3e"
+    "Data/QuestUpdates.lua": "a65f7b732bf2e48d6f41bef3f5bffd68e9e2806a67ec2cbb81aaceee1f83c4b1",
+    "Localization/Content_Verified.lua": "f3a72e2a1906ddf756ed478976bcf75fd26a087a451592eda3614e4cf6b18ddf",
+    "Core/Journal.lua": "d83ae816617f4f3e0477b44ba0b7f55951a8350f9d20377f25017760f24adedb"
   },
   "assets": {
     "Media/FDJ/HallOfThanesMap.tga": "a6b6c790c4e25a1931c70bbc60e69551711d73044e4daa19876def4060eae999",
@@ -146,14 +149,12 @@
     "Media/FDJ/Portraits/13589.tga": "e736cd18eb36d2553cf2c3dc74e8fe3e35cbb7b6eee23accf9e6897d8fec8a72",
     "Media/FDJ/Portraits/12292.tga": "e340c3e55db82f67c59714be1139362942c1f1b251d7cd62ddf674882ed5ba4c",
     "Media/FDJ/Portraits/7873.tga": "794d123654efaa40450924484f2fd671d459460a4933bee572bd1a4ba825bc86",
-    "Media/FDJ/Portraits/7553.tga": "a113c77a8677313e5992a69a44379130309faa5a1f3c1ccb17aabd0ffeaa1e3c",
-    "Media/FDJ/Portraits/6375.tga": "a113c77a8677313e5992a69a44379130309faa5a1f3c1ccb17aabd0ffeaa1e3c",
-    "Media/FDJ/Portraits/8053.tga": "ac37d89e99f0732ee7b0b2889c2d634bec7de9be0849f62fabb6332a46542f7b",
+    "Media/FDJ/Portraits/7975.tga": "a113c77a8677313e5992a69a44379130309faa5a1f3c1ccb17aabd0ffeaa1e3c",
     "Media/FDJ/Portraits/6708.tga": "58e88a8a14fb2147e9add0d862a8b1ab504405009aa5bfe19e5c32c1f138a758",
     "Media/FDJ/Portraits/6709.tga": "af90688b4feaa6f432fe749a31d9a26eaade5ababd205e61e05a76ef02cf895f",
-    "Media/FDJ/Portraits/7975.tga": "a113c77a8677313e5992a69a44379130309faa5a1f3c1ccb17aabd0ffeaa1e3c",
-    "Media/FDJ/Portraits/9584.tga": "a113c77a8677313e5992a69a44379130309faa5a1f3c1ccb17aabd0ffeaa1e3c",
+    "Media/FDJ/Portraits/7553.tga": "a113c77a8677313e5992a69a44379130309faa5a1f3c1ccb17aabd0ffeaa1e3c",
     "Media/FDJ/Portraits/7806.tga": "822c6f6cf0286ffd2cd4c61b038c35c1f3a39ac39bdb247a9c2f60d5134bf85c",
+    "Media/FDJ/Portraits/8053.tga": "ac37d89e99f0732ee7b0b2889c2d634bec7de9be0849f62fabb6332a46542f7b",
     "Media/FDJ/Portraits/8761.tga": "5164476e745d8f3664992e3955f107793c3bc99be6461fcf2c59db5b3ef0ad44",
     "Media/FDJ/Portraits/5781.tga": "29200596bf9f02be664361d8531f0ace555281265bb7381b8e6a9f44fe7883e9",
     "Media/FDJ/Portraits/9212.tga": "d5afdc29f7ff441576fd83f2138ee93a68c9d77983f655005000cbfa500e73dd",
@@ -256,6 +257,6 @@
     "Media/FDJ/Portraits/11070.tga": "7c8f6c73cfdf9b1eb2dea5feee532ca19b971c30d10c71bfd64b1064464822f8"
   },
   "maps": 30,
-  "quests": 211,
-  "places": 395
+  "quests": 228,
+  "places": 433
 }

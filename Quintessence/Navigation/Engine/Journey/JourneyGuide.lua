@@ -175,6 +175,10 @@ local function NameWaypointTooltip(tooltip)
 	end
 	local titleLine = GameTooltipTextLeft1
 	local clientTitle = titleLine and titleLine.GetText and titleLine:GetText()
+	-- Quintessence : sur Forever le titre de la mini-carte peut être secret (instance, combat) ; le comparer est une erreur.
+	if issecretvalue and issecretvalue(clientTitle) then
+		return
+	end
 	if not (clientTitle and (clientTitle == MAP_PIN or clientTitle == MAP_PIN_SHARING)) then
 		return
 	end

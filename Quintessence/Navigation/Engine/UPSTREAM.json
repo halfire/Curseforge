@@ -12,7 +12,8 @@
     "Embedded media paths and XML load order",
     "Settings and character storage in QuintessenceDB",
     "Settings replaced by Quintessence controls; no standalone slash commands or integrations",
-    "Independent world map and minimap route visibility"
+    "Independent world map and minimap route visibility",
+    "Secret minimap tooltip titles ignored"
   ],
   "excluded_entrypoints": [
     "Core/LeaderboardsData.lua",

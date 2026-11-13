@@ -337,11 +337,45 @@ local dungeonState = {
 local DL_W = 260                                   -- Donjons : liste à gauche, détail à droite
 local DR_W = PW - DL_W - 12                        -- 806
 local IW = DR_W - 28                               -- 778 : largeur intérieure du détail
-local D_ROWS = math.floor((PH - 58) / 38)          -- 14 donjons
+local D_ROWS = math.floor((PH - 116) / 38)          -- 13 donjons
 local M_ROWS = 8                                   -- membres inscrits
 local L_ROWS = math.floor((PH - 48 - 96 - (M_ROWS * 26 + 4) - 28 - 18) / 27) -- objets recherchés
 local QUEST_ROWS = math.floor(L_ROWS * 27 / 42)
 local LOOT_Y = -96 - (M_ROWS * 26 + 4) - 12
+
+-- Filtres locaux à la session : aucune donnée de progression n'est enregistrée.
+function UI.FilterDungeons(needs, atLevel, hideCompleted)
+    local ok, level = Q.Call(UnitLevel, 'player')
+    if not ok or (issecretvalue and issecretvalue(level)) or type(level) ~= 'number' or level < 1 then level = nil end
+    local out = {}
+    for _, dungeon in ipairs(needs) do
+        local visible = not atLevel or not level or (level >= (dungeon.minLvl or 1) and level <= (dungeon.maxLvl or 60))
+        if visible and hideCompleted then
+            local quests = Q.DungeonQuests(dungeon.code)
+            local completed = #quests > 0
+            for _, quest in ipairs(quests) do
+                if quest.state ~= 'done' then completed = false; break end
+            end
+            visible = not completed
+        end
+        if visible then out[#out + 1] = dungeon end
+    end
+    return out
+end
+
+local function questBlue()
+    local c = S.colors.blue
+    return string.format('ff%02x%02x%02x', math.floor(c[1] * 255), math.floor(c[2] * 255), math.floor(c[3] * 255))
+end
+
+local function questAppearance(q)
+    if q.state == 'done' then return S.hex.mint, 'Interface\\RaidFrame\\ReadyCheck-Ready' end
+    if q.state == 'log' then
+        return q.complete and S.hex.gold or questBlue(), q.complete and 'Interface\\GossipFrame\\ActiveQuestIcon' or 'Interface\\Icons\\INV_Misc_Note_01'
+    end
+    if q.state == 'locked' or q.state == 'low' then return S.hex.muted, 'Interface\\RaidFrame\\ReadyCheck-NotReady' end
+    return S.hex.gold, 'Interface\\GossipFrame\\AvailableQuestIcon'
+end
 
 local function createDungeonsPanel(parent)
     local panel = CreateFrame('Frame', nil, parent)
@@ -405,10 +439,38 @@ local function createDungeonsPanel(parent)
         UI.RefreshDungeons()
     end)
 
+    panel.filterLevel = S.Button(leftBox, 'À mon niveau', DL_W - 24, 22, 'ghost')
+    panel.filterLevel:SetPoint('TOPLEFT', 10, -6)
+    panel.filterDone = S.Button(leftBox, 'Masquer les terminés', DL_W - 24, 22, 'ghost')
+    panel.filterDone:SetPoint('TOPLEFT', 10, -32)
+    local function toggleFilter(key)
+        dungeonState[key] = not dungeonState[key]
+        dungeonState.dungeonOffset, dungeonState.memberOffset, dungeonState.lootOffset = 0, 0, 0
+        UI.RefreshDungeons()
+    end
+    panel.filterLevel:SetScript('OnClick', function() toggleFilter('atLevel') end)
+    panel.filterDone:SetScript('OnClick', function() toggleFilter('hideCompleted') end)
+    local function filterHelp(button, text)
+        if not button.HookScript then return end
+        button:HookScript('OnEnter', function(self)
+            if not GameTooltip then return end
+            GameTooltip:SetOwner(self, 'ANCHOR_RIGHT')
+            GameTooltip:AddLine(text, 1, 1, 1, true)
+            GameTooltip:AddLine('Choix conservé pendant cette session.', 0.7, 0.7, 0.7, true)
+            GameTooltip:Show()
+        end)
+        button:HookScript('OnLeave', hideTooltip)
+    end
+    filterHelp(panel.filterLevel, 'Garde les donjons dont la fourchette de niveau conseillée comprend ton niveau actuel.')
+    filterHelp(panel.filterDone, 'Masque les donjons dont toutes les quêtes connues pour ta classe sont rendues. Les donjons sans quête connue restent visibles.')
+    panel.dungeonEmpty = S.Text(leftBox, 12, S.colors.muted, 'CENTER')
+    panel.dungeonEmpty:SetPoint('TOPLEFT', 14, -76); panel.dungeonEmpty:SetWidth(DL_W - 28)
+    panel.dungeonEmpty:SetWordWrap(true)
+    panel.dungeonEmpty:SetText('Aucun donjon ne correspond. Désactive un filtre pour revoir la liste.')
     local dungeonRows = {}
     for i = 1, D_ROWS do
         local row = S.Row(leftBox, DL_W - 16, 36)
-        row:SetPoint('TOPLEFT', 1, -6 - (i - 1) * 38)
+        row:SetPoint('TOPLEFT', 1, -64 - (i - 1) * 38)
 
         row.icon = row:CreateTexture(nil, 'ARTWORK')
         row.icon:SetSize(22, 22); row.icon:SetPoint('LEFT', 10, 0)
@@ -444,7 +506,7 @@ local function createDungeonsPanel(parent)
             UI.RefreshDungeons()
         end
     end)
-    panel.dungeonScroll:SetPoint('TOPLEFT', DL_W - 12, -6)
+    panel.dungeonScroll:SetPoint('TOPLEFT', DL_W - 12, -64)
 
     -- 3. Colonne de droite : Détails du donjon, membres et matrice de butin
     local rightBox = S.Box(panel, S.colors.panel, S.colors.line)
@@ -709,8 +771,13 @@ function UI.RefreshDungeons()
     if not p or not p:IsVisible() then return end
 
     local allNeeds = Q.GetAllDungeonNeeds and Q.GetAllDungeonNeeds() or {}
+    allNeeds = UI.FilterDungeons(allNeeds, dungeonState.atLevel, dungeonState.hideCompleted)
     local dCount = #allNeeds
-    if dCount == 0 then return end
+    p.filterLevel:SetActive(dungeonState.atLevel == true)
+    p.filterDone:SetActive(dungeonState.hideCompleted == true)
+    p.dungeonEmpty:SetShown(dCount == 0)
+    p.rightBox:SetShown(dCount > 0)
+    p.btnSavePref:SetEnabled(dCount > 0)
 
     dungeonState.dungeonOffset = math.max(0, math.min(dungeonState.dungeonOffset, math.max(0, dCount - D_ROWS)))
     p.dungeonScroll:SetMinMaxValues(0, math.max(0, dCount - D_ROWS))
@@ -725,6 +792,7 @@ function UI.RefreshDungeons()
     end
     if not selectedNeeds and allNeeds[1] then
         selectedNeeds = allNeeds[1]
+        dungeonState.memberOffset, dungeonState.lootOffset = 0, 0
         dungeonState.selectedDungeon = selectedNeeds.code
     end
 
@@ -761,7 +829,7 @@ function UI.RefreshDungeons()
         end
     end
 
-    if not selectedNeeds then return end
+    if not selectedNeeds then dungeonState.selectedDungeon = nil; return end
 
     -- Bouton d'inscription : ajoute ou retire le donjon affiché, les autres inscriptions restent
     if p.btnSavePref then
@@ -861,18 +929,18 @@ function UI.RefreshDungeons()
             local r, q = p.lootRows[i], quests[dungeonState.lootOffset + i]
             if q and i <= QUEST_ROWS then
                 r.frame:ClearAllPoints(); r.frame:SetPoint('TOPLEFT', 1, -2 - (i - 1) * 42); r.frame:SetHeight(41)
-                local inset = q.virtual and 30 or 0
+                local inset = q.virtual and 30 or 20
+                local color, statusIcon = questAppearance(q)
                 r.itemName:ClearAllPoints(); r.itemName:SetPoint('TOPLEFT', 32 + inset, -4)
                 r.membersList:ClearAllPoints(); r.membersList:SetPoint('BOTTOMLEFT', 32 + inset, 4)
                 r.icon:ClearAllPoints(); r.icon:SetPoint('LEFT', 8 + inset, 0)
                 r.branch:SetShown(q.virtual == true)
                 r.membersList:SetJustifyH('LEFT')
                 r.frame:Show(); r.frame.itemID = nil; r.frame.quest = q
-                r.icon:SetTexture(q.virtual and q.state == 'done' and 'Interface\\RaidFrame\\ReadyCheck-Ready'
-                    or 'Interface\\Icons\\INV_Misc_Note_01')
+                r.icon:SetTexture(statusIcon)
                 local progress = q.hasPrerequisites and ('  ' .. q.journeyDone .. '/' .. q.journeyTotal) or ''
                 r.chain:SetShown(q.hasPrerequisites and true or false)
-                r.icon:SetShown(not q.hasPrerequisites)
+                r.icon:Show()
                 r.chain:SetLabel(dungeonState.expandedQuests[q.id] and '-' or '+')
                 r.chain:SetScript('OnClick', function() dungeonState.expandedQuests[q.id] = not dungeonState.expandedQuests[q.id]; UI.RefreshDungeons() end)
                 local canRoute = Q.HasDungeonQuestPlace(q.id)
@@ -886,20 +954,19 @@ function UI.RefreshDungeons()
                 if r.frame.questGroupCount then r.count:SetText(r.frame.questGroupCount) end
                 if q.virtual then
                     -- L'étape reste sous sa quête du donjon et garde son propre repère.
-                    local color = q.state == 'done' and S.hex.mint or q.state == 'log' and S.hex.gold or S.hex.text
                     r.itemName:SetText(string.format('|c%s%d. %s|r', color, q.stepIndex, Q.Safe(q.title)))
                     r.itemName:SetWidth(IW - 258 - inset)
                     r.membersList:SetWidth(IW - 258 - inset)
                     r.action:Hide()
                     r.membersList:SetText('Prérequis · |c' .. color .. q.stateText .. '|r')
                 else
-                r.itemName:SetText(string.format('|c%s[%d]|r %s%s', S.hex.gold, q.level, Q.Safe(q.title),
+                r.itemName:SetText(string.format('|c%s[%d] %s|r%s', color, q.level, Q.Safe(q.title),
                     (q.tag and (' |c' .. S.hex.muted .. '(' .. q.tag .. ')|r') or '') .. progress))
-                r.itemName:SetWidth(IW - 258)
-                r.membersList:SetWidth(IW - 258)
+                r.itemName:SetWidth(IW - 258 - inset)
+                r.membersList:SetWidth(IW - 258 - inset)
                 local text
                 if q.state == 'log' then
-                    text = q.complete and ('|c' .. S.hex.gold .. 'à rendre|r') or ('|c' .. S.hex.mint .. 'en cours|r')
+                    text = q.complete and ('|c' .. S.hex.gold .. 'à rendre|r') or ('|c' .. questBlue() .. 'en cours|r')
                     if q.shareable and #q.groupMissing > 0 then text = text .. ' · manque à ' .. Q.Safe(table.concat(q.groupMissing, ', '))
                     elseif not q.shareable then text = text .. ' · non partageable' end
                     r.action:SetLabel('Partager')
@@ -921,7 +988,7 @@ function UI.RefreshDungeons()
                     text = '|c' .. S.hex.muted .. 'niveau ' .. q.minLevel .. ' requis|r'
                     r.action:Hide()
                 else
-                    text = '|c' .. S.hex.muted .. 'faite|r'
+                    text = '|c' .. S.hex.mint .. 'Terminée|r'
                     r.action:Hide()
                 end
                 if q.note then text = text .. ' · détails au survol' end

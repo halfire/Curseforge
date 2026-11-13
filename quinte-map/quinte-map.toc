@@ -3,7 +3,7 @@
 ## Group: Quintessence
 ## Notes: Module Quintessence - Carte tactique de guilde : SOS PvP sauvage, position des feux de campement (/qmap, /qsos).
 ## Author: Quintessence
-## Version: 0.10.0
+## Version: 0.10.1
 ## SavedVariables: QuinteMapDB
 ## Dependencies: Quintessence
 ## IconTexture: Interface\Icons\INV_Misc_Head_Dragon_01
