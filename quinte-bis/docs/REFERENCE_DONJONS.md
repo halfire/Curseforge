@@ -116,3 +116,11 @@ du Temple mis à jour et neuf portraits supplémentaires référencés. Aucune n
 Comparaison exacte : scripts/data/fdj_update_20261113.json. Les quêtes, coordonnées, classes et
 prérequis antérieurs restent vérifiés par les suites existantes ; les cent objets sont recherchés
 dans le catalogue final réellement chargé. Vérification en simulateur uniquement.
+
+## XP et récompenses (T91)
+
+Le mode --quests-only importe également les XP numériques et objets directs de récompense.
+L’XP de FOREVER_QUEST_XP_FALLBACK prime sur liveXPFallback ; aucun texte rewards n’est analysé,
+car il peut contenir un ancien multiplicateur. Les objets noteRewardItems ne sont pas des récompenses
+directes et sont exclus. Tableau explicitement vide conservé, absence de donnée distincte.
+Au runtime un gain positif du client prime, sinon la valeur de référence reste indicative.

@@ -78,6 +78,7 @@ end
 local function tooltip(quest, located)
     if not GameTooltip then return end
     GameTooltip:SetText(Q.Safe(quest.title))
+    Q.AddQuestXPTooltip(quest.id, not quest.virtual)
     GameTooltip:AddLine(quest.status or '', S.colors.gold[1], S.colors.gold[2], S.colors.gold[3], true)
     if quest.start and quest.start ~= '' then GameTooltip:AddLine('Départ : ' .. Q.Safe(quest.start), 1, 1, 1, true) end
     if quest.finish and quest.finish ~= '' then GameTooltip:AddLine('Retour : ' .. Q.Safe(quest.finish), 1, 1, 1, true) end

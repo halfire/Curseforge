@@ -148,6 +148,17 @@ local function openWorldMap(mapID)
     end
     pcall(C_Map.OpenWorldMap, mapID)
 end
+-- Les guides fournissent une zone et des coordonnées, jamais une position inventée depuis un objectif.
+function Q.ShowGuidePlace(point, title)
+    if type(point) ~= 'table' or type(point.x) ~= 'number' or type(point.y) ~= 'number'
+        or point.x < 0 or point.x > 100 or point.y < 0 or point.y > 100 then return false end
+    local mapID = findMap(point.fr, point.en, point.id)
+    if not mapID then Q.Print('La carte de cette zone n’est pas disponible.'); return false end
+    local placed = placeWaypoint(mapID, point.x, point.y, title, false, 'quest')
+    openWorldMap(mapID)
+    Q.Print(Q.Safe(title) .. ' : ' .. Q.Safe(point.fr) .. string.format(' (%.1f, %.1f), selon le guide.', point.x, point.y))
+    return placed
+end
 --- Un clic : repère, flèche et carte ouverte sur l'entrée ; la position est toujours écrite dans le chat.
 function Q.ShowDungeonEntrance(code, route)
     local e = Q.ENTRANCES[code]

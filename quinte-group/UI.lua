@@ -52,6 +52,7 @@ local function showQuestTooltip(owner, q)
     GameTooltip:SetOwner(owner, 'ANCHOR_RIGHT')
     Q.Call(GameTooltip.SetHyperlink, GameTooltip, 'quest:' .. q.id)
     if GameTooltip.NumLines and GameTooltip:NumLines() == 0 then GameTooltip:AddLine(Q.Safe(q.title)) end
+    Q.AddQuestXPTooltip(q.id, not q.virtual)
     if q.classes then GameTooltip:AddLine('Réservée à : ' .. q.classes, 1, 0.82, 0) end
     if q.minLevel then GameTooltip:AddLine('Niveau requis : ' .. q.minLevel, 1, 1, 1) end
     if q.tag then GameTooltip:AddLine('(' .. q.tag .. ')', 1, 0.82, 0) end
@@ -375,6 +376,58 @@ local function questAppearance(q)
     end
     if q.state == 'locked' or q.state == 'low' then return S.hex.muted, 'Interface\\RaidFrame\\ReadyCheck-NotReady' end
     return S.hex.gold, 'Interface\\GossipFrame\\AvailableQuestIcon'
+end
+
+local rewardPanel
+local function showQuestRewards(quest)
+    if not rewardPanel then
+        rewardPanel = S.Box(UIParent, S.colors.panel, S.colors.line)
+        rewardPanel:SetSize(440, 282); rewardPanel:SetPoint('CENTER')
+        rewardPanel:SetFrameStrata('DIALOG'); rewardPanel:EnableMouse(true)
+        rewardPanel.title = S.Text(rewardPanel, 14, S.colors.gold)
+        rewardPanel.title:SetPoint('TOPLEFT', 14, -14); rewardPanel.title:SetWidth(330)
+        local close = S.Button(rewardPanel, 'Fermer', 66, 22, 'ghost')
+        close:SetPoint('TOPRIGHT', -10, -10); close:SetScript('OnClick', function() rewardPanel:Hide() end)
+        rewardPanel.help = S.Text(rewardPanel, 11, S.colors.muted)
+        rewardPanel.help:SetPoint('TOPLEFT', 14, -44); rewardPanel.help:SetWidth(410); rewardPanel.help:SetWordWrap(true)
+        rewardPanel.rows = {}
+        for i = 1, 5 do
+            local row = S.Row(rewardPanel, 410, 30); row:SetPoint('TOPLEFT', 14, -78 - (i - 1) * 34)
+            row.icon = row:CreateTexture(nil, 'ARTWORK'); row.icon:SetSize(24, 24); row.icon:SetPoint('LEFT', 4, 0)
+            row.text = S.Text(row, 12, S.colors.text); row.text:SetPoint('LEFT', 36, 0); row.text:SetWidth(366)
+            row:SetScript('OnEnter', function(self) showItemTooltip(self, self.itemID) end)
+            row:SetScript('OnLeave', hideTooltip)
+            row:SetScript('OnClick', function(self) Quintessence.LinkItem(self.itemID) end)
+            rewardPanel.rows[i] = row
+        end
+        rewardPanel.scroll = S.Scrollbar(rewardPanel, 166, function(offset)
+            if rewardPanel.offset ~= offset then rewardPanel.offset = offset; showQuestRewards(rewardPanel.quest) end
+        end)
+        rewardPanel.scroll:SetPoint('TOPRIGHT', -4, -78)
+    end
+    if rewardPanel.quest ~= quest then rewardPanel.offset = 0 end
+    rewardPanel.quest = quest
+    local items, choice = Q.QuestRewardItems(quest.id)
+    items = items or {}
+    rewardPanel.title:SetText(Q.Safe(quest.title))
+    rewardPanel.help:SetText(#items == 0 and 'Aucun objet récompense renseigné pour cette quête.'
+        or choice and 'Un objet au choix. Survole un objet pour ses caractéristiques ; Maj+clic pour son lien.'
+        or 'Objets reçus ensemble. Survole un objet pour ses caractéristiques ; Maj+clic pour son lien.')
+    rewardPanel.offset = math.min(rewardPanel.offset or 0, math.max(0, #items - 5))
+    rewardPanel.scroll:SetMinMaxValues(0, math.max(0, #items - 5)); rewardPanel.scroll:SetValue(rewardPanel.offset)
+    for i, row in ipairs(rewardPanel.rows) do
+        local item = items[i + rewardPanel.offset]
+        row:SetShown(item ~= nil)
+        if item then
+            row.itemID = item[1]
+            local _, name, _, _, _, _, _, _, _, _, icon = Q.Call((C_Item and C_Item.GetItemInfo) or GetItemInfo, item[1])
+            if issecretvalue and issecretvalue(name) then name = nil end
+            if issecretvalue and issecretvalue(icon) then icon = nil end
+            row.icon:SetTexture(icon or 'Interface\\Icons\\INV_Misc_QuestionMark')
+            row.text:SetText(Q.Safe(name or ('Objet n° ' .. item[1])))
+        end
+    end
+    rewardPanel:Show()
 end
 
 local function createDungeonsPanel(parent)
@@ -722,6 +775,7 @@ local function createDungeonsPanel(parent)
         local membersList = S.Text(r, 11, S.colors.muted, 'RIGHT')
         membersList:SetPoint('RIGHT', -10, 0); membersList:SetWidth(IW - 360)
 
+        local reward = S.Button(r, 'Butin', 44, 20, 'ghost'); reward:SetPoint('RIGHT', -224, 0); reward:Hide()
         local chain = S.Button(r, '+', 22, 20, 'ghost'); chain:SetPoint('LEFT', 4, 0); chain:Hide()
         local count = S.Text(r, 11, S.colors.gold, 'RIGHT')
         count:SetPoint('RIGHT', -7, 0); count:SetWidth(34); count:Hide()
@@ -746,6 +800,7 @@ local function createDungeonsPanel(parent)
         lootRows[i] = {
             frame = r,
             chain = chain,
+            reward = reward,
             icon = icon,
             branch = branch,
             count = count,
@@ -938,6 +993,9 @@ function UI.RefreshDungeons()
                 r.membersList:SetJustifyH('LEFT')
                 r.frame:Show(); r.frame.itemID = nil; r.frame.quest = q
                 r.icon:SetTexture(statusIcon)
+                local rewardItems = Q.QuestRewardItems(q.id)
+                r.reward:SetShown(not q.virtual and rewardItems ~= nil and #rewardItems > 0)
+                r.reward:SetScript('OnClick', function() showQuestRewards(q) end)
                 local progress = q.hasPrerequisites and ('  ' .. q.journeyDone .. '/' .. q.journeyTotal) or ''
                 r.chain:SetShown(q.hasPrerequisites and true or false)
                 r.icon:Show()
@@ -955,15 +1013,15 @@ function UI.RefreshDungeons()
                 if q.virtual then
                     -- L'étape reste sous sa quête du donjon et garde son propre repère.
                     r.itemName:SetText(string.format('|c%s%d. %s|r', color, q.stepIndex, Q.Safe(q.title)))
-                    r.itemName:SetWidth(IW - 258 - inset)
-                    r.membersList:SetWidth(IW - 258 - inset)
+                    r.itemName:SetWidth(IW - 300 - inset)
+                    r.membersList:SetWidth(IW - 300 - inset)
                     r.action:Hide()
-                    r.membersList:SetText('Prérequis · |c' .. color .. q.stateText .. '|r')
+                    r.membersList:SetText(Q.XPText(Q.QuestXP(q.id)) .. ' · Prérequis · |c' .. color .. q.stateText .. '|r')
                 else
                 r.itemName:SetText(string.format('|c%s[%d] %s|r%s', color, q.level, Q.Safe(q.title),
                     (q.tag and (' |c' .. S.hex.muted .. '(' .. q.tag .. ')|r') or '') .. progress))
-                r.itemName:SetWidth(IW - 258 - inset)
-                r.membersList:SetWidth(IW - 258 - inset)
+                r.itemName:SetWidth(IW - 300 - inset)
+                r.membersList:SetWidth(IW - 300 - inset)
                 local text
                 if q.state == 'log' then
                     text = q.complete and ('|c' .. S.hex.gold .. 'à rendre|r') or ('|c' .. questBlue() .. 'en cours|r')
@@ -992,7 +1050,10 @@ function UI.RefreshDungeons()
                     r.action:Hide()
                 end
                 if q.note then text = text .. ' · détails au survol' end
-                r.membersList:SetText(text)
+                local total, _, unknown = Q.QuestXPSummary(q.id)
+                local xpText = Q.XPText(Q.QuestXP(q.id))
+                if q.hasPrerequisites then xpText = xpText .. ' · chaîne : ' .. Q.XPText(total) .. (unknown > 0 and ' + ?' or '') end
+                r.membersList:SetText(xpText .. ' · ' .. text)
                 end
             else r.frame:Hide(); r.frame.quest = nil end
         end
@@ -1016,7 +1077,7 @@ function UI.RefreshDungeons()
             r.membersList:ClearAllPoints(); r.membersList:SetJustifyH('RIGHT')
             r.frame.itemID = lt.id
             r.frame.quest = nil
-            r.chain:Hide(); r.icon:Show()
+            r.chain:Hide(); r.reward:Hide(); r.icon:Show()
             r.icon:ClearAllPoints(); r.icon:SetPoint('LEFT', 8, 0)
             r.branch:Hide(); r.count:Hide()
             r.action:Hide()
@@ -1166,6 +1227,7 @@ end
 -- =========================================================================
 
 local function switchTab(tabId)
+    if rewardPanel then rewardPanel:Hide() end
     activeTab = tabId
     for id, p in pairs(tabs) do
         if id == tabId then p:Show() else p:Hide() end
@@ -1187,7 +1249,8 @@ local function create(parent)
         { id = 'leveling', label = 'Quêtes partagées', w = 150 },
         { id = 'codex', label = 'Codex secret', w = 136 },
     }
-    if Q.NoCodex() then tabDefs[3] = nil end
+    if Q.NoCodex() then table.remove(tabDefs, 3) end
+    tabDefs[#tabDefs + 1] = { id = 'guides', label = 'Guide Quintessence', w = 160 }
 
     local tabBtns = {}
     local posX = 0
@@ -1210,7 +1273,9 @@ local function create(parent)
     tabs.leveling = createLevelingPanel(content)
     tabs.dungeons = createDungeonsPanel(content)
     tabs.codex = createCodexPanel(content)
+    tabs.guides = Q.CreateGuidesPanel(content, PW, PH)
 
+    mainFrame:SetScript('OnHide', function() if rewardPanel then rewardPanel:Hide() end end)
     mainFrame:SetScript('OnShow', function() Q.Run('fenêtre', UI.Refresh) end)
     switchTab('dungeons')
 end
@@ -1223,6 +1288,7 @@ function UI.Refresh()
     if activeTab == 'leveling' then UI.RefreshLeveling() end
     if activeTab == 'dungeons' then UI.RefreshDungeons() end
     if activeTab == 'codex' then UI.RefreshCodex() end
+    if activeTab == 'guides' then Q.RefreshGuides() end
 end
 
 function UI.Open()

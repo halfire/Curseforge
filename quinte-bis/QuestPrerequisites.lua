@@ -5,6 +5,50 @@ local function read(fn, ...)
     local ok, value = pcall(fn, ...)
     if ok and not (issecretvalue and issecretvalue(value)) then return value end
 end
+-- Une réponse nulle du cache n'est pas une preuve d'absence d'XP.
+function Q.QuestXP(id)
+    local value = read(GetQuestLogRewardXP, id)
+    if type(value) == 'number' and value > 0 then return math.floor(value), false end
+    local meta = Q.REFERENCE_QUEST_INFO[id]
+    value = meta and meta.xp
+    if type(value) == 'number' and value >= 0 then return math.floor(value), true end
+end
+function Q.XPText(value)
+    if value == nil then return 'XP inconnue' end
+    local text = tostring(value)
+    repeat local n; text, n = text:gsub('^(%d+)(%d%d%d)', '%1 %2') until n == 0
+    return text .. ' XP'
+end
+function Q.QuestRewardItems(id)
+    local info = Q.REFERENCE_QUEST_INFO[id]
+    return info and info.rewardItems, info and info.rewardChoice == true
+end
+function Q.QuestXPSummary(id)
+    local steps = Q.QuestJourney(id)
+    local total, remaining, unknown, estimated = 0, 0, 0, false
+    for _, step in ipairs(steps) do
+        local xp, fallback = Q.QuestXP(step.id)
+        if xp == nil then unknown = unknown + 1
+        else
+            total = total + xp
+            if step.state ~= 'done' then remaining = remaining + xp end
+            estimated = estimated or fallback
+        end
+    end
+    return total, remaining, unknown, estimated
+end
+function Q.AddQuestXPTooltip(id, main)
+    if not GameTooltip then return end
+    local xp, fallback = Q.QuestXP(id)
+    GameTooltip:AddLine(Q.XPText(xp) .. (fallback and ' (référence indicative)' or ''), 1, 0.82, 0, true)
+    if main then
+        local total, remaining, unknown, estimated = Q.QuestXPSummary(id)
+        GameTooltip:AddLine('Chaîne : ' .. Q.XPText(total) .. (unknown > 0 and (' + ' .. unknown .. ' étape(s) inconnue(s)') or '')
+            .. (estimated and ' (indicatif)' or ''), 1, 1, 1, true)
+        GameTooltip:AddLine('Encore à gagner : ' .. Q.XPText(remaining), 1, 1, 1, true)
+        GameTooltip:AddLine('Prérequis et quête du donjon compris ; suites postérieures exclues.', 0.7, 0.7, 0.7, true)
+    end
+end
 function Q.QuestJourney(id)
     local info = Q.REFERENCE_QUEST_INFO[id]
     if not info then return {}, 0, 0 end

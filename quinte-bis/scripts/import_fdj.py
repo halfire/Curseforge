@@ -83,6 +83,13 @@ def main():
     db=native(fdj.DB);chains=native(fdj.QUEST_PREREQ_CHAINS);details=native(fdj.QUEST_PREREQ_DETAILS)
     starts=native(fdj.QUEST_START_MAPS);pins=native(fdj.MAP_QUEST_PINS);displays=native(fdj.STATIC_DISPLAY_IDS)
     used['Core/Journal.lua']=hashlib.sha256((src/'Core/Journal.lua').read_bytes()).hexdigest()
+    xp=native(fdj.FOREVER_QUEST_XP_FALLBACK)
+    reward_fallback=native(fdj.PREREQ_REWARD_ITEMS_FALLBACK)
+    reward_data={}
+    for dungeon in db.values():
+        for quest in dungeon.get('quests',[]):
+            if isinstance(quest,dict) and quest.get('id',0)>0 and quest.get('faction')!='Horde':
+                reward_data[quest['id']]=quest
     zones.update({1416:'Alterac Mountains',1424:'Hillsbrad Foothills',1418:'Badlands',1443:'Desolace',1440:'Ashenvale',1444:'Feralas',1449:"Un'Goro Crater",1422:'Western Plaguelands',1423:'Eastern Plaguelands',1446:'Tanaris',1427:'Searing Gorge',1428:'Burning Steppes'})
     outmaps={};quests={};questmeta={};places={};portraits={};loot={};assets={};equipment={};owners={};turnins={}
     frq=native(fdj.ContentLocales.frFR.quests)
@@ -202,6 +209,15 @@ def main():
                             if qid>0:interior.setdefault(code,{}).setdefault(qid,[]).append({'x':p['x'],'y':p['y'],'floor':p.get('floor',1)+base,'target':spot.get('name') or spot.get('npc') or 'Objectif','kind':{'start':'start','end':'finish'}.get(act,'objective'),'reference':True})
 
     for qid, meta in questmeta.items():
+        rewards=reward_data.get(qid,{})
+        fallback=reward_fallback.get(qid,{})
+        amount=xp.get(qid,rewards.get('liveXPFallback'))
+        if isinstance(amount,(int,float)) and amount>=0:meta['xp']=amount
+        # Seuls les objets directs de cette quête, jamais noteRewardItems d'une suite postérieure.
+        items=rewards.get('rewardItems',fallback.get('items'))
+        if items is not None:
+            meta['rewardItems']=items or []
+            meta['rewardChoice']=rewards.get('rewardChoice',fallback.get('choice',False)) is True
         translated=frq.get(qid,{})
         if translated.get('name'):meta['title']=translated['name']
         for target,field in [('start','pickup'),('finish','turnin'),('objective','objective'),('note','note'),('description','description')]:
