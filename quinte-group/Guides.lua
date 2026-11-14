@@ -96,8 +96,26 @@ local function tooltip(owner, q)
     if q.note and q.note ~= '' then GameTooltip:AddLine(Q.Safe(q.note), 1, 0.82, 0, true) end
     GameTooltip:AddLine(Q.XPText(q.xp) .. ' · référence indicative hors réponse du client', 0.7, 0.7, 0.7, true)
     if q.rewardText and q.rewardText ~= '' then GameTooltip:AddLine('Récompenses (guide) : ' .. Q.Safe(q.rewardText), 1, 1, 1, true) end
-    if not q.point then GameTooltip:AddLine('Emplacement du donneur non renseigné.', 0.7, 0.7, 0.7, true) end
+    if q.point then GameTooltip:AddLine(string.format('Départ : %s (%.1f, %.1f).', Q.Safe(q.point.fr), q.point.x, q.point.y), 1, 1, 1, true) end
+    if q.turninPoint then GameTooltip:AddLine(string.format('Rendu : %s — %s (%.1f, %.1f).', Q.Safe(q.turninName or ''), Q.Safe(q.turninPoint.fr), q.turninPoint.x, q.turninPoint.y), 1, 1, 1, true) end
+    if q.pickupNote then GameTooltip:AddLine(Q.Safe(q.pickupNote), 1, 0.82, 0, true) end
+    if (q.point and q.point.approx) or q.turninPoint then GameTooltip:AddLine('Position web de référence, non vérifiée en jeu.', 0.7, 0.7, 0.7, true) end
+    if not q.point and not q.pickupItem and not q.inside then GameTooltip:AddLine('Emplacement du donneur non renseigné.', 0.7, 0.7, 0.7, true) end
     GameTooltip:Show()
+end
+-- Une prise par objet ou dans une instance ne reçoit jamais un faux point de PNJ extérieur.
+function Q.ShowGuideQuestPlace(q, route)
+    if q.point then return Q.ShowGuidePlace(q.point, q.title, route) end
+    if q.turninPoint then return Q.ShowGuidePlace(q.turninPoint, 'Rendu : ' .. q.title, route) end
+    if q.inside then
+        Q.Print(Q.Safe(q.start or q.title) .. ' : ' .. Q.Safe(q.place) .. '. ' .. Q.Safe(q.pickupNote or ''))
+        return Q.ShowDungeonEntrance(q.inside, route)
+    end
+    if q.pickupItem then
+        Q.Print('Utilise ' .. Q.Safe(q.start) .. ' dans tes sacs. ' .. Q.Safe(q.pickupNote or ''))
+        return true
+    end
+    return false
 end
 function Q.RefreshGuides()
     if not panel or not panel:IsVisible() then return end
@@ -126,7 +144,9 @@ function Q.RefreshGuides()
             row.icon:SetTexture(q.state == 'done' and 'Interface\\RaidFrame\\ReadyCheck-Ready' or 'Interface\\Icons\\INV_Misc_Note_01')
             row.chain:SetShown(not q.virtual and q.journeyTotal > 1)
             row.chain:SetLabel(expanded[q.id] and '-' or '+')
-            row.map:SetShown(q.point ~= nil); row.route:SetShown(q.point ~= nil and q.state ~= 'done')
+            row.map:SetShown(q.point ~= nil or q.turninPoint ~= nil or q.inside ~= nil or q.pickupItem ~= nil)
+            row.map:SetLabel(q.point and 'Carte' or q.turninPoint and 'Rendu' or q.inside and 'Entrée' or 'Objet')
+            row.route:SetShown((q.point ~= nil or q.turninPoint ~= nil or q.inside ~= nil) and q.state ~= 'done')
             row.loot:SetShown(not q.virtual and #(q.items or {}) > 0)
             local share = q.state == 'log' and Q.CanShareQuest(q.id)
             q.groupHas = holders(q.id)
@@ -164,15 +184,19 @@ function Q.CreateGuidesPanel(parent, width, height)
         row.chain = S.Button(row, '+', 22, 20, 'ghost'); row.chain:SetPoint('LEFT', 3, 0)
         row.chain:SetScript('OnClick', function() local q=row.quest; expanded[q.id]=not expanded[q.id]; Q.RefreshGuides() end)
         row.map = S.Button(row, 'Carte', 46, 20, 'ghost'); row.map:SetPoint('RIGHT', -140, 0)
-        row.map:SetScript('OnClick', function() local q=row.quest; Q.Run('carte du guide', Q.ShowGuidePlace, q.point, q.title) end)
+        row.map:SetScript('OnClick', function() local q=row.quest; Q.Run('carte du guide', Q.ShowGuideQuestPlace, q) end)
         row.route = S.Button(row, 'Chemin', 54, 20, 'ghost'); row.route:SetPoint('RIGHT', -192, 0)
-        row.route:SetScript('OnClick', function() local q=row.quest; Q.Run('chemin du guide', Q.ShowGuidePlace, q.point, q.title, true) end)
+        row.route:SetScript('OnClick', function() local q=row.quest; Q.Run('chemin du guide', Q.ShowGuideQuestPlace, q, true) end)
         row.loot = S.Button(row, 'Butin', 46, 20, 'ghost'); row.loot:SetPoint('RIGHT', -88, 0)
         row.loot:SetScript('OnClick', function() local q=row.quest; q.rewards,q.rewardChoice=q.items,q.choice; Q.UI.ShowQuestRewards(q) end)
         row.action = S.Button(row, 'Partager', 72, 20, 'ghost'); row.action:SetPoint('RIGHT', -10, 0)
         row.action:SetScript('OnClick', function() local q=row.quest
             if q.state == 'log' then Q.ShareQuest(q.id,q.title) else Q.AskQuest(q.title,q.groupHas,q.id) end
         end)
+        row.map:SetScript('OnEnter', function(self) if row.quest then tooltip(self, row.quest) end end)
+        row.map:SetScript('OnLeave', function() if GameTooltip then GameTooltip:Hide() end end)
+        row.route:SetScript('OnEnter', function(self) if row.quest then tooltip(self, row.quest) end end)
+        row.route:SetScript('OnLeave', function() if GameTooltip then GameTooltip:Hide() end end)
         row:SetScript('OnEnter', function(self) if self.quest then tooltip(self, self.quest) end end)
         row:SetScript('OnLeave', function() if GameTooltip then GameTooltip:Hide() end end)
         panel.rows[i] = row
