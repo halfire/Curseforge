@@ -4,7 +4,7 @@
 ## Notes: Conteneur des addons de la guilde Quintessence : synchro de guilde commune et fenêtre à onglets (/quinte).
 ## Author: Quintessence
 ## X-Quinte-Edition: curseforge
-## Version: 1.44.7
+## Version: 1.44.8
 ## SavedVariables: QuintessenceDB
 ## IconTexture: Interface\Icons\INV_Misc_Head_Dragon_01
 ## AddonCompartmentFunc: Quintessence_Toggle

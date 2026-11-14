@@ -1,10 +1,10 @@
 {
- "version": "1.44.7",
+ "version": "1.44.8",
  "channel": "release",
  "addons": [
   [
    "Quintessence",
-   "1.44.7"
+   "1.44.8"
   ],
   [
    "quinte-craft",
@@ -27,5 +27,5 @@
    "0.12.4"
   ]
  ],
- "validated_beta_sha256": "1443079482555abc9ee67bf0e9d26e7d52ed413e8c8e6759cabe673e5eaac3c2"
+ "validated_beta_sha256": "bbac6f55470ca150a3a483ba551087540eadc5771a23aac6b27aa15389d8520d"
 }
