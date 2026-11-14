@@ -121,7 +121,8 @@ function Q.RefreshGuides()
             local status = q.complete and 'À rendre' or STATE[q.state]
             local amount = Q.XPText(q.xp)
             if not q.virtual and q.journeyTotal > 1 then amount = amount .. ' · chaîne : ' .. Q.XPText(q.totalXP) .. (q.missingXP > 0 and ' + ?' or '') end
-            row.status:SetText(amount .. ' · ' .. status)
+            local kind = q.kind and (q.kind:match('^Donjon') or q.kind:match('^Normale') or q.kind:match('^Élite'))
+            row.status:SetText((kind and (kind .. ' · ') or '') .. amount .. ' · ' .. status)
             row.icon:SetTexture(q.state == 'done' and 'Interface\\RaidFrame\\ReadyCheck-Ready' or 'Interface\\Icons\\INV_Misc_Note_01')
             row.chain:SetShown(not q.virtual and q.journeyTotal > 1)
             row.chain:SetLabel(expanded[q.id] and '-' or '+')
