@@ -25,7 +25,8 @@ end
 local function xp(q)
     local value = read(GetQuestLogRewardXP, q.id)
     if type(value) == 'number' and value > 0 then return math.floor(value) end
-    return q.xp
+    local reference = Q.REFERENCE_QUEST_INFO and Q.REFERENCE_QUEST_INFO[q.id]
+    return q.xp or (reference and reference.xp)
 end
 local function sequence(guide, id)
     local rows, seen = {}, {}
@@ -138,9 +139,16 @@ function Q.CreateGuidesPanel(parent, width, height)
     panel = CreateFrame('Frame', nil, parent); panel:SetAllPoints()
     local left = S.Box(panel, S.colors.panel, S.colors.line); left:SetPoint('TOPLEFT'); left:SetSize(250, height)
     local heading = S.Heading(left, 'Guide Quintessence'); heading:SetPoint('TOPLEFT', 12, -14)
-    panel.guideButtons, panel.rows = {}, {}
+    panel.guideButtons, panel.rows, panel.sectionLabels = {}, {}, {}
+    local section, y = nil, -44
     for i, guide in ipairs(Q.GUIDES) do
-        local b = S.Button(left, guide.title, 230, 36, 'ghost'); b:SetPoint('TOPLEFT', 10, -44 - (i - 1) * 42)
+        if guide.section ~= section then
+            section = guide.section
+            local label = S.Text(left, 12, S.colors.gold); label:SetPoint('TOPLEFT', 12, y)
+            label:SetText(section or 'Quêtes de zone'); panel.sectionLabels[#panel.sectionLabels + 1] = label; y = y - 25
+        end
+        local b = S.Button(left, guide.title, 230, 36, 'ghost'); b:SetPoint('TOPLEFT', 10, y)
+        y = y - 42
         b:SetScript('OnClick', function() selected, offset, expanded = i, 0, {}; Q.RefreshGuides() end)
         panel.guideButtons[i] = b
     end
