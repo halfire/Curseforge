@@ -1,135 +1,179 @@
 local _, Q = ...
--- Lecture embarquée des guides du site : aucun réseau, aucune sauvegarde ou synchro supplémentaire.
+-- Les guides sont des listes de quêtes : aucun article, aucune progression enregistrée.
 local S = Quintessence.Style
-local panel, guideIndex, chapterIndex, scrollOffset = nil, 1, 1, 0
+local panel, selected, offset, expanded = nil, 1, 0, {}
+local STATE = { done = 'Terminée', log = 'En cours', todo = 'À prendre', locked = 'Prérequis à terminer', low = 'Niveau insuffisant' }
 local function read(fn, ...)
     local ok, value = Q.Call(fn, ...)
     if ok and not (issecretvalue and issecretvalue(value)) then return value end
 end
-local function tooltip(owner, kind, id)
+local function state(guide, q)
+    if read(C_QuestLog and C_QuestLog.IsQuestFlaggedCompleted, q.id) == true then return 'done' end
+    if Q.IsOnQuest(q.id) then return 'log' end
+    local level = read(UnitLevel, 'player')
+    if type(level) == 'number' and q.minLevel and level < q.minLevel then return 'low' end
+    local visited = {}
+    local function blocked(id)
+        if visited[id] then return false end
+        visited[id] = true
+        if read(C_QuestLog and C_QuestLog.IsQuestFlaggedCompleted, id) ~= true then return true end
+        return false
+    end
+    for _, id in ipairs(q.requires or {}) do if blocked(id) then return 'locked' end end
+    return 'todo'
+end
+local function xp(q)
+    local value = read(GetQuestLogRewardXP, q.id)
+    if type(value) == 'number' and value > 0 then return math.floor(value) end
+    return q.xp
+end
+local function sequence(guide, id)
+    local rows, seen = {}, {}
+    local function add(sid)
+        if seen[sid] then return end
+        seen[sid] = true
+        local q = guide.quests[sid]
+        if not q then return end
+        for _, dep in ipairs(q.requires or {}) do add(dep) end
+        rows[#rows + 1] = q
+    end
+    add(id)
+    return rows
+end
+function Q.GuideQuestRows(guide, opened)
+    local rows = {}
+    for _, id in ipairs(guide.roots) do
+        local steps = sequence(guide, id)
+        local completed, totalXP, missingXP = 0, 0, 0
+        for _, q in ipairs(steps) do
+            if state(guide, q) == 'done' then completed = completed + 1 end
+            local amount = xp(q)
+            if amount then totalXP = totalXP + amount else missingXP = missingXP + 1 end
+        end
+        local function append(q, virtual, index)
+            local row = {}
+            for key, value in pairs(q) do row[key] = value end
+            local title = read(C_QuestLog and C_QuestLog.GetTitleForQuestID, q.id)
+            row.title = type(title) == 'string' and title ~= '' and title or q.title
+            row.state = state(guide, q); row.xp = xp(q)
+            row.complete = row.state == 'log' and read(C_QuestLog and C_QuestLog.IsComplete, q.id) == true
+            row.virtual, row.parentQuest, row.stepIndex = virtual, id, index
+            row.journeyDone, row.journeyTotal, row.totalXP, row.missingXP = completed, #steps, totalXP, missingXP
+            rows[#rows + 1] = row
+        end
+        append(guide.quests[id], false)
+        if opened and opened[id] then
+            for i, q in ipairs(steps) do if q.id ~= id then append(q, true, i) end end
+        end
+    end
+    return rows
+end
+local function holders(id)
+    local out, seen = {}, {}
+    for _, info in pairs(QuinteGroupDB.memberQuests or {}) do
+        if type(info) == 'table' and type(info.name) == 'string' and type(info.updated) == 'number'
+            and Q.Now() - info.updated <= 1800 and Q.InMyGroup(info.name) then
+            local key = Quintessence.CanonicalKey(info.name)
+            if not seen[key] then
+                for _, quest in ipairs(info.quests or {}) do
+                    if quest.id == id then out[#out + 1] = info.name; seen[key] = true; break end
+                end
+            end
+        end
+    end
+    return out
+end
+local function tooltip(owner, q)
     if not GameTooltip then return end
     GameTooltip:SetOwner(owner, 'ANCHOR_RIGHT')
-    Q.Call(GameTooltip.SetHyperlink, GameTooltip, kind .. ':' .. id)
+    Q.Call(GameTooltip.SetHyperlink, GameTooltip, 'quest:' .. q.id)
+    GameTooltip:AddLine(STATE[q.state], 1, 0.82, 0)
+    if q.kind and q.kind ~= '' then GameTooltip:AddLine(Q.Safe(q.kind), 0.7, 0.7, 0.7, true) end
+    if q.start and q.start ~= '' then GameTooltip:AddLine('Donneur : ' .. Q.Safe(q.start), 1, 1, 1, true) end
+    if q.place and q.place ~= '' then GameTooltip:AddLine(Q.Safe(q.place), 1, 1, 1, true) end
+    if q.objective and q.objective ~= '' then GameTooltip:AddLine(Q.Safe(q.objective), 1, 1, 1, true) end
+    if q.note and q.note ~= '' then GameTooltip:AddLine(Q.Safe(q.note), 1, 0.82, 0, true) end
+    GameTooltip:AddLine(Q.XPText(q.xp) .. ' · référence indicative hors réponse du client', 0.7, 0.7, 0.7, true)
+    if q.rewardText and q.rewardText ~= '' then GameTooltip:AddLine('Récompenses (guide) : ' .. Q.Safe(q.rewardText), 1, 1, 1, true) end
+    if not q.point then GameTooltip:AddLine('Emplacement du donneur non renseigné.', 0.7, 0.7, 0.7, true) end
     GameTooltip:Show()
-end
-local function hideTooltip() if GameTooltip then GameTooltip:Hide() end end
-local function applyScroll(value)
-    scrollOffset = math.max(0, math.min(value, panel.scrollMax or 0))
-    panel.reader:SetVerticalScroll(scrollOffset)
-    if panel.scroll:GetValue() ~= scrollOffset then panel.scroll:SetValue(scrollOffset) end
-end
-local function blockFrame(index)
-    local row = panel.blocks[index]
-    if row then return row end
-    row = S.Box(panel.body, S.colors.bg, S.colors.line)
-    row:SetWidth(panel.readerWidth)
-    row.heading = S.Text(row, 13, S.colors.gold)
-    row.heading:SetPoint('TOPLEFT', 12, -12); row.heading:SetWidth(panel.readerWidth - 190)
-    row.heading:SetWordWrap(true)
-    row.text = S.Text(row, 12, S.colors.text)
-    row.text:SetPoint('TOPLEFT', 12, -40); row.text:SetWidth(panel.readerWidth - 26)
-    row.text:SetWordWrap(true)
-    row.map = S.Button(row, 'Carte', 54, 22, 'ghost'); row.map:SetPoint('TOPRIGHT', -10, -8)
-    row.map:SetScript('OnClick', function() Q.Run('repère du guide', Q.ShowGuidePlace, row.block.point, row.block.heading) end)
-    row.link = S.Button(row, '', 82, 22, 'ghost'); row.link:SetPoint('RIGHT', row.map, 'LEFT', -6, 0)
-    row.link:SetScript('OnEnter', function(self)
-        local b = row.block
-        if b.quest or b.item then tooltip(self, b.quest and 'quest' or 'item', b.quest or b.item) end
-    end)
-    row.link:SetScript('OnLeave', hideTooltip)
-    row.link:SetScript('OnClick', function(self)
-        local b = row.block
-        if b.item then
-            if not Quintessence.LinkItem(b.item) then tooltip(self, 'item', b.item) end
-        elseif b.quest then tooltip(self, 'quest', b.quest) end
-    end)
-    panel.blocks[index] = row
-    return row
 end
 function Q.RefreshGuides()
     if not panel or not panel:IsVisible() then return end
-    local guide = (Q.GUIDES or {})[guideIndex]
-    if not guide then panel.title:SetText('Aucun guide disponible.'); return end
-    chapterIndex = math.min(chapterIndex, #guide.chapters)
-    local chapter = guide.chapters[chapterIndex]
-    panel.title:SetText(Q.Safe(guide.title))
-    panel.subtitle:SetText(Q.Safe(guide.subtitle) .. ' · Copie du site fournie avec cet addon')
-    panel.source:SetText(guide.url)
-    for i, button in ipairs(panel.guideButtons) do button:SetActive(i == guideIndex) end
-    for i = 1, math.max(#guide.chapters, #panel.chapterButtons) do
-        local button = panel.chapterButtons[i]
-        if not button then
-            button = S.Button(panel.left, '', 230, 26, 'ghost')
-            button:SetPoint('TOPLEFT', 10, -panel.chapterTop - (i - 1) * 30)
-            button:SetScript('OnClick', function() chapterIndex = i; scrollOffset = 0; Q.RefreshGuides() end)
-            panel.chapterButtons[i] = button
+    local guide = Q.GUIDES[selected]
+    if not guide then return end
+    local rows = Q.GuideQuestRows(guide, expanded)
+    panel.title:SetText(Q.Safe(guide.title) .. ' · Quêtes & prérequis')
+    panel.count:SetText(#guide.roots .. ' suites · + pour déplier les prérequis')
+    for i, button in ipairs(panel.guideButtons) do button:SetActive(i == selected) end
+    offset = math.min(offset, math.max(0, #rows - #panel.rows))
+    panel.scroll:SetMinMaxValues(0, math.max(0, #rows - #panel.rows)); panel.scroll:SetValue(offset)
+    for i, row in ipairs(panel.rows) do
+        local q = rows[offset + i]
+        row:SetShown(q ~= nil)
+        row.quest = q
+        if q then
+            local color = q.state == 'done' and S.hex.mint or (q.state == 'locked' or q.state == 'low') and S.hex.muted or S.hex.gold
+            local prefix = q.virtual and ('    ' .. q.stepIndex .. '. ') or ''
+            local progress = not q.virtual and q.journeyTotal > 1 and ('  ' .. q.journeyDone .. '/' .. q.journeyTotal) or ''
+            row.name:SetText('|c' .. color .. prefix .. (q.level and q.level > 0 and ('[' .. q.level .. '] ') or '') .. Q.Safe(q.title) .. '|r' .. progress)
+            local status = q.complete and 'À rendre' or STATE[q.state]
+            local amount = Q.XPText(q.xp)
+            if not q.virtual and q.journeyTotal > 1 then amount = amount .. ' · chaîne : ' .. Q.XPText(q.totalXP) .. (q.missingXP > 0 and ' + ?' or '') end
+            row.status:SetText(amount .. ' · ' .. status)
+            row.icon:SetTexture(q.state == 'done' and 'Interface\\RaidFrame\\ReadyCheck-Ready' or 'Interface\\Icons\\INV_Misc_Note_01')
+            row.chain:SetShown(not q.virtual and q.journeyTotal > 1)
+            row.chain:SetLabel(expanded[q.id] and '-' or '+')
+            row.map:SetShown(q.point ~= nil); row.route:SetShown(q.point ~= nil and q.state ~= 'done')
+            row.loot:SetShown(not q.virtual and #(q.items or {}) > 0)
+            local share = q.state == 'log' and Q.CanShareQuest(q.id)
+            q.groupHas = holders(q.id)
+            row.action:SetShown(share or (q.state ~= 'done' and q.state ~= 'log' and #q.groupHas > 0))
+            row.action:SetLabel(share and 'Partager' or 'Demander')
+            row.action:SetEnabled(not share or (IsInGroup and IsInGroup()) or false)
         end
-        button:SetShown(guide.chapters[i] ~= nil)
-        if guide.chapters[i] then button:SetLabel(guide.chapters[i].title); button:SetActive(i == chapterIndex) end
     end
-    local y = 0
-    for i, block in ipairs(chapter and chapter.blocks or {}) do
-        local row = blockFrame(i)
-        row.block = block; row:ClearAllPoints(); row:SetPoint('TOPLEFT', 0, -y); row:Show()
-        local title = block.heading
-        if block.quest then
-            local state = read(C_QuestLog and C_QuestLog.IsQuestFlaggedCompleted, block.quest) == true and 'Terminée'
-                or read(C_QuestLog and C_QuestLog.IsOnQuest, block.quest) == true and 'En cours' or 'À prendre / prérequis à vérifier'
-            title = title .. ' · ' .. state
-        end
-        row.heading:SetText(Q.Safe(title)); row.heading:SetHeight(0)
-        local titleHeight = row.heading:GetStringHeight()
-        row.text:ClearAllPoints(); row.text:SetPoint('TOPLEFT', 12, -20 - titleHeight)
-        row.text:SetText(Q.Safe(block.text)); row.text:SetHeight(0)
-        local height = math.ceil(34 + titleHeight + row.text:GetStringHeight())
-        row:SetHeight(height); y = y + height + 10
-        row.map:SetShown(block.point ~= nil)
-        row.link:SetShown(block.quest ~= nil or block.item ~= nil)
-        row.link:SetLabel(block.quest and 'Quête' or 'Objet')
-        row.link:ClearAllPoints()
-        if block.point then row.link:SetPoint('RIGHT', row.map, 'LEFT', -6, 0)
-        else row.link:SetPoint('TOPRIGHT', -10, -8) end
-    end
-    for i = #(chapter and chapter.blocks or {}) + 1, #panel.blocks do panel.blocks[i]:Hide() end
-    panel.body:SetHeight(math.max(1, y))
-    panel.scrollMax = math.max(0, y - panel.readerHeight)
-    panel.scroll:SetMinMaxValues(0, panel.scrollMax)
-    applyScroll(scrollOffset)
 end
 function Q.CreateGuidesPanel(parent, width, height)
     panel = CreateFrame('Frame', nil, parent); panel:SetAllPoints()
-    panel.left = S.Box(panel, S.colors.panel, S.colors.line)
-    panel.left:SetPoint('TOPLEFT'); panel.left:SetSize(250, height)
-    local heading = S.Heading(panel.left, 'Guide Quintessence'); heading:SetPoint('TOPLEFT', 12, -12)
-    panel.guideButtons, panel.chapterButtons, panel.blocks = {}, {}, {}
-    for i, guide in ipairs(Q.GUIDES or {}) do
-        local button = S.Button(panel.left, guide.title, 230, 40, 'ghost')
-        button:SetPoint('TOPLEFT', 10, -40 - (i - 1) * 44)
-        button.label:SetWordWrap(true)
-        button:SetScript('OnClick', function() guideIndex, chapterIndex, scrollOffset = i, 1, 0; Q.RefreshGuides() end)
-        panel.guideButtons[i] = button
+    local left = S.Box(panel, S.colors.panel, S.colors.line); left:SetPoint('TOPLEFT'); left:SetSize(250, height)
+    local heading = S.Heading(left, 'Guide Quintessence'); heading:SetPoint('TOPLEFT', 12, -14)
+    panel.guideButtons, panel.rows = {}, {}
+    for i, guide in ipairs(Q.GUIDES) do
+        local b = S.Button(left, guide.title, 230, 36, 'ghost'); b:SetPoint('TOPLEFT', 10, -44 - (i - 1) * 42)
+        b:SetScript('OnClick', function() selected, offset, expanded = i, 0, {}; Q.RefreshGuides() end)
+        panel.guideButtons[i] = b
     end
-    panel.chapterTop = 84 + #panel.guideButtons * 44
-    local chapters = S.Heading(panel.left, 'Sommaire'); chapters:SetPoint('TOPLEFT', 12, -panel.chapterTop + 26)
-    local right = S.Box(panel, S.colors.panel, S.colors.line)
-    right:SetPoint('TOPLEFT', 262, 0); right:SetSize(width - 262, height)
-    panel.title = S.Text(right, 15, S.colors.gold); panel.title:SetPoint('TOPLEFT', 12, -12); panel.title:SetWidth(width - 290)
-    panel.subtitle = S.Text(right, 11, S.colors.muted); panel.subtitle:SetPoint('TOPLEFT', 12, -36); panel.subtitle:SetWidth(width - 290)
-    panel.source = S.Input(right, width - 294, 'Adresse du guide sur le site')
-    panel.source:SetPoint('BOTTOMLEFT', 12, 10)
-    panel.source:SetScript('OnEditFocusGained', function(self) self:HighlightText() end)
-    panel.readerWidth, panel.readerHeight = width - 306, height - 100
-    panel.reader = CreateFrame('ScrollFrame', nil, right)
-    panel.reader:SetPoint('TOPLEFT', 12, -62); panel.reader:SetSize(panel.readerWidth, panel.readerHeight)
-    panel.body = CreateFrame('Frame', nil, panel.reader); panel.body:SetWidth(panel.readerWidth); panel.body:SetHeight(1)
-    panel.reader:SetScrollChild(panel.body)
-    panel.scroll = S.Scrollbar(right, panel.readerHeight, function(value) applyScroll(value) end)
-    panel.scroll:SetPoint('TOPRIGHT', -8, -62)
-    panel.reader:EnableMouseWheel(true)
-    panel.reader:SetScript('OnMouseWheel', function(_, delta) applyScroll(scrollOffset - delta * 45) end)
-    panel:SetScript('OnShow', function() Q.Run('lecture guide', Q.RefreshGuides) end)
-    local events = CreateFrame('Frame')
-    for _, event in ipairs({'QUEST_LOG_UPDATE', 'QUEST_TURNED_IN', 'QUEST_ACCEPTED', 'QUEST_REMOVED'}) do Q.Call(events.RegisterEvent, events, event) end
-    events:SetScript('OnEvent', function() Q.Run('état des quêtes du guide', Q.RefreshGuides) end)
+    local right = S.Box(panel, S.colors.panel, S.colors.line); right:SetPoint('TOPLEFT', 262, 0); right:SetSize(width - 262, height)
+    panel.title = S.Text(right, 15, S.colors.gold); panel.title:SetPoint('TOPLEFT', 12, -14); panel.title:SetWidth(width - 290)
+    panel.count = S.Text(right, 11, S.colors.muted); panel.count:SetPoint('TOPLEFT', 12, -40)
+    for i = 1, math.floor((height - 74) / 42) do
+        local row = S.Row(right, width - 280, 41); row:SetPoint('TOPLEFT', 1, -66 - (i - 1) * 42)
+        row.icon = row:CreateTexture(nil, 'ARTWORK'); row.icon:SetPoint('LEFT', 28, 0); row.icon:SetSize(18, 18)
+        row.name = S.Text(row, 12, S.colors.text); row.name:SetPoint('TOPLEFT', 50, -4); row.name:SetWidth(width - 608)
+        row.status = S.Text(row, 11, S.colors.muted); row.status:SetPoint('BOTTOMLEFT', 50, 4); row.status:SetWidth(width - 608)
+        row.chain = S.Button(row, '+', 22, 20, 'ghost'); row.chain:SetPoint('LEFT', 3, 0)
+        row.chain:SetScript('OnClick', function() local q=row.quest; expanded[q.id]=not expanded[q.id]; Q.RefreshGuides() end)
+        row.map = S.Button(row, 'Carte', 46, 20, 'ghost'); row.map:SetPoint('RIGHT', -140, 0)
+        row.map:SetScript('OnClick', function() local q=row.quest; Q.Run('carte du guide', Q.ShowGuidePlace, q.point, q.title) end)
+        row.route = S.Button(row, 'Chemin', 54, 20, 'ghost'); row.route:SetPoint('RIGHT', -192, 0)
+        row.route:SetScript('OnClick', function() local q=row.quest; Q.Run('chemin du guide', Q.ShowGuidePlace, q.point, q.title, true) end)
+        row.loot = S.Button(row, 'Butin', 46, 20, 'ghost'); row.loot:SetPoint('RIGHT', -88, 0)
+        row.loot:SetScript('OnClick', function() local q=row.quest; q.rewards,q.rewardChoice=q.items,q.choice; Q.UI.ShowQuestRewards(q) end)
+        row.action = S.Button(row, 'Partager', 72, 20, 'ghost'); row.action:SetPoint('RIGHT', -10, 0)
+        row.action:SetScript('OnClick', function() local q=row.quest
+            if q.state == 'log' then Q.ShareQuest(q.id,q.title) else Q.AskQuest(q.title,q.groupHas,q.id) end
+        end)
+        row:SetScript('OnEnter', function(self) if self.quest then tooltip(self, self.quest) end end)
+        row:SetScript('OnLeave', function() if GameTooltip then GameTooltip:Hide() end end)
+        panel.rows[i] = row
+    end
+    panel.scroll = S.Scrollbar(right, height - 80, function(value) if value ~= offset then offset = value; Q.RefreshGuides() end end)
+    panel.scroll:SetPoint('TOPRIGHT', -6, -66)
+    right:EnableMouseWheel(true); right:SetScript('OnMouseWheel', function(_,delta) offset=math.max(0,offset-delta); Q.RefreshGuides() end)
+    panel:SetScript('OnShow', function() Q.Run('quêtes du guide', Q.RefreshGuides) end)
+    local driver = CreateFrame('Frame')
+    for _, event in ipairs({'QUEST_LOG_UPDATE','QUEST_TURNED_IN','QUEST_ACCEPTED','QUEST_REMOVED'}) do Q.Call(driver.RegisterEvent,driver,event) end
+    driver:SetScript('OnEvent',function() Q.Run('états du guide',Q.RefreshGuides) end)
     return panel
 end

@@ -408,6 +408,7 @@ local function showQuestRewards(quest)
     if rewardPanel.quest ~= quest then rewardPanel.offset = 0 end
     rewardPanel.quest = quest
     local items, choice = Q.QuestRewardItems(quest.id)
+    if quest.rewards then items, choice = quest.rewards, quest.rewardChoice end
     items = items or {}
     rewardPanel.title:SetText(Q.Safe(quest.title))
     rewardPanel.help:SetText(#items == 0 and 'Aucun objet récompense renseigné pour cette quête.'
@@ -429,6 +430,8 @@ local function showQuestRewards(quest)
     end
     rewardPanel:Show()
 end
+
+UI.ShowQuestRewards = showQuestRewards
 
 local function createDungeonsPanel(parent)
     local panel = CreateFrame('Frame', nil, parent)
