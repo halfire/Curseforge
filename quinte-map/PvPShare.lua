@@ -59,6 +59,15 @@ local function seqOf(id, origin)
 end
 Sh.SeqOf = seqOf
 
+--- Seules les morts identifiées par le récapitulatif comme causées par un joueur rejoignent le partage PvP ; le journal local reste intact.
+function Sh.ShareableEvent(r)
+    if type(r) ~= 'table' or P.Secret(r) then return false end
+    if r.kind ~= 'death' then return true end
+    return r.pvp == true and type(r.other) == 'table' and not P.Secret(r.other) and P.IsPlayerGUID(r.other.guid)
+        and type(r.evidence) == 'table' and not P.Secret(r.evidence)
+        and r.evidence.confidence == 'identified' and r.evidence.basis == 'death_recap_fatal'
+end
+
 -- ---------------------------------------------------------------------------------------------------------------------
 -- Chez l'officier : relevés reçus (QuinteMapDB.pvp.guild)
 -- ---------------------------------------------------------------------------------------------------------------------
@@ -112,6 +121,7 @@ function Sh.Check(r, kind, sender, origin)
     local t = now()
     if type(at) ~= 'number' or at > t + 300 or at < t - P.KEEP then return nil end
     if kind == 'event' then
+        if not Sh.ShareableEvent(r) then return nil end
         if not KINDS[r.kind] or type(r.evidence) ~= 'table' or not CONFIDENCE[r.evidence.confidence] then return nil end
     else
         if r.context.mode ~= 'battleground' and r.context.mode ~= 'arena' then return nil end
@@ -253,7 +263,7 @@ function Sh.Pending(officer)
     local s, cut, out = sharedFor(officer), now() - SHARE_WINDOW, {}
     for _, e in ipairs(store.events) do
         local n = e.reporter and e.reporter.guid == owner.guid and seqOf(e.id, c.origin)
-        if n and n > s.seq and (e.at or 0) >= cut and P.Weight(e) <= MAX_RECORD_WEIGHT then out[#out + 1] = { r = e, n = n } end
+        if n and n > s.seq and Sh.ShareableEvent(e) and (e.at or 0) >= cut and P.Weight(e) <= MAX_RECORD_WEIGHT then out[#out + 1] = { r = e, n = n } end
     end
     table.sort(out, function(a, b) return a.n < b.n end)
     for _, m in ipairs(store.matches) do
@@ -361,6 +371,7 @@ end
 function Sh.Changed(r)
     local owner = P.Owner()
     if not (owner and type(r) == 'table' and r.reporter and r.reporter.guid == owner.guid) then return end
+    if r.kind and not Sh.ShareableEvent(r) then return end
     if r.status == 'observed' then return end -- partie en cours : envoyée finie ou quittée
     Sh.Schedule(SEND_DELAY)
 end

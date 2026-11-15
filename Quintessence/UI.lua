@@ -86,6 +86,10 @@ end
 function UI.StepScale(delta) return UI.SetScalePercent(UI.ScalePercent() + delta * SCALE_STEP) end
 
 local function syncText()
+    -- Le blocage guilde prime sur la file : des messages préparés peuvent rester en attente sans jamais partir.
+    local guild = Core.GuildStatus()
+    if guild == 'none' or guild == 'other' then return 'Synchro : hors guilde', S.colors.red end
+    if guild == 'pending' then return 'Synchro : lecture guilde', S.colors.gold end
     local state = Core.sync and Core.sync:Status()
     if not state then return 'Synchro non démarrée', S.colors.muted end
     if not state.enabled then return 'Synchro coupée', S.colors.red end
