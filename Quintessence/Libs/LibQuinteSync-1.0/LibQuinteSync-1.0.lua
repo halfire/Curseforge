@@ -16,9 +16,16 @@
 --   forme de la liste de guilde), Forever reconnu par l'interface du jeu et non par le seul nom de famille du joueur.
 -- v10 : plus de chuchotement vers un membre déconnecté (« Aucun joueur nommé… » répété chez tous ceux qui lui envoyaient
 --   encore des données) : file vidée à sa déconnexion, message du jeu masqué s'il répond à un envoi de la synchro.
+-- v11 (protocole 3, préfixe QUINTE3, T137) : messages « 3:id:partie:total: » de 232 octets utiles, identifiant court ;
+--   demande de manifeste W tôt, en tête de file, annulée si la diffusion a déjà commencé ; rattrapage complet une fois par
+--   heure, ou tout de suite après une perte (combat long, raid) ; résumés recalculés seulement après un changement ;
+--   NotifyLocal par groupe ; demandes R espacées puis abandonnées quand la diffusion D passe ; diffusion directe après un
+--   changement local ; résumé périodique sauté si deux membres viennent d'annoncer le même ; canal du groupe ('@group') pour
+--   les messages temps réel qui ne concernent que lui ; mémoire des membres avec départs ; compteurs par module (Traffic).
+--   L'ancien préfixe (QUINTE2) n'est plus que écouté pour repérer les clients pas à jour (adapter.Legacy).
 -- Leçons du vrai jeu : ne jamais conditionner un envoi à C_ChatInfo.AreOutgoingAddonChatMessagesRestricted (toujours
 -- vrai sur Forever) ; un envoi réussi peut renvoyer nil ; la liste de guilde est vide à la connexion.
-local Lib=LibStub:NewLibrary('LibQuinteSync-1.0',10)
+local Lib=LibStub:NewLibrary('LibQuinteSync-1.0',11)
 if not Lib then return end
 local Serializer,Deflate,Guard=LibStub('LibSerialize'),LibStub('LibDeflate'),LibStub('LibQuinteDeflateGuard-1.0')
 local MAX_RAW,MAX_ENCODED,MAX_QUEUE=131072,65536,6000
@@ -31,6 +38,16 @@ local REMEMBER=45*86400             -- un membre vu dans la liste reste membre 4
 local PER_SOURCE=4                   -- demandes en cours par membre interrogé (les autres attendent leur tour)
 local ASK_TIMEOUT,ASK_TRIES=90,3     -- sans progrès en 90 s, on redemande (autre membre si possible), 3 fois au plus
 local GONE_MAX,SEEN_RECENT,HIDE_FOR=600,60,15 -- déconnexion retenue 10 min ; message reçu < 60 s = connecté ; masquage 15 s
+local CHUNK=232                      -- octets utiles par message : en-tête « 3:id:ppp:ttt: » de 23 octets au plus
+local CLEAN_EVERY,RESCAN,REPULL=300,300,3600 -- nettoyage des modules, recalcul de secours d'un résumé, rattrapage complet
+local DEFER_MAX,DEFER_BYTES,DEFER_AGE=256,131072,300 -- messages gardés pendant un combat ou un raid chargé
+local GROUP_CHANNELS={PARTY=true,RAID=true,INSTANCE_CHAT=true}
+-- Raid hors combat (revue T137) : la synchro de fond n'est plus bloquée par une longue file (elle ne se vidait jamais),
+-- elle part à débit réduit : un message toutes les RAID_GAP s (RAID_SLOW_GAP si moins de 30 images/s ou si
+-- ChatThrottleLib fait déjà attendre d'autres addons), écart divisé par 1 + file / RAID_SPEEDUP, RAID_MIN_GAP au moins.
+local RAID_GAP,RAID_SLOW_GAP,RAID_SPEEDUP,RAID_MIN_GAP=.25,1,100,.05
+local B36='0123456789abcdefghijklmnopqrstuvwxyz'
+local function base36(n) local out='';repeat local d=n%36;out=B36:sub(d+1,d+1)..out;n=(n-d)/36 until n<1;return out end
 local Instance={};Instance.__index=Instance
 local function clock() return GetTime() end
 local function stamp() return (time or GetServerTime)() end
@@ -180,7 +197,7 @@ Lib.Fingerprint=fingerprint
 -- ---------------------------------------------------------------------------------------------------------------------
 -- Liste de guilde
 -- ---------------------------------------------------------------------------------------------------------------------
-function Instance:RefreshRoster()
+function Instance:RefreshRoster(skipCleanup)
     local members,partial={},false
     local n=safe(GetNumGuildMembers) or 0
     local guid=UnitGUID and safe(UnitGUID,'player')
@@ -198,32 +215,46 @@ function Instance:RefreshRoster()
     -- sans mémoire, la fiche d'un membre déconnecté était effacée au nettoyage et plus jamais relayée.
     -- On se souvient de chaque membre vu (sauvegardé) ; il n'est oublié qu'au bout de 45 jours sans le revoir,
     -- ou tout de suite s'il manque d'une liste complète (membres hors ligne affichés).
+    -- v11 : la mémoire est partagée entre les clients (groupe « members » du conteneur) ; un membre absent d'une liste
+    -- complète n'est plus effacé mais marqué parti (gone), pour que ce départ se propage au lieu d'être réappris.
     local memory=safe(self.adapter.Memory)
     if type(memory)=='table' and n>0 then
-        local now,seen=stamp(),0
+        local now,seen,changed=stamp(),0,false
+        local today=math.floor(now/86400)
         for who,m in pairs(members) do
             local saved=memory[who] -- fiche mise à jour sur place (pas une nouvelle table par membre à chaque relecture)
-            if type(saved)=='table' then saved.name,saved.class,saved.level,saved.seen=m.name,m.class,m.level,now
-            else memory[who]={name=m.name,class=m.class,level=m.level,seen=now} end
+            if type(saved)=='table' then
+                if saved.gone or math.floor((tonumber(saved.seen) or 0)/86400)~=today then changed=true end
+                saved.name,saved.class,saved.level,saved.seen,saved.gone=m.name,m.class,m.level,now,nil
+            else memory[who]={name=m.name,class=m.class,level=m.level,seen=now};changed=true end
             seen=seen+1
         end
         local complete=GetGuildRosterShowOffline and safe(GetGuildRosterShowOffline) and seen>=n
         for who,m in pairs(memory) do
-            if type(m)~='table' or type(m.seen)~='number' or now-m.seen>REMEMBER or (complete and not members[who]) then memory[who]=nil
-            elseif not members[who] then members[who]={name=m.name,online=false,level=m.level,class=m.class,remembered=true} end
+            if type(m)~='table' or type(m.seen)~='number' or now-math.max(m.seen,tonumber(m.gone) or 0)>REMEMBER then memory[who]=nil
+            elseif not members[who] and complete and not m.gone then m.gone=now;changed=true
+            elseif not members[who] and not m.gone then members[who]={name=m.name,online=false,level=m.level,class=m.class,remembered=true} end
         end
+        if changed then safe(self.adapter.MemoryChanged) end
     end
     self.roster=members;self.rosterAt=clock();self.rosterPartial=partial
     local known=n>0;local first=known and not self.rosterKnown;self.rosterKnown=known
-    if known then safe(self.adapter.Cleanup,self.data,members,stamp()) end
+    if known and (first or (not skipCleanup and clock()-(self.cleanedAt or -1e9)>=CLEAN_EVERY)) then self:Clean() end
     if first then self:Resume() end -- messages reçus avant la liste de guilde : on les traite maintenant
+end
+-- Nettoyage des modules (au plus toutes les 5 min) : il peut retirer des entrées, les résumés sont donc à recalculer
+function Instance:Clean()
+    if not self.roster then return end
+    self.cleanedAt=clock()
+    safe(self.adapter.Cleanup,self.data,self.roster,stamp())
+    self.scans={}
 end
 -- GUILD_ROSTER_UPDATE arrive très souvent dans une grande guilde : relecture regroupée (10 s), sauf la première fois.
 function Instance:RefreshRosterSoon()
     if not self.rosterKnown then self:RefreshRoster();return end
     if self.rosterPending then return end
     self.rosterPending=true
-    self:Later(10,function() self.rosterPending=false;self:RefreshRoster() end)
+    self:Later(10,function() self.rosterPending=false;self:RefreshRoster(true) end)
 end
 -- Liste pas encore reçue : on garde les messages, mais pas plus de 30 s après le démarrage (si le jeu ne la donne
 -- jamais, on traite quand même : le canal GUILD est sûr et les modules vérifient chaque enregistrement).
@@ -233,7 +264,8 @@ end
 -- Membre de la guilde ? Un inconnu peut être un membre arrivé depuis la dernière lecture : on relit (au plus toutes les 5 s).
 function Instance:Member(name)
     if self.roster[key(name)]~=nil then return true end
-    if clock()-(self.rosterAt or -100)>5 then self:RefreshRoster() end
+    -- (sans relancer le nettoyage de tous les modules : un manifeste plein de noms inconnus le faisait toutes les 5 s)
+    if clock()-(self.rosterAt or -100)>5 then self:RefreshRoster(true) end
     return self.roster[key(name)]~=nil
 end
 -- Nos propres messages GUILD nous reviennent : on se reconnaît par notre nom complet (GUID de la liste sur Forever)
@@ -272,6 +304,15 @@ local function drop(queue,who)
         local message=queue[i];queue[i]=nil
         if message.who~=who then kept=kept+1;queue[kept]=message end
     end
+end
+-- Membres qui nous ont écrit depuis 15 min (ils ont l'addon), compté au plus une fois toutes les 10 s
+local heardCount,heardAt=0,-100
+function Lib.Heard()
+    if clock()-heardAt<10 then return heardCount end
+    local n,now=0,clock()
+    for _,at in pairs(alive) do if now-at<900 then n=n+1 end end
+    heardCount,heardAt=n,now
+    return n
 end
 function Lib.MarkGone(name)
     local who=key(name)
@@ -323,7 +364,9 @@ local function watchSystem()
 end
 
 -- urgent : messages temps réel (Ride, ping), petits, jamais retenus par un raid chargé (seule la grosse synchro l'est)
-function Instance:Busy(urgent)
+-- incoming : vérification à la réception (traiter maintenant ou garder) : en raid, seuls les images/s basses ou une file
+-- ChatThrottleLib d'autres addons font attendre les gros messages reçus ; le débit d'envoi ne compte pas.
+function Instance:Busy(urgent,incoming)
     if not self.enabled or not IsInGuild or not IsInGuild() then return true,'off/guilde' end
     -- Conteneur : guilde pas encore lue ou autre guilde (adapter.Blocked) : rien ne part
     local blocked=self.adapter.Blocked and safe(self.adapter.Blocked)
@@ -332,7 +375,11 @@ function Instance:Busy(urgent)
     if not urgent and InCombatLockdown and InCombatLockdown() then return true,'combat' end
     if not urgent and IsInRaid and IsInRaid() then
         local ctl=ChatThrottleLib
-        if (ctl.bQueueing and not (self.lanes.G.inflight or self.lanes.W.inflight)) or self:Queued()>64 or (GetFramerate and GetFramerate()<30) then return true,'raid chargé' end
+        local slow=(ctl.bQueueing and not (self.lanes.G.inflight or self.lanes.W.inflight)) or (GetFramerate and GetFramerate()<30)
+        if incoming then return slow and true or false,slow and 'raid chargé' or '' end
+        local gap=math.max(RAID_MIN_GAP,(slow and RAID_SLOW_GAP or RAID_GAP)/(1+self:Queued()/RAID_SPEEDUP))
+        local wait=(self.bulkAt or -1e9)+gap-clock()
+        if wait>0 then self.raidWait=wait;return true,'raid chargé' end
     end
     return false,''
 end
@@ -359,15 +406,24 @@ function Instance:Queued()
 end
 function Instance:Enqueue(kind,value,target,urgent)
     if not self.enabled then return end
-    local ok,raw=pcall(Serializer.Serialize,Serializer,{v=2,k=kind,d=value})
+    local ok,raw=pcall(Serializer.Serialize,Serializer,{v=3,k=kind,d=value})
     if not ok or #raw>MAX_RAW then self.rejected=self.rejected+1;return end
     local compressed=safe(Deflate.CompressDeflate,Deflate,raw,{level=5})
     local encoded=compressed and safe(Deflate.EncodeForWoWAddonChannel,Deflate,compressed)
     if not encoded or #encoded>MAX_ENCODED then return end
-    local total=math.max(1,math.ceil(#encoded/210))
-    if self:Queued()+total>MAX_QUEUE then return end
+    local total=math.max(1,math.ceil(#encoded/CHUNK))
+    if self:Queued()+total>MAX_QUEUE then self.stats.full=(self.stats.full or 0)+1;return end
+    -- Canal du groupe ('@group') : raid de l'instance, raid ou groupe ; seul un message temps réel y passe
+    local channel=target and 'WHISPER' or 'GUILD'
+    if target=='@group' then
+        if kind~='X' then return end
+        local instance=LE_PARTY_CATEGORY_INSTANCE and IsInGroup and safe(IsInGroup,LE_PARTY_CATEGORY_INSTANCE)
+        channel=instance and 'INSTANCE_CHAT' or (IsInRaid and safe(IsInRaid) and 'RAID') or (IsInGroup and safe(IsInGroup) and 'PARTY') or nil
+        if not channel then return end
+        target=nil
+    end
     self.serial=self.serial+1
-    local id=self.nonce..'-'..self.serial
+    local id=self.nonce..base36(self.serial)
     local lane=target and self.lanes.W or self.lanes.G
     local list=urgent and lane.urgent or lane.queue
     local who
@@ -375,12 +431,15 @@ function Instance:Enqueue(kind,value,target,urgent)
         target=Lib.WhisperTarget(target);who=key(target)
         if self:Offline(who) then self.stats.offline=self.stats.offline+1;return end
     end
+    local trafficKey=Lib.TrafficKey(kind,value)
     for part=1,total do
-        local text='2:'..id..':'..part..':'..total..':'..encoded:sub((part-1)*210+1,part*210)
+        local text='3:'..id..':'..part..':'..total..':'..encoded:sub((part-1)*CHUNK+1,part*CHUNK)
         if #text>255 then self.rejected=self.rejected+1;return end
-        list[#list+1]={text=text,target=target,who=who,channel=target and 'WHISPER' or 'GUILD',epoch=self.epoch,urgent=urgent}
+        list[#list+1]={text=text,target=target,who=who,channel=channel,epoch=self.epoch,urgent=urgent,key=trafficKey}
     end
     self.stats.messages[kind]=(self.stats.messages[kind] or 0)+total
+    -- « préparé » : mis en file ; « envoyé » (callbackFn) : accepté par le jeu (revue T137 : tout comptait comme envoyé)
+    self:Count('queued',trafficKey,channel,total,#encoded)
     self:Pump()
 end
 function Instance:Wake()
@@ -394,7 +453,14 @@ end
 function Instance:PumpLane(lane)
     if lane.inflight or not self.enabled then return end
     if #lane.urgent+#lane.queue==0 then return end
-    if self:Busy(#lane.urgent>0) then self:Wake();return end
+    local busy,reason=self:Busy(#lane.urgent>0)
+    if busy then
+        -- raid : relance dès que le prochain message de fond a le droit de partir (le réveil d'une seconde bridait à 1/s)
+        if reason=='raid chargé' and self.raidWait and self.raidWait<1 then
+            if not lane.paced then lane.paced=true;self:Later(self.raidWait+.01,function() lane.paced=false;self:PumpLane(lane) end) end
+        else self:Wake() end
+        return
+    end
     local message
     repeat
         message=table.remove(lane.urgent,1) or table.remove(lane.queue,1)
@@ -420,6 +486,7 @@ function Instance:PumpLane(lane)
         -- Parti de chez nous pendant l'attente chez CTL : rien à envoyer
         if message.who and self:Offline(message.who) then message.skipped=true;self.stats.offline=self.stats.offline+1;return SUCCESS end
         if message.who then whispered[message.who]=clock() end
+        if not message.urgent then self.bulkAt=clock() end
         local ok,a,b=pcall(C_ChatInfo.SendAddonMessage,...)
         if not ok then return ERROR end
         -- Avant 11.0 le code était en 2e position ; sur Forever un envoi réussi peut ne rien renvoyer (nil)
@@ -439,7 +506,7 @@ function Instance:PumpLane(lane)
         end
         local stats=self.stats;stats.lastResult=result
         if message.skipped then -- ni envoyé ni en échec
-        elseif sent then stats.sent=stats.sent+1
+        elseif sent then stats.sent=stats.sent+1;self:Count('out',message.key or '?',message.channel,1,#message.text)
         else
             stats.failed=stats.failed+1;self.rejected=self.rejected+1
             -- Premier refus de la session : on prévient le joueur une fois (code du jeu), sans inonder le chat
@@ -450,8 +517,39 @@ function Instance:PumpLane(lane)
         end
         self:Later(.02,function() self:PumpLane(lane) end)
     end
-    local ok=pcall(ctl.Enqueue,ctl,'BULK',self.prefix..':'..(message.target or 'GUILD'),queued)
+    local ok=pcall(ctl.Enqueue,ctl,'BULK',self.prefix..':'..(message.target or message.channel),queued)
     if not ok then lane.inflight=nil;self.rejected=self.rejected+1 end
+end
+
+-- Compteurs de la dernière heure par sorte et module ou canal (/quinte sync stats) : 12 cases de 5 minutes
+function Lib.TrafficKey(kind,value)
+    if type(value)~='table' then return kind end
+    if kind=='X' then return 'X:'..tostring(value.c) end
+    if kind=='M' or kind=='U' then return kind..':'..tostring(value.m) end
+    if kind=='D' and type(value.p)=='table' then return 'D:'..tostring(value.p.m) end
+    if kind=='R' and type(value.q)=='table' then return 'R:'..tostring(value.q.m) end
+    return kind
+end
+function Instance:Count(direction,name,channel,messages,bytes)
+    local slot=math.floor(clock()/300)
+    local t=self.traffic
+    local row=t[direction..'|'..name..'|'..(channel or '')]
+    if not row then row={slots={},dir=direction,name=name,channel=channel};t[direction..'|'..name..'|'..(channel or '')]=row end
+    local cell=row.slots[slot%12]
+    if not cell or cell.slot~=slot then cell={slot=slot,n=0,b=0};row.slots[slot%12]=cell end
+    cell.n=cell.n+messages;cell.b=cell.b+bytes
+end
+--- Rangées { dir = 'queued' (préparé) | 'out' (accepté par le jeu) | 'in' (reçu), name, channel, messages, bytes } de la
+--- dernière heure, les plus lourdes d'abord
+function Instance:Traffic()
+    local now,out=math.floor(clock()/300),{}
+    for _,row in pairs(self.traffic) do
+        local n,b=0,0
+        for _,cell in pairs(row.slots) do if now-cell.slot<12 then n=n+cell.n;b=b+cell.b end end
+        if n>0 then out[#out+1]={dir=row.dir,name=row.name,channel=row.channel,messages=n,bytes=b} end
+    end
+    table.sort(out,function(x,y) if x.messages~=y.messages then return x.messages>y.messages end return x.name<y.name end)
+    return out
 end
 
 -- ---------------------------------------------------------------------------------------------------------------------
@@ -463,8 +561,9 @@ function Instance:Groups()
 end
 -- Lecture du manifeste d'un module : entrées (texte canonique → entrée), résumé, taille des lots du module
 function Instance:Scan(group)
+    -- (gardé jusqu'au prochain changement : fusion, changement local, nettoyage ; recalcul de secours toutes les 5 min)
     local cached=self.scans[group]
-    if cached and clock()-cached.at<10 then return cached end
+    if cached and clock()-cached.at<RESCAN then return cached end
     local batches=safe(self.adapter.Manifest,self.data,group)
     local set,n,a,b,size={},0,0,0,1
     for _,batch in ipairs(type(batches)=='table' and batches or {}) do
@@ -508,7 +607,8 @@ function Instance:SendManifest(group,target)
 end
 -- État de référence pour les deltas (ce que les autres ont déjà reçu de nous ou ne peuvent pas apprendre de nous)
 function Instance:Rebase(group)
-    if self.localPending then return end -- un changement local attend son envoi : il ne doit pas disparaître du delta
+    -- un changement local attend son envoi : il ne doit pas disparaître du delta
+    if self.localPending and (self.localAll or self.localGroups[group]) then return end
     self.scans[group]=nil
     self.baseline[group]=self:Scan(group).set
 end
@@ -521,24 +621,32 @@ function Instance:Push(group,reference)
     for text,entry in pairs(scan.set) do if not old[text] then delta[#delta+1]=entry end end
     self.baseline[group]=scan.set
     for _,batch in ipairs(batches(delta,scan.size)) do self:Enqueue('U',{m=group,b=batch}) end
+    -- Tout le monde va demander ces données : la réponse partira en une diffusion, sans attendre trois demandes
+    if #delta>0 then self.pushedAt[group]=clock() end
     return #delta
 end
-function Instance:NotifyLocal()
-    if not self.enabled or self.localPending then return end
+-- group : celui du module qui a changé (v11) ; sans groupe, tous (anciens appels)
+function Instance:NotifyLocal(group)
+    if not self.enabled then return end
+    if group then self.localGroups[group]=true;self.scans[group]=nil else self.localAll=true;self.scans={} end
+    if self.localPending then return end
     self.localPending=true
     -- quelques secondes pour regrouper plusieurs changements faits d'affilée
     self:Later(3,function()
         self.localPending=false
+        local all,groups=self.localAll,self.localGroups
+        self.localAll,self.localGroups=false,{}
         -- Avant notre bonjour, rien à diffuser : le bonjour porte déjà nos résumés à jour
         if not self.helloSent then return end
-        for _,group in ipairs(self:Groups()) do self:Push(group) end
+        for _,g in ipairs(self:Groups()) do if all or groups[g] then self:Push(g) end end
     end)
 end
 -- Résumé à la guilde (périodique, /quinte sync now, bouton Synchroniser)
 function Instance:Announce()
     if not self.enabled then return end
-    if self:Busy() then self.announcePending=true;self:Wake();return end
-    self:RefreshRoster()
+    if self:Busy(false,true) then self.announcePending=true;self:Wake();return end
+    self:RefreshRoster(true)
+    self.scans={} -- notre propre résumé est toujours recalculé (une donnée a pu changer sans prévenir)
     self:Enqueue('S',{s=self:Summaries()})
 end
 -- Ping de guilde : chaque membre qui a l'addon répond en privé (diagnostic /quinte test).
@@ -549,7 +657,9 @@ end
 -- ---------------------------------------------------------------------------------------------------------------------
 -- Demandes : regroupées, réparties, sans doublon
 -- ---------------------------------------------------------------------------------------------------------------------
-function Instance:Want(request,sender)
+-- spread : la donnée vient d'être annoncée à toute la guilde (delta U) ; chacun attend 1 à 6 s avant de la demander, et
+-- la diffusion D qui part après la première demande arrive chez les autres avant leur propre demande (v11).
+function Instance:Want(request,sender,spread)
     if type(request)~='table' then return end
     local h=fingerprint(request)
     local pending=self.pending[h]
@@ -558,6 +668,14 @@ function Instance:Want(request,sender)
     if not want then
         if count(self.wants)>=MAX_WANTS then return end
         want={request=request,cands={},at=clock()};self.wants[h]=want
+        -- (seulement à partir de 4 connectés : à deux ou trois, il n'y a pas de demandes en double à éviter)
+        if spread and Lib.Heard()>=4 then
+            local delay=1+math.random()*5
+            want.after=clock()+delay
+            self:Later(delay+.01,function() self:Dispatch() end)
+            want.cands[sender]=true
+            return
+        end
     end
     want.cands[sender]=true
     -- une seconde pour réunir les membres qui ont la même donnée, puis on choisit le moins chargé
@@ -592,6 +710,7 @@ function Instance:Dispatch()
     for h,want in pairs(self.wants) do
         if active>=MAX_PENDING then break end
         if self.pending[h] then self.wants[h]=nil -- déjà demandé à quelqu'un
+        elseif want.after and want.after>clock() then -- pas encore son tour (voir Want)
         else
             local sender=self:Choose(want.cands,want.avoid)
             if sender then self.wants[h]=nil;self:Ask(h,want.request,sender,want.cands,want.tries);active=active+1
@@ -605,7 +724,7 @@ function Instance:Dispatch()
 end
 function Instance:Finish(pending)
     self.pending[pending.h]=nil;self.byId[pending.id]=nil
-    self.load[pending.senderKey]=math.max(0,(self.load[pending.senderKey] or 1)-1)
+    if not pending.adopted then self.load[pending.senderKey]=math.max(0,(self.load[pending.senderKey] or 1)-1) end
     if type(pending.request)=='table' and pending.request.m then self:Rebase(pending.request.m) end
     if next(self.wants) then self:Dispatch() end -- une place se libère chez ce membre
     if self.settle then self:Later(3,function() self:Settle() end) end
@@ -616,12 +735,14 @@ function Instance:Serve(request,sender,id)
     local serving=self.serving[h]
     if not serving then
         if count(self.serving)>=64 then return end
-        serving={request=request,to={},n=0};self.serving[h]=serving
-        self:Later(GATHER,function()
+        -- Donnée que nous venons d'annoncer à toute la guilde : diffusion directe, après une seconde de regroupement
+        local pushed=type(request)=='table' and type(request.m)=='string' and self.pushedAt[request.m]
+        serving={request=request,to={},n=0,eager=pushed and clock()-pushed<20};self.serving[h]=serving
+        self:Later(serving.eager and 1 or GATHER,function()
             self.serving[h]=nil
             local parts=safe(self.adapter.Export,self.data,request) or {}
             if #parts==0 or #parts>MAX_PARTS then return end
-            if serving.n>=BROADCAST_FROM then
+            if serving.n>=BROADCAST_FROM or serving.eager then
                 for index,part in ipairs(parts) do self:Enqueue('D',{h=h,p=part,i=index,n=#parts}) end
             else
                 for target,requestId in pairs(serving.to) do
@@ -687,8 +808,15 @@ function Instance:Settle()
         self:Later(20,function() self:Hello() end)
     end
 end
+-- Messages perdus (long combat, raid chargé) : on redemande tout de suite au lieu d'attendre le rattrapage d'une heure
+function Instance:Recover()
+    if not self.helloSent or clock()-(self.recoveredAt or -1e9)<600 then return end
+    self.recoveredAt=clock();self.exchanged={};self.known={}
+    self:Hello()
+end
 function Instance:Hello()
     self.settle={at=clock(),references={}};self.helloSent=true
+    self.scans={} -- résumés recalculés : le bonjour doit dire exactement ce que nous avons
     self:Enqueue('H',{s=self:Summaries()},nil,true)
     self:Later(45,function() if self.settle and not next(self.settle.references) then self.settle=nil end end)
 end
@@ -702,8 +830,12 @@ function Instance:Start()
         for _,group in ipairs(self:Groups()) do self.baseline[group]=self:Scan(group).set end
         self:Hello()
     end)
+    -- Résumé sauté (trois fois de suite au plus) si deux membres viennent d'annoncer exactement le même
     local function periodic()
-        self:Announce();self:Later(PERIOD+math.random(0,120),periodic)
+        if (self.sameHeard or 0)>=2 and (self.skipped or 0)<3 then self.skipped=(self.skipped or 0)+1
+        else self.skipped=0;self:Announce() end
+        self.sameHeard=0
+        self:Later(PERIOD+math.random(0,120),periodic)
     end
     self:Later(PERIOD+math.random(0,120),periodic)
     local function sweep()
@@ -721,9 +853,11 @@ function Instance:Start()
         end
         if next(self.wants) then self:Dispatch() end
         if self.settle then self:Settle() end
-        for who,at in pairs(self.exchanged) do if now-at>PERIOD then self.exchanged[who]=nil end end
+        -- rattrapage complet avec un même membre une fois par heure (les changements arrivent par les deltas)
+        for who,at in pairs(self.exchanged) do if now-at>REPULL then self.exchanged[who]=nil end end
         for rateKey,rate in pairs(self.rates) do if now-rate.at>60 then self.rates[rateKey]=nil end end -- compteurs échus
-        if self.rosterKnown then safe(self.adapter.Cleanup,self.data,self.roster,stamp()) end
+        for heardKey,at in pairs(self.heardManifest) do if now-at>60 then self.heardManifest[heardKey]=nil end end
+        if self.rosterKnown and now-(self.cleanedAt or -1e9)>=CLEAN_EVERY then self:Clean() end
         self:Resume();self:Later(30,sweep)
     end
     self:Later(30,sweep)
@@ -740,13 +874,14 @@ function Instance:Allow(sender,kind,limit)
     return rate.n<=limit
 end
 -- Lot de manifeste (ou delta) reçu : ce qui nous manque devient une demande
-function Instance:Consider(wrapper,sender)
+function Instance:Consider(wrapper,sender,spread)
     local requests=safe(self.adapter.Need,self.data,wrapper,sender) or {}
-    for _,request in ipairs(requests) do self:Want(request,sender) end
+    for _,request in ipairs(requests) do self:Want(request,sender,spread) end
 end
 function Instance:Dispatch2(envelope,sender,channel)
-    if type(envelope)~='table' or envelope.v~=2 or type(envelope.d)~='table' then return end
+    if type(envelope)~='table' or envelope.v~=3 or type(envelope.d)~='table' then return end
     local kind,data=envelope.k,envelope.d
+    if GROUP_CHANNELS[channel] and kind~='X' then return end -- le canal du groupe ne porte que du temps réel
     local guild=channel=='GUILD'
     if kind=='H' and guild then
         -- Nouveau venu : réponse seulement si nos données diffèrent des siennes
@@ -758,15 +893,27 @@ function Instance:Dispatch2(envelope,sender,channel)
     elseif kind=='S' and guild then
         -- Résumé périodique : on ne demande le manifeste que pour un état pas encore comparé
         if type(data.s)~='table' then return end
-        local wanted={}
+        local wanted,same={},true
         for _,group in ipairs(self:Groups()) do
             local theirs=data.s[group]
+            if theirs~=self:Scan(group).summary then same=false end
             if type(theirs)=='string' and theirs~=self:Scan(group).summary and self.known[key(sender)..'|'..group]~=theirs then wanted[#wanted+1]=group end
         end
+        if same then self.sameHeard=(self.sameHeard or 0)+1 end
         local who=key(sender)
         if #wanted>0 and not self.exchanged[who] then
             self.exchanged[who]=clock()
-            self:Later(1+math.random()*7,function() self:Enqueue('W',{g=wanted},sender) end)
+            -- (v11) tôt et en tête de file, pour arriver dans la même fenêtre de 2 s que les demandes des autres ; groupe
+            -- abandonné si sa diffusion a déjà commencé (sous la charge, la demande arrivait trop tard et l'expéditeur
+            -- répondait en privé à chacun)
+            self:Later(.2+math.random()*1.3,function()
+                local still={}
+                for _,group in ipairs(wanted) do
+                    local heard=self.heardManifest[who..'|'..group]
+                    if not heard or clock()-heard>15 then still[#still+1]=group end
+                end
+                if #still>0 then self:Enqueue('W',{g=still},sender,true) end
+            end)
         end
     elseif kind=='W' and not guild then
         if type(data.g)~='table' or not self:Allow(sender,'W',20) then return end
@@ -784,8 +931,9 @@ function Instance:Dispatch2(envelope,sender,channel)
                 self:Later(5,function() self:Settle() end)
             end
             if data.i==data.n and type(data.s)=='string' then self.known[key(sender)..'|'..data.m]=data.s end
+            if guild then self.heardManifest[key(sender)..'|'..data.m]=clock() end
         end
-        self:Consider(wrapper,sender)
+        self:Consider(wrapper,sender,kind=='U' and guild)
     elseif kind=='R' and not guild then
         if type(data.id)~='string' or #data.id>100 or type(data.q)~='table' or not self:Allow(sender,'R',64) then return end
         self:Serve(data.q,sender,data.id)
@@ -793,7 +941,15 @@ function Instance:Dispatch2(envelope,sender,channel)
         local pending
         if guild then
             pending=type(data.h)=='string' and self.pending[data.h]
-            if pending and pending.senderKey~=key(sender) then pending=nil end
+            if pending and pending.senderKey~=key(sender) and not pending.cands[sender] then pending=nil end
+            -- Diffusion d'une donnée que nous allions demander (v11) : on la prend, sans envoyer notre demande
+            local want=not pending and type(data.h)=='string' and self.wants[data.h]
+            if want and want.cands[sender] then
+                self.wants[data.h]=nil
+                pending={h=data.h,id='',request=want.request,sender=sender,senderKey=key(sender),cands=want.cands,at=clock(),
+                    received={},count=0,tries=1,adopted=true}
+                self.pending[data.h]=pending
+            end
         else
             pending=type(data.id)=='string' and self.byId[data.id]
             if pending and pending.senderKey~=key(sender) then pending=nil end
@@ -805,7 +961,10 @@ function Instance:Dispatch2(envelope,sender,channel)
         pending.total=data.n
         if pending.received[data.i] then return end
         pending.received[data.i]=true;pending.count=pending.count+1;pending.at=clock()
-        if safe(self.adapter.Merge,self.data,data.p,sender,stamp(),pending.request) then safe(self.adapter.Changed,false) end
+        if safe(self.adapter.Merge,self.data,data.p,sender,stamp(),pending.request) then
+            safe(self.adapter.Changed,false)
+            if type(pending.request)=='table' and type(pending.request.m)=='string' then self.scans[pending.request.m]=nil end
+        end
         if pending.count==data.n then self:Finish(pending) end
     elseif kind=='P' and guild then
         local who=key(sender);local last=self.pongs[who]
@@ -820,7 +979,7 @@ function Instance:Dispatch2(envelope,sender,channel)
     end
 end
 -- realtimeOnly : en combat, seul un message temps réel ('X') est traité ; renvoie false pour un autre (gardé pour après)
-function Instance:Payload(encoded,sender,channel,realtimeOnly)
+function Instance:Payload(encoded,sender,channel,realtimeOnly,parts)
     local compressed=safe(Deflate.DecodeForWoWAddonChannel,Deflate,encoded)
     if not compressed or #compressed>MAX_ENCODED or not Guard:Size(compressed,MAX_RAW) then self.rejected=self.rejected+1;return true end
     local raw=safe(Deflate.DecompressDeflate,Deflate,compressed)
@@ -828,22 +987,57 @@ function Instance:Payload(encoded,sender,channel,realtimeOnly)
     local ok,success,envelope=pcall(Serializer.Deserialize,Serializer,raw)
     if not ok or not success then self.rejected=self.rejected+1;return true end
     if realtimeOnly and (type(envelope)~='table' or envelope.k~='X') then return false end
+    if type(envelope)=='table' then self:Count('in',Lib.TrafficKey(envelope.k,envelope.d),channel,parts or 1,#encoded) end
     -- Forever : expéditeur remis sous la forme de la liste de guilde (« Prénom-Nom » → « Prénom Nom ») pour les modules
     if regional() then sender=Lib.DisplayName(sender) end
     self:Dispatch2(envelope,sender,channel)
     return true
 end
+-- Ancien préfixe (QUINTE2, protocole 2) : jamais traité, seulement noté pour la liste des addons pas à jour. La version
+-- est lue dans l'annonce Versions quand elle tient en un message (sinon nil).
+-- (revue T137) Appelé après les mêmes contrôles qu'une réception (Receive) ; la taille décompressée est bornée par la
+-- garde avant toute décompression.
+function Instance:HeardLegacy(text,channel,sender)
+    local who=key(sender)
+    if not self.legacyAt then self.legacyAt={} end
+    if self.legacyAt[who] and clock()-self.legacyAt[who]<30 then return end
+    local version
+    local chunk=text:match('^2:[%w%-]+:1:1:(.*)$')
+    if chunk then
+        local compressed=safe(Deflate.DecodeForWoWAddonChannel,Deflate,chunk)
+        local raw=compressed and #compressed<=512 and Guard:Size(compressed,2048) and safe(Deflate.DecompressDeflate,Deflate,compressed)
+        local ok,success,envelope=false
+        if raw and #raw<=2048 then ok,success,envelope=pcall(Serializer.Deserialize,Serializer,raw) end
+        local d=ok and success and type(envelope)=='table' and envelope.k=='X' and type(envelope.d)=='table' and envelope.d
+        if d and d.c=='qver' and type(d.d)=='table' and type(d.d.v)=='string' and #d.d.v<=16 then version=d.d.v end
+    end
+    if not version and self.legacyAt[who] then return end -- rien de neuf à noter
+    self.legacyAt[who]=clock()
+    if regional() then sender=Lib.DisplayName(sender) end
+    safe(self.adapter.Legacy,sender,version)
+end
 function Instance:Receive(prefix,text,channel,sender)
-    if not self.enabled or prefix~=self.prefix or (channel~='GUILD' and channel~='WHISPER') then return end
+    if not self.enabled then return end
+    local legacy=self.legacy and prefix==self.legacy
+    if not legacy and prefix~=self.prefix then return end
+    if channel~='GUILD' and channel~='WHISPER' and (legacy or not GROUP_CHANNELS[channel]) then return end
     if type(text)~='string' or #text>255 or type(sender)~='string' or #sender>100 then return end
     if self:IsSelf(sender) then return end
+    -- Ancien protocole : seulement noté, après les contrôles de guilde et d'expéditeur d'une réception ordinaire
+    if legacy then
+        if self.adapter.Blocked and safe(self.adapter.Blocked) then return end
+        if channel=='WHISPER' and (not self.rosterKnown or not self:Member(sender)) then self.stats.strangers=self.stats.strangers+1;return end
+        return self:HeardLegacy(text,channel,sender)
+    end
+    -- Canal du groupe : n'importe quel joueur du groupe peut y écrire, il doit être de la guilde
+    if GROUP_CHANNELS[channel] and not (self.rosterKnown and self:Member(sender)) then self.stats.strangers=self.stats.strangers+1;return end
     -- Autre guilde que celle de l'addon (conteneur) : rien n'est lu
     if self.adapter.Blocked and safe(self.adapter.Blocked)=='refuse' then return end
     -- Le canal GUILD n'arrive que des membres (le serveur s'en charge) ; un chuchotement doit venir d'un membre.
     if channel=='WHISPER' and self.rosterKnown and not self:Member(sender) then self.stats.strangers=self.stats.strangers+1;return end
     Lib.MarkAlive(sender)
-    local id,part,total,chunk=text:match('^2:([%w%-]+):(%d+):(%d+):(.*)$')
-    if not id or #id>60 or #part>4 or #total>4 or #chunk>210 then self.rejected=self.rejected+1;return end
+    local id,part,total,chunk=text:match('^3:(%w+):(%d+):(%d+):(.*)$')
+    if not id or #id>24 or #part>4 or #total>4 or #chunk>CHUNK then self.rejected=self.rejected+1;return end
     part,total=tonumber(part),tonumber(total)
     if part<1 or total<1 or part>total or total>320 then return end
     local bufferKey=key(sender)..':'..channel..':'..id
@@ -864,16 +1058,21 @@ function Instance:Receive(prefix,text,channel,sender)
         if not self.rosterKnown then self:RefreshRoster() end
         -- Sans liste de guilde, les modules ne peuvent pas vérifier les membres : on garde le message pour plus tard.
         -- En raid chargé, seuls les gros messages (plusieurs parties) attendent ; un message court passe tout de suite.
-        local busy,reason=self:Busy()
+        local busy,reason=self:Busy(false,true)
         if (busy and (reason~='raid chargé' or total>1)) or self:WaitRoster() then
             -- En combat, un message temps réel (SOS, alerte levée, layer) est livré tout de suite ; la synchro attend
-            if reason=='combat' and not self:WaitRoster() and self:Payload(encoded,sender,channel,true) then return end
-            if #self.deferredInput<64 then self.deferredInput[#self.deferredInput+1]={encoded=encoded,sender=sender,channel=channel,at=clock()} end
-        else self:Payload(encoded,sender,channel) end
+            if reason=='combat' and not self:WaitRoster() and self:Payload(encoded,sender,channel,true,total) then return end
+            -- (v11 : 256 messages ou 128 Kio ; au-delà, perte notée et rattrapage dès la reprise)
+            if #self.deferredInput<DEFER_MAX and (self.deferredBytes or 0)+#encoded<=DEFER_BYTES then
+                self.deferredInput[#self.deferredInput+1]={encoded=encoded,sender=sender,channel=channel,at=clock(),parts=total}
+                self.deferredBytes=(self.deferredBytes or 0)+#encoded
+            else self.lost=true;self.stats.lost=(self.stats.lost or 0)+1 end
+        else self:Payload(encoded,sender,channel,false,total) end
     end
 end
 function Instance:Resume()
-    if self:Busy() then
+    -- (le débit d'envoi en raid ne retient ni les messages reçus ni l'annonce : seulement l'envoi, dans PumpLane)
+    if self:Busy(false,true) then
         -- Toujours occupé (combat, raid chargé) : on revérifie dans 1 s tant qu'il reste quelque chose à envoyer.
         -- Les messages temps réel passent quand même si seul le raid chargé retient la synchro.
         self:Pump()
@@ -883,27 +1082,32 @@ function Instance:Resume()
     if self.announcePending then self.announcePending=false;self:Announce() end
     local deferred=self.deferredInput;self.deferredInput={}
     if self:WaitRoster() then self.deferredInput=deferred;self:Pump();return end
+    self.deferredBytes=0
     for _,entry in ipairs(deferred) do
         -- (liste toujours inconnue : même règle qu'à la réception directe, on accepte)
-        if clock()-entry.at<=120 and (entry.channel=='GUILD' or not self.rosterKnown or self:Member(entry.sender)) then
-            self:Payload(entry.encoded,entry.sender,entry.channel)
+        if clock()-entry.at>DEFER_AGE then self.lost=true
+        elseif entry.channel=='GUILD' or not self.rosterKnown or self:Member(entry.sender) then
+            self:Payload(entry.encoded,entry.sender,entry.channel,false,entry.parts)
         end
     end
+    if self.lost then self.lost=false;self:Recover() end
     self:Pump()
 end
 -- Message temps réel d'un module (ex. Ride) : priorité sur la synchro, livré au gestionnaire Listen(channel).
+-- target : nom (chuchotement), '@group' (raid ou groupe, seulement des membres de la guilde l'écoutent) ou nil (guilde)
 function Instance:Message(channel,data,target)
     if type(channel)~='string' or #channel>24 then return end
     self:Enqueue('X',{c=channel,d=data},target,true)
 end
 function Instance:Listen(channel,handler) self.channels[channel]=handler end
 function Instance:Status()
-    local busy,reason=self:Busy()
+    local busy,reason=self:Busy(false,true) -- état du raid ou du combat, pas l'attente entre deux messages de fond
     return {enabled=self.enabled,queued=self:Queued(),buffers=count(self.buffers),
         deferred=busy and reason or 'non',rejected=self.rejected,roster=count(self.roster),rosterKnown=self.rosterKnown,
         waiting=#self.deferredInput,sent=self.stats.sent,failed=self.stats.failed,lastResult=self.stats.lastResult,
         received=self.stats.received,lastFrom=self.stats.lastFrom,strangers=self.stats.strangers,prefix=self.prefixResult,
         retries=self.stats.retries,offline=self.stats.offline,pending=count(self.pending),wants=count(self.wants),messages=self.stats.messages,
+        lost=self.stats.lost or 0,full=self.stats.full or 0,
         ctl=ChatThrottleLib and ChatThrottleLib.version,regional=regional(),player=Lib.PlayerName()}
 end
 function Lib:Register(prefix,data,adapter)
@@ -914,10 +1118,13 @@ function Lib:Register(prefix,data,adapter)
         lanes={G={queue={},urgent={}},W={queue={},urgent={}}},
         scans={},baseline={},known={},exchanged={},wants={},pending={},byId={},load={},serving={},manifests={},answers={},answering={},
         pongs={},stats={sent=0,failed=0,retries=0,offline=0,received=0,strangers=0,messages={}},createdAt=clock(),
-        deferredInput={},serial=0,requestSerial=0,rejected=0,epoch=1,nonce=tostring(stamp())..'-'..math.random(100000,999999)},Instance)
+        localGroups={},pushedAt={},heardManifest={},traffic={},legacy=adapter.LegacyPrefix,
+        -- identifiant court (v11) : 4 caractères tirés au hasard à chaque chargement + numéro en base 36
+        deferredInput={},serial=0,requestSerial=0,rejected=0,epoch=1,nonce=base36(math.random(46656,1679615))},Instance)
     self.instances[prefix]=object
     watchSystem()
     object.prefixResult=safe(C_ChatInfo.RegisterAddonMessagePrefix,prefix)
+    if object.legacy then safe(C_ChatInfo.RegisterAddonMessagePrefix,object.legacy) end
     local frame=CreateFrame('Frame');object.frame=frame
     for _,event in ipairs({'CHAT_MSG_ADDON','PLAYER_REGEN_ENABLED','GUILD_ROSTER_UPDATE','GROUP_ROSTER_UPDATE','PLAYER_ENTERING_WORLD'}) do safe(frame.RegisterEvent,frame,event) end
     frame:SetScript('OnEvent',function(_,event,...)

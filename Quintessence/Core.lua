@@ -13,7 +13,7 @@ local addonName, Core = ...
   Règle Retail 12+ : aucune écriture dans une table, une fonction ou un cadre de Blizzard.
 ]]
 Quintessence = Core -- seule globale publique de la suite (nom propre, jamais une globale de Blizzard)
-Core.name, Core.version = addonName or 'Quintessence', '1.44.11'
+Core.name, Core.version = addonName or 'Quintessence', '1.45.0'
 Core.modules, Core.syncModules, Core.channels, Core.debug = {}, {}, {}, { errors = {}, slow = {} }
 
 function Core.Call(fn, ...)
@@ -336,7 +336,8 @@ SlashCmdList.QUINTESSENCE = function(message)
             if value == 'off' then Core:SetSyncEnabled(false)
             elseif value == 'on' then Core:SetSyncEnabled(true)
             elseif value == 'now' then if Core.sync then Core.sync:Announce() end
-            else return Core.Print('/quinte sync on|off|now · /quinte test') end
+            elseif value == 'stats' then return Core.SyncStats()
+            else return Core.Print('/quinte sync on|off|now|stats · /quinte test') end
             Core.Print('Synchro : ' .. (QuintessenceDB.syncEnabled and 'activée' or 'désactivée'))
         elseif command == 'debug' then Core.Debug()
         elseif command == 'erreurs' or command == 'errors' or command == 'error' then Core.ShowErrors(value)
@@ -360,9 +361,42 @@ SlashCmdList.QUINTESSENCE = function(message)
             Core.SetTheme(value)
         elseif Core.modules[command] then Core.UI.Open(command)
         else
-            Core.Print('/quinte : ouvrir la fenêtre · /quinte <module> · /quinte versions · /quinte journal · /quinte sync on|off|now · /quinte test · /quinte debug · /quinte minimap · /quinte taille 50-200 · /quinte interface moderne|classique')
+            Core.Print('/quinte : ouvrir la fenêtre · /quinte <module> · /quinte versions · /quinte journal · /quinte sync on|off|now|stats · /quinte test · /quinte debug · /quinte minimap · /quinte taille 50-200 · /quinte interface moderne|classique')
         end
     end)
+end
+
+--- /quinte sync stats (1.45.0) : messages et octets de la dernière heure, par sorte et module (envoyés, reçus), pour
+--- mesurer la synchro en jeu avant et après un changement. Les plus lourds d'abord, 14 lignes au plus par sens.
+function Core.SyncStats()
+    if not (Core.sync and Core.sync.Traffic) then return Core.Print('Synchro non initialisée.') end
+    local KIND = { S = 'résumé', H = 'bonjour', A = 'réponse au bonjour', W = 'demande de liste', M = 'liste', U = 'changement',
+        R = 'demande', D = 'données', P = 'ping', O = 'réponse au ping', X = 'temps réel' }
+    local rows = Core.sync:Traffic()
+    local totals = { queued = { 0, 0 }, out = { 0, 0 }, ['in'] = { 0, 0 } }
+    for _, row in ipairs(rows) do
+        local t = totals[row.dir]
+        if t then t[1] = t[1] + row.messages; t[2] = t[2] + row.bytes end
+    end
+    local status = Core.sync:Status()
+    Core.Print(string.format('Synchro, dernière heure : %d message(s) préparé(s), %d envoyé(s) (acceptés par le jeu, %d Ko), %d reçu(s) (%d Ko) ; %d en file maintenant.',
+        totals.queued[1], totals.out[1], math.floor(totals.out[2] / 1024), totals['in'][1], math.floor(totals['in'][2] / 1024), status.queued or 0))
+    local LABEL = { out = 'envoyé', ['in'] = 'reçu' }
+    for _, dir in ipairs({ 'out', 'in' }) do
+        local shown = 0
+        for _, row in ipairs(rows) do
+            if row.dir == dir and shown < 14 then
+                shown = shown + 1
+                local kind, what = row.name:match('^(%u):?(.*)$')
+                Core.Print(string.format('  %s %s%s · %s : %d message(s), %d Ko', LABEL[dir],
+                    KIND[kind or ''] or row.name, (what and what ~= '') and (' ' .. Core.Safe(what)) or '', row.channel or '?',
+                    row.messages, math.floor(row.bytes / 1024)))
+            end
+        end
+    end
+    if (status.lost or 0) > 0 or (status.full or 0) > 0 or (status.failed or 0) > 0 then
+        Core.Print(string.format('  refusés par le jeu : %d · perdus pendant un combat : %d · file pleine : %d', status.failed or 0, status.lost or 0, status.full or 0))
+    end
 end
 
 --- Change d'interface ('modern' ou 'classic', mots français acceptés) : enregistrée puis interface rechargée, car

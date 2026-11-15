@@ -5,7 +5,7 @@ local addonName, Q = ...
   Règle Retail 12+ : uniquement nos propres cadres, aucune écriture dans les objets de Blizzard.
 ]]
 local Core = Quintessence
-Q.name, Q.version = addonName or 'quinte-group', '0.31.0'
+Q.name, Q.version = addonName or 'quinte-group', '0.32.0'
 Q.debug = { errors = {}, slow = {} }
 
 function Q.Call(fn, ...)
@@ -84,7 +84,7 @@ function Q.NoCodex() return Core.IsCurseForge ~= nil and Core.IsCurseForge() end
 function Q.OnNetworkMessage(data, sender)
     if type(data) ~= 'table' or not data.t then return end
     if data.t == 'codex_item' and Q.NoCodex() then return end
-    if data.t == 'quest_sync' and Q.OnReceiveQuestSync then
+    if (data.t == 'qs' or data.t == 'qd' or data.t == 'qreq') and Q.OnReceiveQuestSync then
         Q.OnReceiveQuestSync(data, sender)
     elseif data.t == 'dungeon_pref' and Q.OnReceiveDungeonPref then
         Q.OnReceiveDungeonPref(data, sender)

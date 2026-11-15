@@ -8,7 +8,9 @@ local _, Q = ...
   - XP du groupe : chaque membre envoie son niveau et son XP aux autres membres du groupe (canal qgroup, message `xp`,
     au plus toutes les 15 s), affichés dans l'onglet Quêtes partagées.
 ]]
-local XP_GAP, XP_TTL = 15, 120
+-- XP du groupe (T137) : un message sur le canal du groupe au lieu d'un chuchotement par membre (bridés en instance), et
+-- seulement si l'XP a bougé de 5 % du niveau, ou au plus toutes les 60 s quand elle bouge un peu ; gardée 10 min
+local XP_GAP, XP_TTL, XP_STEP, XP_EVERY = 15, 600, 0.05, 60
 local GROUP_LOG_TTL = 1800 -- journal d'un membre du groupe cru 30 min (comme les quêtes communes)
 
 local function isSecret(v) return type(issecretvalue) == 'function' and issecretvalue(v) end
@@ -475,7 +477,7 @@ function Q.OnInfoMessage(messageType, message)
 end
 
 -- ---------------------------------------------------------------------------------------------- XP du groupe
-local partyXP, lastXP = {}, 0
+local partyXP, lastXP, sentLevel, sentXP, forcedAt = {}, 0, nil, nil, 0
 Q.partyXP = partyXP
 local function groupUnits()
     local units = {}
@@ -484,23 +486,24 @@ local function groupUnits()
     return units
 end
 
---- Envoie mon niveau et mon XP aux membres du groupe (au plus une fois toutes les 15 s, sauf `force`).
+--- Envoie mon niveau et mon XP à mon groupe (canal du groupe, une fois pour tous). `force` : niveau gagné, groupe changé.
 function Q.SendMyXP(force)
     local now = Q.Now()
+    if force and now - forcedAt < 5 then force = false end
+    if force then forcedAt = now end
     if not force and now - lastXP < XP_GAP then return false end
     if not Q.comm or not Q.comm.Send then return false end
+    if #groupUnits() == 0 then return false end
     local level, xp, max = UnitLevel and UnitLevel('player'), UnitXP and UnitXP('player'), UnitXPMax and UnitXPMax('player')
     if isSecret(level) or isSecret(xp) or isSecret(max) or type(level) ~= 'number' then return false end
-    local sent = false
-    for _, unit in ipairs(groupUnits()) do
-        local name = Quintessence.UnitFullName and Quintessence.UnitFullName(unit)
-        if type(name) == 'string' and not isSecret(name) then
-            Q.comm:Send({ t = 'xp', l = level, x = tonumber(xp) or 0, m = tonumber(max) or 0 }, Quintessence.WhisperTarget(name))
-            sent = true
-        end
+    xp, max = tonumber(xp) or 0, tonumber(max) or 0
+    if not force and sentLevel == level then
+        if sentXP == xp then return false end
+        if math.abs(xp - (sentXP or 0)) < max * XP_STEP and now - lastXP < XP_EVERY then return false end
     end
-    if sent then lastXP = now end
-    return sent
+    Q.comm:Send({ t = 'xp', l = level, x = xp, m = max }, '@group')
+    lastXP, sentLevel, sentXP = now, level, xp
+    return true
 end
 
 function Q.OnReceiveXP(data, sender)
@@ -527,6 +530,6 @@ function Q.InitParty()
     for _, ev in ipairs({ 'UI_INFO_MESSAGE', 'PLAYER_XP_UPDATE', 'PLAYER_LEVEL_UP', 'GROUP_ROSTER_UPDATE' }) do Q.Call(f.RegisterEvent, f, ev) end
     f:SetScript('OnEvent', function(_, event, a, b)
         if event == 'UI_INFO_MESSAGE' then Q.Run('annonce', Q.OnInfoMessage, a, b)
-        else Q.Run('xp', Q.SendMyXP, event == 'PLAYER_LEVEL_UP') end
+        else Q.Run('xp', Q.SendMyXP, event == 'PLAYER_LEVEL_UP' or event == 'GROUP_ROSTER_UPDATE') end
     end)
 end

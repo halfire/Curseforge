@@ -99,12 +99,70 @@ local function questSignature(quests, level)
     return table.concat(parts, '\n')
 end
 
--- Diffusion de ses quêtes actives à la guilde (target : réponse privée à un membre qui arrive)
+-- Protocole 3 (T137) : numéros de quêtes et niveaux seulement, puis les changements (deltas) ; liste complète au rappel de
+-- 15 min, en réponse privée au nouveau venu, ou sur demande (qreq) si un changement arrive sans la liste qu'il complète.
+-- Titre envoyé une seule fois par session pour chaque quête (réponse privée : tous) ; celui qui reçoit le garde
+-- (QuinteGroupDB.questTitles) ou le relit en jeu (C_QuestLog.GetTitleForQuestID). Avant : liste entière avec les titres
+-- (2 messages) à chaque changement.
+--   { t = 'qs', s = n°, l = niveau, c = classe, q = { id, niveau, id, niveau… }, n = { [id] = titre }, r = 1 si réponse }
+--   { t = 'qd', s = n°, b = n° de la liste complétée, l, c, a = { id, niveau… } ajoutées, x = { id… } retirées, n }
+--   { t = 'qreq' } : redemande de la liste complète (au plus une par minute et par membre)
+local seq, lastList, lastFull, sentTitles = 0, nil, 0, {}
+local asked = {}
+local MAX_DELTA, MAX_TITLES = 10, 5000
+
+local function titleCache()
+    if type(QuinteGroupDB.questTitles) ~= 'table' then QuinteGroupDB.questTitles = {} end
+    return QuinteGroupDB.questTitles
+end
+local function knownTitle(id)
+    local cached = titleCache()[id]
+    if type(cached) == 'string' then return cached end
+    local fn = C_QuestLog and C_QuestLog.GetTitleForQuestID
+    if fn then
+        local ok, title = pcall(fn, id)
+        if ok and type(title) == 'string' and title ~= '' and not (issecretvalue and issecretvalue(title)) then return title end
+    end
+    local ref = Q.REFERENCE_QUEST_INFO and Q.REFERENCE_QUEST_INFO[id]
+    if ref and type(ref.title) == 'string' then return ref.title end
+end
+local titleCount
+local function rememberTitle(id, title)
+    if type(id) ~= 'number' or type(title) ~= 'string' or title == '' or #title > 100 or title:find('|', 1, true) then return end
+    local cache = titleCache()
+    if cache[id] == title then return end
+    if not titleCount then titleCount = 0; for _ in pairs(cache) do titleCount = titleCount + 1 end end
+    if not cache[id] then
+        if titleCount >= MAX_TITLES then QuinteGroupDB.questTitles = {}; cache = QuinteGroupDB.questTitles; titleCount = 0 end
+        titleCount = titleCount + 1
+    end
+    cache[id] = title
+end
+Q.QuestTitle = function(id) return knownTitle(id) or ('Quête n°' .. tostring(id)) end
+
+local function flat(list)
+    local out = {}
+    for _, q in ipairs(list) do out[#out + 1] = q.id; out[#out + 1] = q.level or 0 end
+    return out
+end
+local function titles(list, all)
+    local out
+    for _, q in ipairs(list) do
+        if type(q.id) == 'number' and type(q.title) == 'string' and (all or not sentTitles[q.id]) then
+            out = out or {}; out[q.id] = q.title
+            if not all then sentTitles[q.id] = true end
+        end
+    end
+    return out
+end
+
+-- Diffusion de ses quêtes actives à la guilde (target : réponse privée à un membre qui arrive ou qui la redemande)
 function Q.BroadcastMyQuests(force, target)
     local now = Q.Now()
     local quests = Q.GetMyQuests()
     local myLevel = UnitLevel and UnitLevel('player') or 60
     local _, class = UnitClass and UnitClass('player')
+    for _, q in ipairs(quests) do if type(q.id) == 'number' and type(q.title) == 'string' then rememberTitle(q.id, q.title) end end
 
     if not target then
         local signature = questSignature(quests, myLevel)
@@ -125,42 +183,90 @@ function Q.BroadcastMyQuests(force, target)
         lastSignature, lastSent = signature, now
     end
 
-    if Q.comm and Q.comm.Send then
-        Q.comm:Send({
-            t = 'quest_sync',
-            quests = quests,
-            level = myLevel,
-            class = class or 'WARRIOR',
-            r = target and 1 or nil -- réponse : le destinataire ne répond pas à son tour
-        }, target)
+    if not (Q.comm and Q.comm.Send) then return end
+    if target then
+        return Q.comm:Send({ t = 'qs', s = seq, l = myLevel, c = class or 'WARRIOR', q = flat(quests), n = titles(quests, true), r = 1 }, target)
     end
+    -- Changement : seulement les quêtes ajoutées ou retirées, si la liste d'avant a été annoncée et le rappel pas dû
+    if lastList and not force and now - lastFull < KEEPALIVE then
+        local before, nowSet, added, removed = {}, {}, {}, {}
+        for _, q in ipairs(lastList) do before[q.id] = q end
+        for _, q in ipairs(quests) do
+            nowSet[q.id] = true
+            if not before[q.id] then added[#added + 1] = q end
+        end
+        for _, q in ipairs(lastList) do if not nowSet[q.id] then removed[#removed + 1] = q.id end end
+        if #added + #removed <= MAX_DELTA then
+            seq = seq + 1
+            lastList = quests
+            return Q.comm:Send({ t = 'qd', s = seq, b = seq - 1, l = myLevel, c = class or 'WARRIOR',
+                a = #added > 0 and flat(added) or nil, x = #removed > 0 and removed or nil, n = titles(added) })
+        end
+    end
+    seq, lastList, lastFull = seq + 1, quests, now
+    Q.comm:Send({ t = 'qs', s = seq, l = myLevel, c = class or 'WARRIOR', q = flat(quests), n = titles(quests) })
 end
 
--- Réception de la liste de quêtes d'un membre
-function Q.OnReceiveQuestSync(data, sender)
-    if not sender or not data or type(data.quests) ~= 'table' then return end
-    if not QuinteGroupDB.memberQuests then QuinteGroupDB.memberQuests = {} end
+local function readList(list, names)
+    if type(list) ~= 'table' or #list > 120 then return nil end
+    local out = {}
+    for i = 1, #list - 1, 2 do
+        local id, level = tonumber(list[i]), tonumber(list[i + 1])
+        if not id or id < 1 or id > 1e7 or id % 1 ~= 0 then return nil end
+        local title = names and names[id]
+        if type(title) == 'string' then rememberTitle(id, title) end
+        out[#out + 1] = { id = id, title = Q.QuestTitle(id), level = level or 0 }
+    end
+    return out
+end
 
-    -- Membre qui arrive (ou revient après 30 min) : on lui répond en privé avec nos quêtes, puisqu'on ne
-    -- rediffuse plus une liste inchangée qu'au bout de 15 min
+-- Réception de la liste de quêtes d'un membre ('qs'), d'un changement ('qd') ou d'une redemande ('qreq')
+function Q.OnReceiveQuestSync(data, sender)
+    if not sender or type(data) ~= 'table' then return end
+    if not QuinteGroupDB.memberQuests then QuinteGroupDB.memberQuests = {} end
     local now = Q.Now()
     local key = who(sender)
-    local previous = QuinteGroupDB.memberQuests[key]
-    if not data.r and (not previous or now - (previous.updated or 0) >= SHARED_TTL)
-        and (now - (replied[key] or 0)) >= 300 and C_Timer and C_Timer.After then
-        replied[key] = now
-        C_Timer.After(1 + math.random() * 4, function()
-            Q.Run('sync_quetes', Q.BroadcastMyQuests, true, sender)
-        end)
+    if data.t == 'qreq' then
+        if now - (replied['q:' .. key] or 0) >= 30 then replied['q:' .. key] = now; Q.BroadcastMyQuests(true, sender) end
+        return
     end
-
-    QuinteGroupDB.memberQuests[key] = {
-        name = Quintessence.DisplayName and Quintessence.DisplayName(sender) or sender,
-        class = data.class or 'WARRIOR',
-        level = data.level or 60,
-        quests = data.quests,
-        updated = Q.Now()
-    }
+    local names = type(data.n) == 'table' and data.n or nil
+    local previous = QuinteGroupDB.memberQuests[key]
+    if data.t == 'qd' then
+        -- Changement d'une liste que nous n'avons pas (ou pas la bonne) : on redemande la liste complète
+        if type(previous) ~= 'table' or previous.seq ~= data.b or type(previous.quests) ~= 'table' then
+            if now - (asked[key] or 0) >= 60 and Q.comm and Q.comm.Send then asked[key] = now; Q.comm:Send({ t = 'qreq' }, sender) end
+            return
+        end
+        local removed = {}
+        for _, id in ipairs(type(data.x) == 'table' and data.x or {}) do removed[tonumber(id) or 0] = true end
+        local quests = {}
+        for _, q in ipairs(previous.quests) do if not removed[q.id] then quests[#quests + 1] = q end end
+        for _, q in ipairs(readList(data.a or {}, names) or {}) do quests[#quests + 1] = q end
+        if #quests > 60 then return end
+        previous.quests, previous.seq, previous.updated = quests, data.s, now
+        previous.level = tonumber(data.l) or previous.level
+    else
+        local quests = readList(data.q, names)
+        if not quests then return end
+        -- Membre qui arrive (ou revient après 30 min) : on lui répond en privé avec nos quêtes, puisqu'on ne
+        -- rediffuse plus une liste inchangée qu'au bout de 15 min
+        if not data.r and (not previous or now - (previous.updated or 0) >= SHARED_TTL)
+            and (now - (replied[key] or 0)) >= 300 and C_Timer and C_Timer.After then
+            replied[key] = now
+            C_Timer.After(1 + math.random() * 4, function()
+                Q.Run('sync_quetes', Q.BroadcastMyQuests, true, sender)
+            end)
+        end
+        QuinteGroupDB.memberQuests[key] = {
+            name = Quintessence.DisplayName and Quintessence.DisplayName(sender) or sender,
+            class = type(data.c) == 'string' and data.c or 'WARRIOR',
+            level = tonumber(data.l) or 60,
+            quests = quests,
+            seq = data.s,
+            updated = now
+        }
+    end
 
     if Q.UI and Q.UI.RefreshLeveling then Q.UI.RefreshLeveling() end
     if Q.UI and Q.UI.RefreshDungeons then Q.UI.RefreshDungeons() end

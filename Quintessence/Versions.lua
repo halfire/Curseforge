@@ -8,7 +8,12 @@ local _, Core = ...
     celui qui est en retard est prévenu dans le chat (« nouvelle version disponible… ») et sur l'accueil.
   - /quinte versions (ou le bouton « Vérifier maintenant » de l'onglet Versions) : ping de guilde ; chaque membre
     répond avec ses versions (réponse 'O' de la synchro, champ i.t = table des modules), résumé dans le chat.
-  - Onglet « Versions » de la section Officiers : chaque membre connu (30 jours), sa version du conteneur, ses modules en retard ou absents.
+  - Onglet « Versions » de la section Officiers : par défaut les membres connectés seulement, ou l'historique des 5 derniers
+    jours ; version du conteneur, modules en retard ou absents. L'historique d'avant la 1.45.0 est effacé une fois
+    (QuintessenceDB.versionsReset = 3) : il mélangeait des membres partis depuis longtemps.
+  - Onglet « Incompatibles » (1.45.0) : membres entendus sur l'ancien protocole de synchro (préfixe QUINTE2), qui ne
+    reçoivent plus rien et dont rien n'est lu ; clic sur une ligne = chuchotement. QuintessenceDB.legacyAddons[clé] =
+    { name, v (version lue dans son annonce, ou nil), at }, 5 jours.
   - Mémoire : QuintessenceDB.versions[clé normalisée] = { name, v, m = { id = version }, at }.
   Rien n'est envoyé hors de la guilde Quintessence (la synchro le bloque) ; aucune donnée lue par le site.
 ]]
@@ -16,7 +21,8 @@ local V = {}
 Core.Versions = V
 local S = Core.Style
 
-local KEEP = 30 * 86400        -- version d'un membre oubliée après 30 jours sans nouvelles
+local KEEP = 5 * 86400         -- version d'un membre oubliée après 5 jours sans nouvelles (1.45.0 ; 30 jours avant)
+local ONLINE_GRACE = 600       -- vue « connectés » : état inconnu mais entendu depuis moins de 10 min
 local ANNOUNCE_DELAY = 40      -- annonce 40 s après la connexion (la liste de guilde et la synchro sont prêtes)
 local REPLY_GAP = 3600         -- au plus une réponse privée par membre et par heure
 local CHECK_WAIT = 15          -- attente des réponses du ping
@@ -82,6 +88,39 @@ local function store()
     return QuintessenceDB.versions
 end
 
+local function legacyStore()
+    if type(QuintessenceDB) ~= 'table' then return {} end
+    if type(QuintessenceDB.legacyAddons) ~= 'table' then QuintessenceDB.legacyAddons = {} end
+    return QuintessenceDB.legacyAddons
+end
+--- Membre entendu sur l'ancien protocole (appelé par la synchro, Sync.lua mux.Legacy).
+function V.Legacy(sender, version, now)
+    if type(sender) ~= 'string' or sender == '' then return nil end
+    now = now or Core.Now()
+    local key = Core.CanonicalKey(sender)
+    local entry = legacyStore()[key] or {}
+    entry.name, entry.at = Core.DisplayName(sender), now
+    if validVersion(version) then entry.v = version end
+    legacyStore()[key] = entry
+    store()[key] = nil -- ses anciennes versions ne veulent plus rien dire
+    if V.Refresh then Core.Run('versions', V.Refresh) end
+    if V.RefreshLegacy then Core.Run('versions', V.RefreshLegacy) end
+    return entry
+end
+--- Rangées des incompatibles : connectés d'abord, puis les plus récemment entendus.
+function V.LegacyRows(now)
+    now = now or Core.Now()
+    local rows = {}
+    for key, e in pairs(legacyStore()) do
+        if type(e) ~= 'table' or type(e.at) ~= 'number' or now - e.at > KEEP then legacyStore()[key] = nil
+        else rows[#rows + 1] = { entry = e, online = Core.IsOnline(e.name) == true or (Core.IsOnline(e.name) == nil and now - e.at < ONLINE_GRACE) } end
+    end
+    table.sort(rows, function(a, b)
+        if a.online ~= b.online then return a.online end
+        return a.entry.at > b.entry.at
+    end)
+    return rows
+end
 function V.Prune(now)
     now = now or Core.Now()
     local limited = Core.Edition() ~= nil
@@ -139,6 +178,7 @@ function V.Record(sender, version, modules, modulesText, now)
         for id in pairs(entry.m) do if not CURSEFORGE_MODULES[id] then entry.m[id] = nil end end
     end
     store()[Core.CanonicalKey(sender)] = entry
+    legacyStore()[Core.CanonicalKey(sender)] = nil -- il a mis à jour
     V.CheckNewer(entry)
     if V.Refresh then Core.Run('versions', V.Refresh) end
     return entry
@@ -189,9 +229,17 @@ function V.OnPong(sender, info)
     return V.checking ~= nil
 end
 
---- Liste triée des membres connus et leur état par rapport aux versions les plus récentes vues dans la guilde.
-function V.Rows()
+--- Liste triée des membres et leur état par rapport aux versions les plus récentes vues dans la guilde.
+--- view : 'online' (par défaut : connectés seulement) ou 'history' (les 5 derniers jours).
+V.view = 'online'
+local function isOnline(e, now)
+    local state = Core.IsOnline(e.name)
+    return state == true or (state == nil and now - (e.at or 0) < ONLINE_GRACE)
+end
+function V.Rows(view)
     V.Prune()
+    view = view or V.view
+    local now = Core.Now()
     local mine = V.Mine()
     local latest = { v = mine.v, m = {} }
     for id, version in pairs(mine.m) do latest.m[id] = version end
@@ -199,7 +247,7 @@ function V.Rows()
     local myKey = Core.CanonicalKey(Core.PlayerName() or '')
     for key, e in pairs(store()) do
         if key ~= myKey then
-            entries[#entries + 1] = e
+            if view ~= 'online' or isOnline(e, now) then entries[#entries + 1] = e end
             if V.Compare(e.v, latest.v) > 0 then latest.v = e.v end
             for id, version in pairs(e.m or {}) do
                 if not latest.m[id] or V.Compare(version, latest.m[id]) > 0 then latest.m[id] = version end
@@ -270,10 +318,15 @@ local function create(parent)
     panel = CreateFrame('Frame', nil, parent)
     panel:SetAllPoints(parent)
     local title = S.Text(panel, 16, S.colors.text); title:SetPoint('TOPLEFT', 0, -2); title:SetText('Versions des addons dans la guilde')
-    panel.mine = S.Text(panel, 12, S.colors.muted); panel.mine:SetPoint('TOPLEFT', 0, -26); panel.mine:SetWidth(W - 190)
+    panel.mine = S.Text(panel, 12, S.colors.muted); panel.mine:SetPoint('TOPLEFT', 0, -26); panel.mine:SetWidth(W - 460)
     panel.mine:SetWordWrap(true)
     local check = S.Button(panel, 'Vérifier maintenant', 170, 26, 'primary'); check:SetPoint('TOPRIGHT', 0, 0)
     check:SetScript('OnClick', function() V.Check() end)
+    -- Connectés (par défaut) ou historique de 5 jours
+    panel.history = S.Button(panel, 'Historique 5 jours', 150, 26, 'ghost'); panel.history:SetPoint('RIGHT', check, 'LEFT', -8, 0)
+    panel.online = S.Button(panel, 'Connectés', 110, 26, 'ghost'); panel.online:SetPoint('RIGHT', panel.history, 'LEFT', -6, 0)
+    panel.online:SetScript('OnClick', function() V.view = 'online'; offset = 0; V.Refresh() end)
+    panel.history:SetScript('OnClick', function() V.view = 'history'; offset = 0; V.Refresh() end)
     panel.status = S.Text(panel, 12); panel.status:SetPoint('TOPLEFT', 0, -60); panel.status:SetWidth(W); panel.status:SetWordWrap(true)
 
     local box = S.Box(panel, S.colors.panel, S.colors.line)
@@ -320,7 +373,12 @@ function V.Refresh()
     else
         text = '|c' .. S.hex.mint .. 'Ton pack est à jour|r par rapport aux versions vues dans la guilde (conteneur ' .. latest.v .. ').'
     end
-    panel.status:SetText(text .. '  |c' .. S.hex.muted .. #rows .. ' membre(s) connus · ' .. late .. ' à mettre à jour|r')
+    panel.online:SetActive(V.view == 'online'); panel.history:SetActive(V.view == 'history')
+    local incompatible = 0
+    for _, row in ipairs(V.LegacyRows()) do if row.online then incompatible = incompatible + 1 end end
+    panel.status:SetText(text .. '  |c' .. S.hex.muted .. #rows .. ' membre(s) ' .. (V.view == 'online' and 'connectés' or 'vus en 5 jours')
+        .. ' · ' .. late .. ' à mettre à jour|r'
+        .. (incompatible > 0 and ('  |c' .. S.hex.red .. incompatible .. ' connecté(s) avec un addon incompatible (onglet Incompatibles)|r') or ''))
 
     local maxOffset = math.max(0, #rows - ROWS)
     if offset > maxOffset then offset = maxOffset end
@@ -344,6 +402,75 @@ function V.Refresh()
     end
 end
 
+-- ---------------------------------------------------------------------------------------------------------------------
+-- Onglet « Incompatibles » : membres encore sur l'ancien protocole de synchro
+-- ---------------------------------------------------------------------------------------------------------------------
+local legacyPanel
+local legacyOffset = 0
+local function createLegacy(parent)
+    legacyPanel = CreateFrame('Frame', nil, parent)
+    legacyPanel:SetAllPoints(parent)
+    local title = S.Text(legacyPanel, 16, S.colors.text); title:SetPoint('TOPLEFT', 0, -2); title:SetText('Addons incompatibles')
+    local text = S.Text(legacyPanel, 12, S.colors.muted); text:SetPoint('TOPLEFT', 0, -26); text:SetWidth(W); text:SetWordWrap(true)
+    text:SetText('Ces membres ont un pack d’avant la synchro 3 (conteneur 1.45.0) : ils ne reçoivent plus rien de la guilde et '
+        .. 'leurs données ne sont plus lues. Ils doivent installer le dernier pack (' .. V.PACK_URL .. '). Clic sur une ligne : '
+        .. 'chuchoter au membre. Liste des 5 derniers jours, les connectés en premier.')
+    legacyPanel.status = S.Text(legacyPanel, 12); legacyPanel.status:SetPoint('TOPLEFT', 0, -66); legacyPanel.status:SetWidth(W)
+    local box = S.Box(legacyPanel, S.colors.panel, S.colors.line)
+    box:SetPoint('TOPLEFT', 0, -96); box:SetSize(W, H - 96)
+    box:EnableMouseWheel(true)
+    box:SetScript('OnMouseWheel', function(_, delta) legacyOffset = math.max(0, legacyOffset - delta * 2); V.RefreshLegacy() end)
+    local h1 = S.Heading(box, 'Membre'); h1:SetPoint('TOPLEFT', 14, -10)
+    local h2 = S.Heading(box, 'Version entendue'); h2:SetPoint('TOPLEFT', 300, -10)
+    local h3 = S.Heading(box, 'État'); h3:SetPoint('TOPLEFT', 480, -10)
+    local h4 = S.Heading(box, 'Entendu'); h4:SetPoint('TOPRIGHT', -24, -10)
+    legacyPanel.rows = {}
+    for i = 1, ROWS do
+        local r = S.Row(box, W - 16, 28)
+        r:SetPoint('TOPLEFT', 1, -28 - (i - 1) * 29)
+        r.dot = S.Fill(r, 'ARTWORK', S.colors.red); r.dot:SetSize(7, 7); r.dot:SetPoint('LEFT', 10, 0)
+        r.name = S.Text(r, 12); r.name:SetPoint('LEFT', 24, 0); r.name:SetWidth(270)
+        r.version = S.Text(r, 12); r.version:SetPoint('LEFT', 300, 0); r.version:SetWidth(170)
+        r.state = S.Text(r, 11, S.colors.muted); r.state:SetPoint('LEFT', 480, 0); r.state:SetWidth(300)
+        r.seen = S.Text(r, 11, S.colors.muted, 'RIGHT'); r.seen:SetPoint('RIGHT', -10, 0); r.seen:SetWidth(60)
+        r:SetScript('OnClick', function(self) if self.who then Core.Whisper(self.who) end end)
+        legacyPanel.rows[i] = r
+    end
+    legacyPanel.scroll = S.Scrollbar(box, ROWS * 29, function(value) if value ~= legacyOffset then legacyOffset = value; V.RefreshLegacy() end end)
+    legacyPanel.scroll:SetPoint('TOPLEFT', W - 12, -28)
+    legacyPanel:SetScript('OnShow', function() Core.Run('versions', V.RefreshLegacy) end)
+    legacyPanel.refresh = function() V.RefreshLegacy() end
+    return legacyPanel
+end
+function V.RefreshLegacy()
+    if not legacyPanel or not legacyPanel:IsVisible() then return end
+    local rows = V.LegacyRows()
+    local online = 0
+    for _, row in ipairs(rows) do if row.online then online = online + 1 end end
+    legacyPanel.status:SetText(#rows == 0 and ('|c' .. S.hex.mint .. 'Aucun addon incompatible entendu ces 5 derniers jours.|r')
+        or ('|c' .. S.hex.red .. #rows .. ' membre(s) à mettre à jour|r · ' .. online .. ' connecté(s)'))
+    local maxOffset = math.max(0, #rows - ROWS)
+    if legacyOffset > maxOffset then legacyOffset = maxOffset end
+    legacyPanel.scroll:SetMinMaxValues(0, maxOffset); legacyPanel.scroll:SetValue(legacyOffset); legacyPanel.scroll:SetShown(maxOffset > 0)
+    for i, r in ipairs(legacyPanel.rows) do
+        local row = rows[legacyOffset + i]
+        if row then
+            local e = row.entry
+            r.who = e.name
+            r.dot:SetColorTexture(unpack(row.online and S.colors.red or S.colors.muted))
+            r.name:SetText(Core.Safe(e.name or '?'))
+            r.version:SetText(e.v and ('conteneur ' .. Core.Safe(e.v)) or 'ancienne version')
+            r.state:SetText(row.online and ('|c' .. S.hex.red .. 'connecté|r') or 'déconnecté')
+            r.seen:SetText(ago(e.at))
+            r:Show()
+        else
+            r.who = nil
+            r:Hide()
+        end
+    end
+end
+V.CreateLegacyPanel = createLegacy
+
 function V.Summary()
     if V.update then return '|c' .. S.hex.red .. 'Nouvelle version : ' .. Core.Safe(V.update.label) .. '|r' end
     local rows = V.Rows()
@@ -355,6 +482,10 @@ end
 function V.Init()
     if V.ready then return end
     V.ready = true
+    -- 1.45.0 : ancien historique (30 jours, protocole 2) effacé une fois ; le nouveau garde 5 jours
+    if type(QuintessenceDB) == 'table' and QuintessenceDB.versionsReset ~= 3 then
+        QuintessenceDB.versions, QuintessenceDB.versionsReset = {}, 3
+    end
     V.Prune()
     V.comm = Core:RegisterChannel('qver', function(data, sender) V.OnMessage(data, sender) end)
     if C_Timer and C_Timer.After then
