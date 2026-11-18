@@ -165,8 +165,8 @@ local function tooltip(pin)
     if not (GameTooltip and pin.boss) then return end
     GameTooltip:SetOwner(pin, 'ANCHOR_RIGHT')
     GameTooltip:SetText(Q.Safe(pin.boss.name))
-    GameTooltip:AddLine(pin.boss.quest and 'Clic : voir la quête de cet objectif.' or 'Clic : voir le butin de ce boss.', S.colors.muted[1], S.colors.muted[2], S.colors.muted[3], true)
-    if pin.classic then GameTooltip:AddLine('Position Classic indicative sur Forever.', S.colors.gold[1], S.colors.gold[2], S.colors.gold[3], true) end
+    GameTooltip:AddLine(pin.boss.quest and 'Clic : voir la quête de cet objectif.' or 'Clic : voir le butin de ce boss.', (S.OnDark and S.OnDark('muted') or S.colors.muted)[1], (S.OnDark and S.OnDark('muted') or S.colors.muted)[2], (S.OnDark and S.OnDark('muted') or S.colors.muted)[3], true)
+    if pin.classic then GameTooltip:AddLine('Position Classic indicative sur Forever.', (S.OnDark and S.OnDark('gold') or S.colors.gold)[1], (S.OnDark and S.OnDark('gold') or S.colors.gold)[2], (S.OnDark and S.OnDark('gold') or S.colors.gold)[3], true) end
     GameTooltip:Show()
 end
 local function paintPatches(view, floor, w, h)

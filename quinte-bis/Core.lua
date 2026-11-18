@@ -1,6 +1,6 @@
 local addonName, Q = ...
 -- quinte-bis : listes BiS des membres et besoins par donjon, pour savoir qui emmener où (module de Quintessence).
-Q.name, Q.version, Q.revision = addonName or 'quinte-bis', '0.12.4', 0
+Q.name, Q.version, Q.revision = addonName or 'quinte-bis', '0.12.7', 0
 Q.debug = { errors = {}, slow = {} }
 
 function Q.Call(fn, ...)
@@ -10,6 +10,8 @@ end
 function Q.Error(context, reason)
     Q.debug.errors[#Q.debug.errors + 1] = context .. ': ' .. tostring(reason)
     if #Q.debug.errors > 10 then table.remove(Q.debug.errors, 1) end
+    -- Historique de 10 jours du conteneur (page /quinte erreurs, T223)
+    if Quintessence and Quintessence.LogError then pcall(Quintessence.LogError, Q.name or 'quinte-bis', context, reason) end
 end
 -- Chronomètre : tout traitement de plus de 50 ms est noté (visible dans /qbis debug).
 local clock = debugprofilestop
@@ -31,7 +33,7 @@ function Q.Key() return Quintessence.Key() end
 function Q.Safe(text) return (tostring(text or ''):gsub('|', '||')) end
 function Q.Print(text)
     if DEFAULT_CHAT_FRAME and DEFAULT_CHAT_FRAME.AddMessage then
-        DEFAULT_CHAT_FRAME:AddMessage('|cff70d5bfQuintessence|r ' .. text)
+        DEFAULT_CHAT_FRAME:AddMessage((Quintessence and Quintessence.Style and Quintessence.Style.ChatText or tostring)('|cff70d5bfQuintessence|r ' .. text))
     end
 end
 function Q.Changed(localChange)

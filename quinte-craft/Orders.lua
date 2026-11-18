@@ -42,8 +42,84 @@ function Q.OpenOrdersForMe()
     return n
 end
 
+--- Accueil de Quintessence (conteneur 1.49.0) : tuile Commandes et ligne À faire des commandes reçues.
+function Q.Home()
+    if not Q.ready then return nil end
+    local mine, received, sent = key(me()), {}, {}
+    for _, o in ipairs(Q.Orders()) do
+        if o.status == 'open' or o.status == 'accepted' then
+            if key(o.to) == mine then received[#received + 1] = o elseif key(o.from) == mine then sent[#sent + 1] = o end
+        end
+    end
+    local function what(o) return Q.Safe((o.name or ('recette ' .. tostring(o.spell or o.item or '?'))) .. ' × ' .. (o.count or 1)) end
+    local lines = {}
+    for i = 1, math.min(4, #received) do
+        local o = received[i]
+        lines[#lines + 1] = { Q.Safe(Quintessence.DisplayName(o.from or '?')) .. ' : ' .. what(o), o.status == 'open' and 'gold' or 'text' }
+    end
+    if #received == 0 then lines[#lines + 1] = { 'Aucune commande reçue en attente', 'muted' } end
+    if #sent > 0 then
+        lines[#lines + 1] = { 'Envoyées en cours : ' .. #sent, 'muted' }
+        for i = 1, math.min(#received > 2 and 1 or 2, #sent) do
+            local o = sent[i]
+            lines[#lines + 1] = { '→ ' .. Q.Safe(Quintessence.DisplayName(o.to or '?')) .. ' : ' .. what(o) .. ' (' .. (STATUSES[o.status] or o.status) .. ')', 'muted' }
+        end
+    end
+    local open = function() Q.UI.ShowMode('orders') end
+    local out = { tile = { title = 'Commandes', icon = 'Interface\\Icons\\Trade_BlackSmithing', order = 40,
+        value = #received, label = 'à faire', lines = lines,
+        hint = 'Clic : ouvrir les commandes', action = open } }
+    if #received > 0 then
+        out.todo = { { text = #received .. ' commande' .. (#received > 1 and 's' or '') .. ' d’artisanat à faire', tone = 'gold', order = 20, action = open } }
+    end
+    return out
+end
+
+-- Le compteur reste visible tant que les commandes reçues sont en attente/acceptées.
+function Q.RefreshOrderBadge()
+    if Quintessence.SetMinimapNotice then
+        Quintessence.SetMinimapNotice('craft', Q.OpenOrdersForMe(), function() Q.UI.ShowMode('orders') end, 'Commandes artisan')
+    end
+end
+-- Son d'alerte de Forever, avec API moderne d'abord ; aucun changement des réglages audio du joueur.
+-- Sources : branche forever, SoundDocumentation.lua et SoundKitConstants.lua (RAID_WARNING = 8959).
+function Q.TestOrderSound()
+    local sound = SOUNDKIT and SOUNDKIT.RAID_WARNING or 8959
+    local api = C_Sound or {}
+    local ok, played
+    if api.PlaySoundWithOptions then ok, played = Q.Call(api.PlaySoundWithOptions, {soundKitID=sound})
+    elseif api.PlaySound then ok, played = Q.Call(api.PlaySound, sound)
+    else ok, played = Q.Call(PlaySound, sound, 'Master', true) end
+    if not ok or played == false then return false, 'Son non joué : vérifie le son général du jeu et sa sortie audio.' end
+    return true, 'Son de test demandé. Si tu ne l’entends pas, vérifie le volume du jeu et sa sortie audio.'
+end
+-- Aperçu manuel : ni commande fictive, ni quota, ni réseau.
+function Q.TestOrderNotice(sound)
+    if not (Q.UI and Q.UI.OrderNotice) then return false end
+    local shown = Q.UI.OrderNotice(2, true)
+    if shown and sound then
+        local _, message = Q.TestOrderSound()
+        if Q.UI.OrderSoundStatus then Q.UI.OrderSoundStatus(message) end
+    end
+    return shown
+end
+
 -- Une seule alerte récapitulative ; fenêtre glissante persistante, même après /reload.
 local noticeScheduled = false
+function Q.OrderOptions()
+    local p = Quintessence.Profile
+    return p and p.Options() or { notice = true, sound = false }
+end
+function Q.AcceptingOrders(name)
+    local p = Quintessence.Profile
+    local v = p and p.Get(name)
+    return not v or v.orders ~= false
+end
+local lastOrderSound = -100
+local function orderSound()
+    if not Q.OrderOptions().sound or Q.Now() - lastOrderSound < 10 then return end
+    Q.TestOrderSound(); lastOrderSound = Q.Now()
+end
 function Q.ScheduleOrderNotice(delay)
     if noticeScheduled or not C_Timer or not C_Timer.After then return end
     noticeScheduled = true
@@ -51,20 +127,20 @@ function Q.ScheduleOrderNotice(delay)
         noticeScheduled = false
         Q.Run('alerte commandes', function()
             local count = Q.OpenOrdersForMe()
-            if count == 0 or not Q.UI or not Q.UI.OrderNotice then return end
+            if not Q.OrderOptions().notice or count == 0 or not Q.UI or not Q.UI.OrderNotice then return end
             local now, recent = Q.Now(), {}
             for _, at in ipairs(type(QuinteCraftDB.orderNoticeTimes) == 'table' and QuinteCraftDB.orderNoticeTimes or {}) do
-                if type(at) == 'number' and at > now - 600 and at <= now then recent[#recent + 1] = at end
+                if type(at) == 'number' and at > now - 1800 and at <= now then recent[#recent + 1] = at end
             end
             table.sort(recent)
             QuinteCraftDB.orderNoticeTimes = recent
             -- Une fenêtre déjà visible se met à jour sans nouvelle ouverture.
             if Q.UI.OrderNoticeVisible and Q.UI.OrderNoticeVisible() then Q.UI.OrderNotice(count); return end
-            if #recent >= 5 then
-                Q.ScheduleOrderNotice(math.max(1, recent[#recent - 4] + 600 - now))
+            if #recent >= 1 then
+                Q.ScheduleOrderNotice(math.max(1, recent[#recent] + 1800 - now))
                 return
             end
-            if Q.UI.OrderNotice(count) then recent[#recent + 1] = now end
+            if Q.UI.OrderNotice(count) then QuinteCraftDB.orderNoticeTimes = { now } end
         end)
     end)
 end
@@ -79,6 +155,7 @@ end
 --- Commande une recette à un artisan. Retourne la commande, ou nil et la raison.
 function Q.PlaceOrder(entry, crafter, count, note)
     if type(entry) ~= 'table' or type(crafter) ~= 'string' or crafter == '' then return nil, 'Recette ou artisan manquant.' end
+    if not Q.AcceptingOrders(crafter) then return nil, 'Cet artisan ne souhaite pas recevoir de commandes actuellement.' end
     if key(crafter) == key(me()) then return nil, 'Tu ne peux pas te passer commande.' end
     local list = Q.Orders()
     if #list >= MAX_ORDERS then return nil, 'Trop de commandes en cours.' end
@@ -100,6 +177,7 @@ function Q.SetOrderStatus(id, status)
     if status ~= 'cancelled' and not mineTo then return false end
     o.status, o.updated = status, Q.Tick(o.updated)
     send(o, mineTo and o.from or o.to)
+    Q.RefreshOrderBadge()
     return true
 end
 
@@ -136,8 +214,12 @@ function Q.OnOrderMessage(data, sender)
     o.delivered = true
     orders()[o.id] = o
     local what = Q.Safe(o.count .. ' × ' .. (o.name or ('recette ' .. tostring(o.spell or o.item or '?'))))
-    if key(o.to) == mine and o.status == 'open' and not old then
-        Q.Print('|cffffd100Nouvelle commande|r de ' .. Q.Safe(Quintessence.DisplayName(o.from)) .. ' : ' .. what
+    if key(o.to) == mine and o.status == 'open' and not old and not Q.AcceptingOrders(me()) then
+        o.status, o.updated = 'declined', Q.Tick(o.updated)
+        send(o, o.from)
+    elseif key(o.to) == mine and o.status == 'open' and not old then
+        orderSound()
+        Q.Print('|c' .. Quintessence.Style.hex.gold .. 'Nouvelle commande|r de ' .. Q.Safe(Quintessence.DisplayName(o.from)) .. ' : ' .. what
             .. (o.note and (' — « ' .. Q.Safe(o.note) .. ' »') or '') .. ' (onglet Craft → Commandes).')
         Q.ScheduleOrderNotice()
         -- Accusé de réception : le demandeur sait que la commande est arrivée
@@ -145,6 +227,7 @@ function Q.OnOrderMessage(data, sender)
     elseif key(o.from) == mine and old and old.status ~= o.status then
         Q.Print('Commande ' .. what .. ' : ' .. STATUSES[o.status] .. ' par ' .. Q.Safe(Quintessence.DisplayName(o.to)) .. '.')
     end
+    Q.RefreshOrderBadge()
     if Q.UI and Q.UI.OnDataChanged then Q.UI.OnDataChanged() end
 end
 
@@ -220,6 +303,16 @@ end
 Q.RECIPE_SOURCES = { T = 'maître de métier', V = 'marchand', D = 'butin', Q = 'quête', ['?'] = 'origine inconnue' }
 
 function Q.InitOrders()
+    Quintessence.TestCraftNotice = Q.TestOrderNotice
+    Quintessence.TestCraftSound = Q.TestOrderSound
+    local function badgeTick()
+        if Q.ready then Q.Run('compteur commandes', Q.RefreshOrderBadge) end
+        if C_Timer and C_Timer.After then C_Timer.After(60, badgeTick) end
+    end
+    if C_Timer and C_Timer.After then C_Timer.After(5, badgeTick) end
+    Quintessence.OnProfileChanged = function()
+        if Q.UI then Q.UI.OnDataChanged() end
+    end
     if Quintessence.RegisterChannel then
         Q.comm = Quintessence:RegisterChannel('qcraft', function(data, sender)
             if type(data) == 'table' and data.t == 'order' then Q.Run('commande reçue', Q.OnOrderMessage, data, sender) end

@@ -4,7 +4,7 @@
 ## Notes: Conteneur des addons de la guilde Quintessence : synchro de guilde commune et fenêtre à onglets (/quinte).
 ## Author: Quintessence
 ## X-Quinte-Edition: curseforge
-## Version: 1.45.0
+## Version: 1.52.1
 ## SavedVariables: QuintessenceDB
 ## IconTexture: Interface\Icons\INV_Misc_Head_Dragon_01
 ## AddonCompartmentFunc: Quintessence_Toggle
@@ -19,12 +19,19 @@ Core.lua
 Sync.lua
 Characters.lua
 Style.lua
+Widgets.lua
+ErrorLog.lua
 CharacterSettings.lua
 UI.lua
+SecureSend.lua
+Home.lua
 Minimap.lua
 Versions.lua
 Members.lua
 Help.lua
+Tour.lua
+Profile.lua
+ProfileUI.lua
 Navigation/Boot.lua
 Navigation/Engine.xml
 Navigation/Navigation.lua

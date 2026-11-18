@@ -1,0 +1,10 @@
+<Bindings>
+	<!-- Touche « Envoyer le message prêt » (1.50.1) : clic du bouton sécurisé QuintessenceSecureSend (SecureSend.lua), qui
+	     exécute « /g texte » ou « /1 texte » comme une macro. Sur WoW Forever, le jeu bloque l'envoi en guilde et dans les
+	     canaux publics par un addon : seule une action sécurisée du joueur peut envoyer. Réglage : Échap > Raccourcis >
+	     AddOns > Quintessence. L'attribut header ne figure qu'une fois (sinon LUA_WARNING « loaded more than once »). -->
+	<Binding name="CLICK QuintessenceSecureSend:LeftButton" header="QUINTESSENCE" category="ADDONS"/>
+	<Binding name="QUINTESSENCE_TOGGLE" category="ADDONS">
+		Quintessence_Toggle()
+	</Binding>
+</Bindings>

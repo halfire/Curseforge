@@ -1,0 +1,14 @@
+## Interface: 16001, 110207, 120000, 120001, 120005, 120007, 120100, 120105, 120200
+## Title: |cff4a54e8Quintessence|r : Listes joueurs
+## Group: Quintessence
+## Notes: Signalements Alliance, validation des officiers et alertes de groupe.
+## Author: Quintessence
+## Version: 0.6.0
+## Dependencies: Quintessence
+## SavedVariables: QuinteBanDB
+## IconTexture: Interface\Icons\INV_Misc_Head_Dragon_01
+Core.lua
+Data.lua
+Whitelist.lua
+UI.lua
+WhitelistUI.lua

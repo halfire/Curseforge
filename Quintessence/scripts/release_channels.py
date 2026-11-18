@@ -5,7 +5,7 @@ import shutil
 import zipfile
 from pathlib import Path
 
-MEMBERS = {'Quintessence', 'quinte-craft', 'quinte-caract', 'quinte-bis', 'quinte-group', 'quinte-map'}
+MEMBERS = {'Quintessence', 'quinte-craft', 'quinte-caract', 'quinte-bis', 'quinte-group', 'quinte-map', 'quinte-ban'}
 OFFICER_FILES = {'Quintessence/Announce.lua', 'Quintessence/Officers.lua', 'Quintessence/GuildLog.lua', 'quinte-map/PvPLog.lua'}
 
 
@@ -27,7 +27,7 @@ def checked(folder):
 
 def promote(workspace, validated_sha256=None):
     site = workspace / 'site' / 'site'
-    destinations = [site / 'telechargements', site / 'storage' / 'pack-complet']
+    destinations = [site / 'storage' / 'pack-membres', site / 'storage' / 'pack-complet']
     packs = [checked(d / 'beta') for d in destinations]
     if packs[0][0]['version'] != packs[1][0]['version']:
         raise ValueError('Les deux bêtas doivent avoir la même version')
@@ -36,7 +36,8 @@ def promote(workspace, validated_sha256=None):
         raise ValueError('Le pack complet ne correspond pas à la bêta membres validée')
     if validated_sha256 is not None and validated_sha256 != info['sha256']:
         raise ValueError('La bêta disponible diffère de celle validée')
-    if {a[0] for a in info['addons']} != MEMBERS:
+    # Les bêtas antérieures à quinte-ban restent promouvables à l'identique.
+    if {a[0] for a in info['addons']} not in (MEMBERS, MEMBERS - {'quinte-ban'}):
         raise ValueError('Composition membres inattendue')
     # Préparer CurseForge avant de remplacer les manifestes stables.
     cf = workspace / 'Curseforge'

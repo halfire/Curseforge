@@ -76,17 +76,17 @@ function Q.TrainingLines(plan, max, mine)
     local function add(text) if #lines < max then lines[#lines + 1] = text end end
     if mine then
         if #plan.now > 0 then
-            add(string.format('|cffffd100À apprendre maintenant (%d)|r · %s', #plan.now, Q.Money(plan.nowCost)))
+            add(string.format('|c' .. Quintessence.Style.hex.gold .. 'À apprendre maintenant (%d)|r · %s', #plan.now, Q.Money(plan.nowCost)))
             local names = {}
             for _, s in ipairs(plan.now) do names[#names + 1] = s.name end
             add('  ' .. table.concat(names, ', '))
-        else add('|cff5cd1a8Rien à apprendre chez ton maître pour l\'instant.|r') end
+        else add('|c' .. Quintessence.Style.hex.mint .. 'Rien à apprendre chez ton maître pour l\'instant.|r') end
     end
-    add(string.format('|cffffd100Jusqu\'au niveau 60|r · %s au total', Q.Money(plan.totalCost)))
+    add(string.format('|c' .. Quintessence.Style.hex.gold .. 'Jusqu\'au niveau 60|r · %s au total', Q.Money(plan.totalCost)))
     for _, l in ipairs(plan.levels) do
         local names = {}
         for _, s in ipairs(l.spells) do names[#names + 1] = s.name .. (s.quest and ' (quête)' or '') end
-        add(string.format('|cff9aa4b8%d|r  %s  |cff9aa4b8· %s|r', l.level, table.concat(names, ', '), Q.Money(l.cost)))
+        add(string.format('|c' .. Quintessence.Style.hex.muted .. '%d|r  %s  |c' .. Quintessence.Style.hex.muted .. '· %s|r', l.level, table.concat(names, ', '), Q.Money(l.cost)))
     end
     return lines
 end

@@ -101,6 +101,71 @@ function UI.MenuRows(results, query)
     return out
 end
 
+-- Profil de guilde déclaré dans l'accueil de Quintessence (conteneur 1.48.4+), affiché sous la fiche.
+-- Seuls les profils enregistrés et partagés existent ici : jamais les brouillons ni les alertes.
+local function label(list, id)
+    for _, r in ipairs(list or {}) do if r[1] == id then return r[2] end end
+end
+-- Rang de guilde lu en direct dans la liste de guilde du jeu (nom du rang), relu au plus toutes les 30 s ;
+-- à défaut, le rang noté dans la fiche au dernier relevé du joueur (c.guildRank).
+local rankCache, rankAt = {}, -100
+function UI.GuildRank(key, c)
+    local now = GetTime and GetTime() or 0
+    if now - rankAt > 30 then
+        rankAt, rankCache = now, {}
+        local ok, n = pcall(GetNumGuildMembers or function() end)
+        n = ok and Q.Number(n, 0, 2000, true)
+        if n and type(GetGuildRosterInfo) == 'function' then
+            for i = 1, n do
+                local good, name, rankName = pcall(GetGuildRosterInfo, i)
+                name, rankName = good and Q.String(name, 100), good and Q.String(rankName, 64)
+                if name and rankName then rankCache[Quintessence.CanonicalKey(name)] = rankName end
+            end
+        end
+    end
+    return rankCache[Quintessence.CanonicalKey(key or '')] or (c and Q.String(c.guildRank, 64)) or nil
+end
+
+--- Le lecteur voit-il les parties réservées du profil (raids, alertes de commandes) ? Officiers seulement (rangs 0 et 1).
+function UI.ProfileOfficer()
+    return Q.StatisticsOfficer and Q.StatisticsOfficer() and true or false
+end
+
+function UI.ProfileText(key, main)
+    local P = Quintessence and Quintessence.Profile
+    if not P or not P.Get then return nil end
+    local ok, v = pcall(P.Get, key)
+    local inherited = false
+    if not (ok and v) and main and not Quintessence.SameName(key, main) then
+        ok, v = pcall(P.Get, main); inherited = ok and v and true or false
+    end
+    if not (ok and v) then
+        return '|c' .. Quintessence.Style.hex.muted .. 'Profil non renseigné. Il se remplit avec l\'accueil de Quintessence (Réglages > Profil).|r'
+    end
+    local likes, roles, days = {}, {}, {}
+    for _, r in ipairs(P.ACTIVITIES or {}) do
+        if v.activities and v.activities[r[1]] and r[1] ~= v.favorite then likes[#likes + 1] = r[2] end
+    end
+    for _, r in ipairs(P.ROLES or {}) do if v.roles and v.roles[r[1]] then roles[#roles + 1] = r[2] end end
+    for i, n in ipairs(P.DAYS or {}) do if v.days and v.days[i] then days[#days + 1] = n end end
+    local spec = function(id) local row = P.Spec and P.Spec(v.class, id); return row and row[2] end
+    local gold, white = '|c' .. Quintessence.Style.hex.gold .. '', '|c' .. Quintessence.Style.hex.text .. ''
+    local lines = {}
+    local function add(name, value) lines[#lines + 1] = gold .. name .. '|r  ' .. white .. value .. '|r' end
+    add('Favori', label(P.ACTIVITIES, v.favorite) or '?')
+    if #likes > 0 then add('Aime aussi', table.concat(likes, ', ')) end
+    add('Spé souhaitée', (spec(v.primary) or 'À choisir') .. (spec(v.secondary) and (' / ' .. spec(v.secondary)) or ''))
+    if #roles > 0 then add('Rôles', table.concat(roles, ', ')) end
+    -- Raids (soirs) et alertes de commandes : réservés aux officiers (demande du GM, 1.50.0)
+    if UI.ProfileOfficer() then
+        add('Raids', (label(P.RAIDS, v.raid) or '?') .. (v.raid ~= 'none' and #days > 0 and (' · ' .. table.concat(days, ', ')) or ''))
+        add('Commandes', v.orders and (v.priority and 'oui, en priorité' or 'oui') or 'non souhaitées')
+        lines[#lines + 1] = '|c' .. Quintessence.Style.hex.muted .. 'Raids et commandes : visibles des officiers seulement.|r'
+    end
+    if inherited then lines[#lines + 1] = '|c' .. Quintessence.Style.hex.muted .. 'Profil du personnage principal.|r' end
+    return table.concat(lines, '\n')
+end
+
 local function renderDetails()
     local d = frame.details
     local entry = state.selected and QuinteCaractDB.characters[state.selected]
@@ -111,17 +176,20 @@ local function renderDetails()
     local canStats = Q.StatisticsOfficer and Q.StatisticsOfficer()
     d.statButton:SetShown(canStats and true or false)
     if not canStats then state.statistics = false end
-    d.name:SetText('|c' .. classHex(c.class) .. Q.Safe(c.name) .. '|r' .. (c.source == 'sync' and ' |cff9aa4b8(reçu par la synchro)|r' or ''))
-    d.meta:SetText('Niveau ' .. number(c.level) .. ' · ' .. Q.Safe(c.race or '?') .. ' ' .. Q.Safe(className(c.class))
-        .. (c.spec and (' · ' .. Q.Safe(c.spec)) or '') .. (c.guildRank and (' · ' .. Q.Safe(c.guildRank)) or '')
+    d.name:SetText('|c' .. classHex(c.class) .. Q.Safe(c.name) .. '|r' .. (c.source == 'sync' and ' |c' .. Quintessence.Style.hex.muted .. '(reçu par la synchro)|r' or ''))
+    -- Rang de guilde en tête, dans la couleur de l'accent (liste de guilde du jeu, sinon dernier relevé)
+    local rank = UI.GuildRank(state.selected, c)
+    d.meta:SetText((rank and ('|c' .. Quintessence.Style.hex.gold .. Q.Safe(rank) .. '|r · ') or '')
+        .. 'Niveau ' .. number(c.level) .. ' · ' .. Q.Safe(c.race or '?') .. ' ' .. Q.Safe(className(c.class))
+        .. (c.spec and (' · ' .. Q.Safe(c.spec)) or '')
         .. (c.itemLevel and (' · iLvl ' .. number(c.itemLevel)) or '')
         .. (Quintessence.SameName(state.selected, main) and ' · Principal' or (' · Reroll de ' .. Q.Safe(Quintessence.DisplayName(main)))))
     local s, lines = c.stats or {}, {}
     for _, pair in ipairs({ { 'health', 'Vie' }, { 'power', 'Mana' }, { 'strength', 'Force' }, { 'agility', 'Agilité' }, { 'stamina', 'Endurance' },
         { 'intellect', 'Intelligence' }, { 'spirit', 'Esprit' }, { 'armor', 'Armure' }, { 'attackPower', 'PA' }, { 'spellPower', 'Puiss. sorts' } }) do
-        if s[pair[1]] then lines[#lines + 1] = pair[2] .. ' : |cffffffff' .. number(s[pair[1]]) .. '|r' end
+        if s[pair[1]] then lines[#lines + 1] = pair[2] .. ' : |c' .. Quintessence.Style.hex.text .. '' .. number(s[pair[1]]) .. '|r' end
     end
-    d.stats:SetText(#lines > 0 and table.concat(lines, '\n') or '|cff9aa4b8Pas de caractéristiques relevées.|r')
+    d.stats:SetText(#lines > 0 and table.concat(lines, '\n') or '|c' .. Quintessence.Style.hex.muted .. 'Pas de caractéristiques relevées.|r')
     local r, resist = s.resistances or {}, {}
     for _, pair in ipairs({ { 'fire', 'Feu' }, { 'frost', 'Givre' }, { 'nature', 'Nature' }, { 'shadow', 'Ombre' }, { 'arcane', 'Arcanes' } }) do
         if r[pair[1]] then resist[#resist + 1] = pair[2] .. ' ' .. number(r[pair[1]]) end
@@ -170,13 +238,28 @@ local function renderDetails()
         local coords = CLASS_ICON_TCOORDS and CLASS_ICON_TCOORDS[c.class or '']
         if coords then f.emblem:SetTexture('Interface\\TargetingFrame\\UI-Classes-Circles'); f.emblem:SetTexCoord(unpack(coords))
         else f.emblem:SetTexture('Interface\\Icons\\INV_Misc_QuestionMark'); f.emblem:SetTexCoord(0.08, 0.92, 0.08, 0.92) end
-        f.ilvl:SetText(c.itemLevel and ('Niveau d\'objet moyen |cffffffff' .. number(c.itemLevel) .. '|r') or '')
+        -- Modèle 3D : blason réduit en haut à gauche, niveau d'objet en bas ; sans modèle, ancien affichage centré
+        local shown = f.model and Q.Model.Show(f.model, state.selected, c)
+        if f.model then
+            f.model:SetShown(shown and true or false)
+            f.modelHint:SetShown(shown and true or false)
+            f.modelNote:SetShown(shown and not f.model.exact or false)
+            f.emblem:ClearAllPoints(); f.ilvl:ClearAllPoints()
+            if shown then
+                f.emblem:SetSize(26, 26); f.emblem:SetPoint('TOPLEFT', 6, -6)
+                f.ilvl:SetPoint('BOTTOM', 0, 30)
+            else
+                f.emblem:SetSize(64, 64); f.emblem:SetPoint('TOP', 0, -44)
+                f.ilvl:SetPoint('TOP', 0, -124)
+            end
+        end
+        f.ilvl:SetText(c.itemLevel and ('Niveau d\'objet moyen |c' .. Quintessence.Style.hex.text .. '' .. number(c.itemLevel) .. '|r') or '')
         local function block(pairs_)
             local out = {}
             for _, pair in ipairs(pairs_) do
-                if s[pair[1]] then out[#out + 1] = pair[2] .. '  |cffffffff' .. number(s[pair[1]]) .. '|r' end
+                if s[pair[1]] then out[#out + 1] = pair[2] .. '  |c' .. Quintessence.Style.hex.text .. '' .. number(s[pair[1]]) .. '|r' end
             end
-            return #out > 0 and table.concat(out, '\n') or '|cff9aa4b8—|r'
+            return #out > 0 and table.concat(out, '\n') or '|c' .. Quintessence.Style.hex.muted .. '—|r'
         end
         f.attributes:SetText(block({ { 'health', 'Vie' }, { 'power', 'Mana' }, { 'strength', 'Force' }, { 'agility', 'Agilité' },
             { 'stamina', 'Endurance' }, { 'intellect', 'Intelligence' }, { 'spirit', 'Esprit' } }))
@@ -189,18 +272,21 @@ local function renderDetails()
             }
             for _, d in ipairs(defs) do
                 if c.attunements[d[1]] then
-                    table.insert(attuneList, '|cff3fb950' .. d[2] .. '|r')
+                    table.insert(attuneList, '|c' .. Quintessence.Style.hex.mint .. '' .. d[2] .. '|r')
                 else
                     table.insert(attuneList, '|cff666666' .. d[2] .. '|r')
                 end
             end
         end
 
-        f.extra:SetText((#attuneList > 0 and ('|cffd9b35cAccès & Clés|r  ' .. table.concat(attuneList, ' ') .. '\n') or '')
-            .. (#resist > 0 and ('|cffd9b35cRésistances|r  ' .. table.concat(resist, ' · ') .. '\n') or '')
-            .. ((pvp.rankName or pvp.rank) and ('|cffd9b35cPvP|r  ' .. Q.Safe(pvp.rankName or '') .. (pvp.rank and (' (rang ' .. pvp.rank .. ')') or '')
+        f.extra:SetText((#attuneList > 0 and ('|c' .. Quintessence.Style.hex.gold .. 'Accès & Clés|r  ' .. table.concat(attuneList, ' ') .. '\n') or '')
+            .. (#resist > 0 and ('|c' .. Quintessence.Style.hex.gold .. 'Résistances|r  ' .. table.concat(resist, ' · ') .. '\n') or '')
+            .. ((pvp.rankName or pvp.rank) and ('|c' .. Quintessence.Style.hex.gold .. 'PvP|r  ' .. Q.Safe(pvp.rankName or '') .. (pvp.rank and (' (rang ' .. pvp.rank .. ')') or '')
                 .. (pvp.honorableKills and (' · ' .. pvp.honorableKills .. ' VH') or '') .. '\n') or '')
-            .. (#profs > 0 and ('|cffd9b35cMétiers|r  ' .. table.concat(profs, ' · ')) or ''))
+            .. (#profs > 0 and ('|c' .. Quintessence.Style.hex.gold .. 'Métiers|r  ' .. table.concat(profs, ' · ')) or ''))
+        local profile = UI.ProfileText(state.selected, main)
+        f.profile:SetShown(profile ~= nil)
+        f.profile.text:SetText(profile or '')
         f.noGear:SetShown(not next(gear))
         return
     end
@@ -212,8 +298,8 @@ local function renderDetails()
             local line = d.gear[i]
             if line then
                 line.item, line.enchant = row.item, row.enchant
-                line.label:SetText('|cff9aa4b8' .. (SLOT_NAMES[slot] or slot) .. '|r  |c' .. (QUALITY_HEX[row.quality or 1] or 'ffffffff')
-                    .. Q.Safe(row.name or ('Objet #' .. row.item)) .. '|r' .. (row.ilvl and (' |cff9aa4b8' .. number(row.ilvl) .. '|r') or ''))
+                line.label:SetText('|c' .. Quintessence.Style.hex.muted .. '' .. (SLOT_NAMES[slot] or slot) .. '|r  |c' .. (((Quintessence.Style.QualityHex and Quintessence.Style.QualityHex(row.quality or 1)) or QUALITY_HEX[row.quality or 1]) or 'ffffffff')
+                    .. Q.Safe(row.name or ('Objet #' .. row.item)) .. '|r' .. (row.ilvl and (' |c' .. Quintessence.Style.hex.muted .. '' .. number(row.ilvl) .. '|r') or ''))
                 line:Show()
             end
         end
@@ -253,6 +339,14 @@ function UI.Refresh()
     renderList(); renderDetails()
 end
 
+--- Ouvre les fiches sur ce personnage (recherche de l'en-tête du conteneur).
+function UI.Select(key)
+    state.query, state.offset, state.selected = '', 0, key
+    if frame and frame.search then frame.search:SetText('') end
+    Quintessence.UI.Open('caract')
+    if frame and frame:IsVisible() then state.selected = key; renderList(); renderDetails() end
+end
+
 function UI.OnDataChanged()
     if not frame or not frame:IsVisible() or refreshPending then return end
     refreshPending = true
@@ -262,7 +356,7 @@ end
 local function create(parent)
     frame = CreateFrame('Frame', nil, parent)
     frame:SetAllPoints(parent)
-    local search = S.Input(frame, LIST_W, 'Rechercher un personnage…')
+    local search = S.Input(frame, LIST_W, 'Rechercher un personnage…'); frame.search = search
     search:SetPoint('TOPLEFT', 0, 0); search:SetMaxLetters(40)
     search:SetScript('OnTextChanged', function(box)
         state.query = box:GetText() or ''; box.placeholder:SetShown(state.query == ''); state.offset = 0
@@ -334,7 +428,7 @@ local function create(parent)
         local b = S.Box(f, S.colors.bg, S.colors.line, 'Button'); b:SetSize(SLOT_SIZE, SLOT_SIZE); b:SetPoint('TOPLEFT', x, y)
         b.icon = b:CreateTexture(nil, 'ARTWORK'); b.icon:SetPoint('TOPLEFT', 2, -2); b.icon:SetPoint('BOTTOMRIGHT', -2, 2); b.icon:SetTexCoord(0.07, 0.93, 0.07, 0.93)
         b.ilvl = S.Text(b, 9, S.colors.text, 'RIGHT', 'OUTLINE'); b.ilvl:SetPoint('BOTTOMRIGHT', -2, 2)
-        local hl = S.Fill(b, 'HIGHLIGHT', { 1, 1, 1, 0.12 }); hl:SetPoint('TOPLEFT', 2, -2); hl:SetPoint('BOTTOMRIGHT', -2, 2)
+        local hl = S.Fill(b, 'HIGHLIGHT', S.colors.hover or { 1, 1, 1, 0.12 }); hl:SetPoint('TOPLEFT', 2, -2); hl:SetPoint('BOTTOMRIGHT', -2, 2)
         b.slot = slot
         b:SetScript('OnClick', function(self) if self.item then Quintessence.LinkItem(self.item) end end)
         b:SetScript('OnEnter', function(self)
@@ -360,12 +454,30 @@ local function create(parent)
     local weaponStartX = DOLL_LEFT + (DOLL_W - (3 * SLOT_SIZE + 2 * SLOT_GAP)) / 2
     for i, slot in ipairs(SHEET_BOTTOM) do slotButton(slot, weaponStartX + (i - 1) * (SLOT_SIZE + SLOT_GAP), bottomY) end
 
+    -- Sous le mannequin et les armes : profil de guilde déclaré dans l'accueil (Quintessence.Profile)
+    local profileTop = bottomY - SLOT_SIZE - 12
+    f.profile = S.Box(f, S.colors.panel, S.colors.line)
+    f.profile:SetPoint('TOPLEFT', 0, profileTop); f.profile:SetSize(RIGHT_COL_X + SLOT_SIZE, DH - 44 + profileTop)
+    local hp = S.Heading(f.profile, 'Profil de guilde'); hp:SetPoint('TOPLEFT', 12, -10)
+    f.profile.text = S.Text(f.profile, 11, S.colors.text); f.profile.text:SetPoint('TOPLEFT', 12, -30)
+    f.profile.text:SetWidth(RIGHT_COL_X + SLOT_SIZE - 24); f.profile.text:SetJustifyV('TOP'); f.profile.text:SetWordWrap(true)
+    f.profile.text:SetSpacing(4)
+
     -- Mannequin central aux proportions Blizzard (silhouette / blason de classe / ilvl)
     local center = S.Box(f, S.colors.bg, S.colors.line); center:SetPoint('TOPLEFT', DOLL_LEFT, 0); center:SetSize(DOLL_W, DOLL_H)
-    center.pedestal = S.Fill(center, 'BACKGROUND', { 0, 0, 0, 0.35 })
+    center.pedestal = S.Fill(center, 'BACKGROUND', S.colors.shade or { 0, 0, 0, 0.35 })
     center.pedestal:SetPoint('BOTTOMLEFT', 1, 1); center.pedestal:SetPoint('BOTTOMRIGHT', -1, 1); center.pedestal:SetHeight(42)
 
     f.emblem = center:CreateTexture(nil, 'ARTWORK'); f.emblem:SetSize(64, 64); f.emblem:SetPoint('TOP', 0, -44)
+    -- Aperçu 3D du personnage (Model.lua, 0.20.0) : modèle habillé au centre, comme l'Armurerie ; blason en repli
+    f.model = Q.Model and Q.Model.Create(center, DOLL_W - 2, DOLL_H - 2)
+    if f.model then
+        f.model:SetPoint('TOPLEFT', 1, -1)
+        f.modelHint = S.Text(center, 9, S.colors.muted, 'CENTER'); f.modelHint:SetPoint('BOTTOM', 0, 4); f.modelHint:SetWidth(DOLL_W - 8)
+        f.modelHint:SetText('Glisser : tourner · Molette : zoom')
+        f.modelNote = S.Text(center, 9, S.colors.muted, 'CENTER'); f.modelNote:SetPoint('BOTTOM', 0, 16); f.modelNote:SetWidth(DOLL_W - 8)
+        f.modelNote:SetText('Visage et coiffure par défaut')
+    end
     f.ilvl = S.Text(center, 12, S.colors.gold, 'CENTER'); f.ilvl:SetPoint('TOP', 0, -124); f.ilvl:SetWidth(DOLL_W - 16)
     f.noGear = S.Text(center, 11, S.colors.muted, 'CENTER'); f.noGear:SetPoint('TOP', 0, -154); f.noGear:SetWidth(DOLL_W - 20); f.noGear:SetWordWrap(true)
     f.noGear:SetText('Aucun équipement relevé.')
@@ -392,7 +504,7 @@ local function create(parent)
         line:SetScript('OnClick', function(self) if self.item then Quintessence.LinkItem(self.item) end end)
         line:SetSize(430, 18); line:SetPoint('TOPLEFT', 0, -66 - (i - 1) * 18)
         line.label = text(line, 'GameFontHighlightSmall'); line.label:SetPoint('LEFT', 0, 0); line.label:SetPoint('RIGHT', 0, 0)
-        local hl = S.Fill(line, 'HIGHLIGHT', { 1, 1, 1, 0.05 }); hl:SetAllPoints()
+        local hl = S.Fill(line, 'HIGHLIGHT', S.colors.hover or { 1, 1, 1, 0.05 }); hl:SetAllPoints()
         line:SetScript('OnEnter', tooltip)
         line:SetScript('OnLeave', untooltip)
         d.gear[i] = line
@@ -409,11 +521,99 @@ local function create(parent)
     frame:Hide()
 end
 
+-- ---------------------------------------------------------------------------
+-- Accueil de Quintessence (conteneur 1.49.0) : tuile Raids de la semaine
+-- Verrous du jeu (GetSavedInstanceInfo, relevés par Q.CollectLockouts) de chaque personnage du compte (source 'self'),
+-- et accès manquants du personnage connecté (Attunements.lua). La date de fin vient du jeu, rien n'est deviné.
+-- ---------------------------------------------------------------------------
+Q.RAID_ORDER = { 'MC', 'ONY', 'BWL', 'ZG', 'AQ20', 'AQ40', 'NAXX', 'HYJAL', 'BARROW' }
+Q.RAID_SHORT = { MC = 'Cœur du Magma', ONY = 'Onyxia', BWL = 'Aile noire', ZG = 'Zul’Gurub', AQ20 = 'Ruines d’Ahn’Qiraj',
+    AQ40 = 'Temple d’Ahn’Qiraj', NAXX = 'Naxxramas', HYJAL = 'Hyjal', BARROW = 'Barrow Deeps' }
+-- Abréviations des joueurs, pour les listes de la tuile (largeur d'un quart de fenêtre)
+Q.RAID_ABBR = { MC = 'MC', ONY = 'Ony', BWL = 'BWL', ZG = 'ZG', AQ20 = 'AQ20', AQ40 = 'AQ40', NAXX = 'Naxx', HYJAL = 'Hyjal', BARROW = 'Barrow' }
+local ATTUNE = { MC = 'mc', ONY = 'ony', BWL = 'bwl', NAXX = 'naxx', HYJAL = 'hyjal', BARROW = 'barrow' }
+local DAYS = { 'dim.', 'lun.', 'mar.', 'mer.', 'jeu.', 'ven.', 'sam.' }
+local function untilText(at) return DAYS[tonumber(date('%w', at)) + 1] .. ' ' .. tonumber(date('%H', at)) .. ' h' end
+--- Verrous encore valables : liste { key, at } triée par fin.
+local function liveLocks(locks, now)
+    local out = {}
+    for key, at in pairs(type(locks) == 'table' and locks or {}) do
+        at = tonumber(at)
+        if Q.RAID_SHORT[key] and at and at > now then out[#out + 1] = { key = key, at = at } end
+    end
+    table.sort(out, function(a, b) if a.at ~= b.at then return a.at < b.at end return a.key < b.key end)
+    return out
+end
+
+function Q.Home(now)
+    if not Q.ready then return nil end
+    now = now or Q.Now()
+    local me, alts = Q.Key(), {}
+    local mine = QuinteCaractDB.characters[me]
+    local level = tonumber(mine and mine.level) or tonumber(UnitLevel and UnitLevel('player')) or 0
+    local myLocks = liveLocks(Q.CollectLockouts and Q.CollectLockouts(now) or (mine and mine.lockouts), now)
+    for key, c in pairs(QuinteCaractDB.characters) do
+        if key ~= me and type(c) == 'table' and c.source == 'self' then
+            local locks = liveLocks(c.lockouts, now)
+            if (tonumber(c.level) or 0) >= 60 or #locks > 0 then alts[#alts + 1] = { c = c, locks = locks } end
+        end
+    end
+    table.sort(alts, function(a, b) if #a.locks ~= #b.locks then return #a.locks > #b.locks end return tostring(a.c.name) < tostring(b.c.name) end)
+    local anyAlt = false
+    for _, a in ipairs(alts) do if #a.locks > 0 then anyAlt = true end end
+    if level < 55 and #myLocks == 0 and not anyAlt then return nil end
+
+    local name = Q.Safe(Quintessence.DisplayName(Quintessence.PlayerName() or '?'))
+    local lines, locked = {}, {}
+    for i, l in ipairs(myLocks) do
+        locked[l.key] = true
+        if i <= 4 then lines[#lines + 1] = { name .. ' : ' .. Q.RAID_SHORT[l.key] .. ' → ' .. untilText(l.at), 'gold' } end
+    end
+    if #myLocks > 4 then lines[#lines + 1] = { '… et ' .. (#myLocks - 4) .. ' autre(s)', 'gold' } end
+    if level >= 60 then
+        local att = Q.CollectAttunements and Q.CollectAttunements() or (mine and mine.attunements) or {}
+        local free, missing = {}, {}
+        for _, key in ipairs(Q.RAID_ORDER) do
+            local need = ATTUNE[key]
+            if need and att[need] == false then missing[#missing + 1] = Q.RAID_ABBR[key]
+            elseif not locked[key] then free[#free + 1] = Q.RAID_ABBR[key] end
+        end
+        if #free > 0 then lines[#lines + 1] = { 'Libres : ' .. table.concat(free, ', '), 'mint' } end
+        if #missing > 0 then lines[#lines + 1] = { 'Accès manquant : ' .. table.concat(missing, ', '), 'red' } end
+    elseif #myLocks == 0 then lines[#lines + 1] = { name .. ' : aucun raid verrouillé', 'mint' } end
+    for i = 1, math.min(3, #alts) do
+        local a = alts[i]
+        local first = a.locks[1]
+        lines[#lines + 1] = { Q.Safe(Quintessence.DisplayName(a.c.name or '?')) .. ' : '
+            .. (first and (Q.RAID_SHORT[first.key] .. ' → ' .. untilText(first.at) .. (#a.locks > 1 and (' +' .. (#a.locks - 1)) or '')) or 'tout est libre'),
+            first and 'muted' or 'mint' }
+    end
+    local n = #myLocks
+    return { tile = { title = 'Raids de la semaine', icon = 'Interface\\Icons\\INV_Misc_Key_14', order = 20,
+        value = n > 0 and n or 'Libre', label = n > 0 and (n > 1 and 'raids verrouillés' or 'raid verrouillé') or 'aucun verrou cette semaine',
+        lines = lines, hint = 'Clic : ouvrir les fiches et les accès', action = function() Quintessence.UI.Open('caract') end } }
+end
+
 -- Onglet « Fiches » de la fenêtre Quintessence
 Quintessence:RegisterModule({
     id = 'caract', title = 'Fiches', order = 25, icon = 'Interface\\Icons\\INV_Chest_Chain', version = Q.version, width = W, height = H,
     create = function(parent) create(parent); return frame end,
     refresh = function() UI.Refresh() end,
+    home = function() return Q.Home() end,
+    section = 'moi',
+    -- Recherche commune de l'en-tête (conteneur 1.50.0) : personnages dont le nom contient le texte
+    search = function(query)
+        if not (Q.ready and QuinteCaractDB) then return nil end
+        local out = {}
+        for i, entry in ipairs(UI.Characters(query)) do
+            if i > 5 then break end
+            local c = entry.data
+            out[#out + 1] = { text = '|c' .. classHex(c.class) .. Q.Safe(c.name or Quintessence.DisplayName(entry.key)) .. '|r',
+                hint = 'Fiche · niveau ' .. tostring(c.level or '?') .. ' ' .. Q.Safe(className(c.class)),
+                action = function() UI.Select(entry.key) end }
+        end
+        return out
+    end,
     summary = function()
         if not Q.ready then return nil end
         local own, remote = 0, 0

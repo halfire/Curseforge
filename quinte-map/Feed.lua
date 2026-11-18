@@ -1,0 +1,3 @@
+-- Flux PvP envoyé par le site de la guilde : vendettas, primes et classement interne (quinte-map 0.14.0).
+-- Ce fichier est remplacé par Quinte-sync chez un officier, puis lu au prochain /reload et partagé en jeu.
+-- Laisser tel quel s'il n'y a pas encore de flux.

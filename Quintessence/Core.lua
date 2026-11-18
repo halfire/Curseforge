@@ -13,14 +13,54 @@ local addonName, Core = ...
   Règle Retail 12+ : aucune écriture dans une table, une fonction ou un cadre de Blizzard.
 ]]
 Quintessence = Core -- seule globale publique de la suite (nom propre, jamais une globale de Blizzard)
-Core.name, Core.version = addonName or 'Quintessence', '1.45.0'
+Core.name, Core.version = addonName or 'Quintessence', '1.52.1'
 Core.modules, Core.syncModules, Core.channels, Core.debug = {}, {}, {}, { errors = {}, slow = {} }
 
 function Core.Call(fn, ...)
     if type(fn) ~= 'function' then return false end
     return pcall(fn, ...)
 end
-function Core.Error(context, reason)
+-- Historique des erreurs sur 10 jours (T223) : QuintessenceDB.errorLog = { { at, last, n, src, v, text, stack } },
+-- une même erreur regroupée (n fois, dernière à last), 200 au plus, textes bornés. Local, jamais synchronisé ni lu
+-- par le site. Lu par la page secrète /quinte erreurs (ErrorLog.lua) ; lastErrors (20 dernières) reste pour l'ancien usage.
+Core.ERROR_DAYS, Core.ERROR_MAX = 10, 200
+local function clip(text, max)
+    text = tostring(text or '')
+    return #text > max and (text:sub(1, max) .. '…') or text
+end
+function Core.ErrorLog()
+    if type(QuintessenceDB) ~= 'table' then return {} end
+    local log = type(QuintessenceDB.errorLog) == 'table' and QuintessenceDB.errorLog or {}
+    local limit = Core.Now() - Core.ERROR_DAYS * 86400
+    local kept = {}
+    for _, e in ipairs(log) do
+        if type(e) == 'table' and type(e.text) == 'string' and (tonumber(e.last) or tonumber(e.at) or 0) >= limit then kept[#kept + 1] = e end
+    end
+    while #kept > Core.ERROR_MAX do table.remove(kept, 1) end
+    QuintessenceDB.errorLog = kept
+    return kept
+end
+--- Note une erreur dans l'historique ; src = addon (« Quintessence », « quinte-map »…), stack facultative.
+function Core.LogError(src, context, reason, stack)
+    if type(QuintessenceDB) ~= 'table' then return end
+    local log = Core.ErrorLog()
+    local text = clip(tostring(context or '?') .. ': ' .. tostring(reason), 1000)
+    src = clip(src or Core.name, 40)
+    local now = Core.Now()
+    for i = #log, 1, -1 do
+        local e = log[i]
+        if e.text == text and e.src == src then
+            e.n, e.last = (tonumber(e.n) or 1) + 1, now
+            if stack and not e.stack then e.stack = clip(stack, 1500) end
+            table.remove(log, i); log[#log + 1] = e -- remonte en dernière position
+            return
+        end
+    end
+    log[#log + 1] = { at = now, last = now, n = 1, src = src, v = Core.version, text = text, stack = stack and clip(stack, 1500) or nil }
+    while #log > Core.ERROR_MAX do table.remove(log, 1) end
+    if Core.ErrorPage and Core.ErrorPage.Refresh then pcall(Core.ErrorPage.Refresh) end
+end
+function Core.Error(context, reason, stack)
     local entry = context .. ': ' .. tostring(reason)
     local list = Core.debug.errors
     list[#list + 1] = entry
@@ -31,12 +71,22 @@ function Core.Error(context, reason)
         saved[#saved + 1] = date and (date('%H:%M:%S') .. ' ' .. entry) or entry
         while #saved > 20 do table.remove(saved, 1) end
     end
+    Core.LogError(Core.name, context, reason, stack)
 end
 local clock = debugprofilestop
 function Core.Run(context, fn, ...)
     local started = clock and clock()
-    local ok, result = Core.Call(fn, ...)
-    if not ok then Core.Error(context, result) end
+    local ok, result
+    if type(fn) ~= 'function' then ok, result = false, 'pas une fonction'
+    else
+        -- xpcall : la pile d'appels est gardée avec l'erreur (page /quinte erreurs)
+        local n, args, stack = select('#', ...), { ... }, nil
+        ok, result = xpcall(function() return fn(unpack(args, 1, n)) end, function(e)
+            if type(debugstack) == 'function' then local okS, s = pcall(debugstack, 2, 12, 0); if okS then stack = s end end
+            return e
+        end)
+        if not ok then Core.Error(context, result, stack) end
+    end
     if started then
         local elapsed = clock() - started
         if elapsed > 50 then Core.debug.slow[context] = math.max(Core.debug.slow[context] or 0, math.floor(elapsed)) end
@@ -44,6 +94,22 @@ function Core.Run(context, fn, ...)
     return ok, result
 end
 function Core.Now() return (time or GetServerTime)() end
+--- Début de la semaine de jeu (dernier reset hebdomadaire), en secondes comme Core.Now() (tuiles PvP et raids de
+--- l'accueil). Le jeu donne le temps restant avant le reset (C_DateAndTime.GetSecondsUntilWeeklyReset, API moderne) ;
+--- sans réponse lisible, repli sur mercredi 04:00 UTC (reset européen supposé, à vérifier en jeu sur Forever).
+function Core.WeekStart(now)
+    now = now or Core.Now()
+    local api = C_DateAndTime and C_DateAndTime.GetSecondsUntilWeeklyReset
+    if type(api) == 'function' then
+        local ok, left = pcall(api)
+        if ok and type(left) == 'number' and not (type(issecretvalue) == 'function' and issecretvalue(left))
+            and left > 0 and left <= 7 * 86400 then
+            return math.floor(now + left - 7 * 86400 + 0.5)
+        end
+    end
+    local day = math.floor((now - 4 * 3600) / 86400) -- jour 0 = jeudi 1er janvier 1970 ; mercredi = jour 6 (mod 7)
+    return (day - (day - 6) % 7) * 86400 + 4 * 3600
+end
 -- Noms : tout passe par LibQuinteSync, qui connaît les noms de WoW Forever (« Prénom Nom », sans royaume, uniques dans
 -- la région ; UnitName y renvoie le nom de famille en 2e valeur ; chuchotement refusé avec un royaume).
 local Names = LibStub('LibQuinteSync-1.0')
@@ -87,7 +153,7 @@ function Core.GuildStatus()
 end
 --- Raison du blocage ('none' ou 'other', puis le nom de l'autre guilde), nil pour un membre (ou guilde pas encore lue).
 --- Édition réduite : .toc avec « ## X-Quinte-Edition: curseforge » ou « site » (ajouté par scripts/build_suite.py).
---- Les membres n'y ont que Craft, Fiches, BiS, Donjons & Quêtes, SOS et Camp ; nil pour le pack complet des officiers.
+--- Les membres n'y ont que Craft, Fiches, BiS, Donjons & Quêtes, SOS et PvP ; nil pour le pack complet des officiers.
 function Core.Edition()
     local fn = (C_AddOns and C_AddOns.GetAddOnMetadata) or GetAddOnMetadata
     if not fn then return nil end
@@ -246,7 +312,7 @@ end
 function Core.Safe(text) return (tostring(text or ''):gsub('|', '||')) end
 function Core.Print(text)
     if DEFAULT_CHAT_FRAME and DEFAULT_CHAT_FRAME.AddMessage then
-        DEFAULT_CHAT_FRAME:AddMessage('|cff70d5bfQuintessence|r ' .. text)
+        DEFAULT_CHAT_FRAME:AddMessage((Core.Style.ChatText or tostring)('|cff70d5bfQuintessence|r ' .. text))
     end
 end
 
@@ -298,8 +364,10 @@ frame:SetScript('OnEvent', function(_, event, arg, arg2)
             local who = tostring(arg or '?')
             local fn = tostring(arg2 or '?')
             if who:lower():find('quinte', 1, true) then
-                Core.Error(event, who .. ' -> ' .. fn)
-                Core.Print('|cffff5555[' .. event .. ']|r ' .. Core.Safe(who) .. ' a tenté d’appeler ' .. Core.Safe(fn) .. ' (/quinte erreurs pour le détail).')
+                -- Compté pendant l'appel : l'envoi en cours sait tout de suite que le jeu l'a bloqué (SecureSend.lua)
+                if Core.SecureSend and Core.SecureSend.NoteBlocked then Core.SecureSend.NoteBlocked() end
+                Core.Error(event, who .. ' -> ' .. fn, type(debugstack) == 'function' and select(2, pcall(debugstack, 3, 12, 0)) or nil)
+                Core.Print('|c' .. Core.Style.hex.red .. '[' .. event .. ']|r ' .. Core.Safe(who) .. ' a tenté d’appeler ' .. Core.Safe(fn) .. ' (/quinte erreurs pour le détail).')
             end
             return
         end
@@ -339,6 +407,8 @@ SlashCmdList.QUINTESSENCE = function(message)
             elseif value == 'stats' then return Core.SyncStats()
             else return Core.Print('/quinte sync on|off|now|stats · /quinte test') end
             Core.Print('Synchro : ' .. (QuintessenceDB.syncEnabled and 'activée' or 'désactivée'))
+        elseif command == 'profil' then Core.Profile.Open()
+        elseif command == 'visite' or command == 'tour' then if Core.Tour then Core.Tour.Start() end
         elseif command == 'debug' then Core.Debug()
         elseif command == 'erreurs' or command == 'errors' or command == 'error' then Core.ShowErrors(value)
         elseif command == 'test' then Core.Test()
@@ -356,12 +426,12 @@ SlashCmdList.QUINTESSENCE = function(message)
             Core.Print('Taille de la fenêtre : ' .. Core.UI.ScalePercent() .. ' % · /quinte taille 50 à 200, + ou -')
         elseif command == 'interface' or command == 'theme' then
             if value == '' then
-                return Core.Print('Interface : ' .. Core.Style.THEMES[Core.Style.theme].label .. ' · /quinte interface moderne|classique')
+                return Core.Print('Interface : ' .. Core.Style.THEMES[Core.Style.theme].label .. ' · /quinte interface moderne|classique|futuriste')
             end
             Core.SetTheme(value)
         elseif Core.modules[command] then Core.UI.Open(command)
         else
-            Core.Print('/quinte : ouvrir la fenêtre · /quinte <module> · /quinte versions · /quinte journal · /quinte sync on|off|now|stats · /quinte test · /quinte debug · /quinte minimap · /quinte taille 50-200 · /quinte interface moderne|classique')
+            Core.Print('/quinte : ouvrir la fenêtre · /quinte <module> · /quinte visite · /quinte versions · /quinte journal · /quinte sync on|off|now|stats · /quinte test · /quinte debug · /quinte minimap · /quinte taille 50-200 · /quinte interface moderne|classique|futuriste')
         end
     end)
 end
@@ -399,11 +469,11 @@ function Core.SyncStats()
     end
 end
 
---- Change d'interface ('modern' ou 'classic', mots français acceptés) : enregistrée puis interface rechargée, car
+--- Change d'interface ('modern', 'classic' ou 'future', mots français acceptés) : enregistrée puis interface rechargée, car
 --- toutes les fenêtres (conteneur et modules) sont construites avec le thème du chargement.
 function Core.SetTheme(name)
     local theme = Core.Style.ThemeName(name)
-    if not theme then return Core.Print('Interface inconnue : /quinte interface moderne|classique') end
+    if not theme then return Core.Print('Interface inconnue : /quinte interface moderne|classique|futuriste') end
     QuintessenceDB.theme = theme
     if theme == Core.Style.theme then return Core.Print('Interface ' .. Core.Style.THEMES[theme].label .. ' déjà active.') end
     Core.Print('Interface ' .. Core.Style.THEMES[theme].label .. ' choisie : rechargement de l’interface…')
@@ -437,6 +507,7 @@ function Core.Debug()
             Core.Print('Indicateur de restriction du jeu : ' .. (ok and tostring(value) or 'erreur') .. ' (ignoré, seul le code d’envoi compte)')
         end
     end
+    if Core.Blacklist then Core.Print('Liste noire : clic droit portrait ' .. Core.Blacklist.menu .. ' · /quinte noire') end
     if Core.Versions then Core.Print('Versions : ' .. Core.Versions.Summary() .. ' · /quinte versions pour vérifier la guilde') end
     if Core.GuildLog then Core.Print('Journal de guilde : ' .. Core.GuildLog.Summary()) end
     for context, ms in pairs(Core.debug.slow) do Core.Print('Traitement lent : ' .. Core.Safe(context) .. ' ' .. ms .. ' ms') end
@@ -449,21 +520,22 @@ end
 function Core.ShowErrors(arg)
     if arg == 'clear' or arg == 'vider' then
         Core.debug.errors = {}
-        if QuintessenceDB then QuintessenceDB.lastErrors = {} end
+        if QuintessenceDB then QuintessenceDB.lastErrors = {}; QuintessenceDB.errorLog = {} end
+        if Core.ErrorPage and Core.ErrorPage.Refresh then pcall(Core.ErrorPage.Refresh) end
         return Core.Print('Journal des erreurs Quintessence vidé.')
     end
-    local session = Core.debug.errors or {}
-    local saved = (QuintessenceDB and QuintessenceDB.lastErrors) or {}
-    Core.Print('=== Diagnostic des erreurs Quintessence ===')
-    Core.Print('Astuce WoW : tape |cffffd100/console scriptErrors 1|r pour afficher les erreurs Lua détaillées de Blizzard.')
-    if #session == 0 and #saved == 0 then
-        Core.Print('|cff5cd1a8Aucune erreur ni action bloquée enregistrée.|r')
-        return
+    -- Page secrète (pas dans la barre latérale) : historique de 10 jours, à copier-coller (ErrorLog.lua)
+    if arg ~= 'chat' and Core.ErrorPage and Core.ErrorPage.Open then
+        local ok = Core.Call(Core.ErrorPage.Open)
+        if ok then return end
     end
-    for i, err in ipairs(saved) do
-        Core.Print(string.format('|cffff8040[%d]|r %s', i, Core.Safe(err)))
+    local log = Core.ErrorLog()
+    Core.Print('=== Erreurs Quintessence (' .. Core.ERROR_DAYS .. ' derniers jours) ===')
+    if #log == 0 then return Core.Print('|c' .. Core.Style.hex.mint .. 'Aucune erreur ni action bloquée enregistrée.|r') end
+    for i, e in ipairs(log) do
+        Core.Print(string.format('|cffff8040[%d]|r %s %s%s', i, Core.Safe(e.src or '?'), Core.Safe(e.text), (tonumber(e.n) or 1) > 1 and (' (x' .. e.n .. ')') or ''))
     end
-    Core.Print('Tape |cffffd100/quinte erreurs vider|r pour effacer cet historique.')
+    Core.Print('Tape |c' .. Core.Style.hex.gold .. '/quinte erreurs vider|r pour effacer cet historique.')
 end
 
 -- /quinte test : ping de guilde, chaque membre qui a le conteneur répond en privé avec ses versions.

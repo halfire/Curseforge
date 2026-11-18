@@ -41,16 +41,23 @@ end
 -- Données (sans affichage : testables hors du jeu)
 -- ---------------------------------------------------------------------------
 
-local index, indexRevision
+local index, indexRevision, profileRevision
 -- Nom, catégorie et texte de recherche déjà calculés par recette : gardés d'un index à l'autre, car chaque fusion de
 -- synchro change la révision et reconstruisait tout (1 750 recettes : 26 ms et 9 Mo de déchets à chaque fois).
 local derived = {}
-local function byCrafter(a, b) return a.key < b.key end
+local function byCrafter(a, b)
+    local p = Quintessence.Profile
+    local ar, br = p and p.OrderRank(a.key) or 1, p and p.OrderRank(b.key) or 1
+    if ar ~= br then return ar < br end
+    return a.key < b.key
+end
 local function byName(a, b) if a.name ~= b.name then return a.name < b.name end return a.key < b.key end
 
 --- Regroupe toutes les recettes de la guilde : une entrée par recette et par métier, avec ses artisans et sa catégorie en jeu.
 function UI.BuildIndex()
-    if index and indexRevision == Q.revision then return index end
+    local rev = Quintessence.Profile and Quintessence.Profile.revision or 0
+    if index and indexRevision == Q.revision and profileRevision == rev then return index end
+    profileRevision = rev
     local byKey, professions, characters = {}, {}, 0
     for key, c in pairs(QuinteCraftDB.characters) do
         if type(c) == 'table' and type(c.professions) == 'table' then
@@ -276,9 +283,9 @@ function renderDetails()
             line.item = r.item
             line.recipe = s and s.recipe
             line.icon:SetTexture(itemIcon(r.item) or QUESTION_MARK)
-            local have = s and (s.missing == 0 and ('|cff5cd1a8' .. s.have .. '/' .. s.need .. '|r') or ('|cffe5545c' .. s.have .. '/' .. s.need .. '|r')) or ''
+            local have = s and (s.missing == 0 and ('|c' .. Quintessence.Style.hex.mint .. '' .. s.have .. '/' .. s.need .. '|r') or ('|c' .. Quintessence.Style.hex.red .. '' .. s.have .. '/' .. s.need .. '|r')) or ''
             line.label:SetText(have .. ' ' .. (r.name or itemName(r.item) or ('Objet #' .. r.item))
-                .. (s and s.recipe and ' |cff9aa4b8(fabriqué par la guilde)|r' or ''))
+                .. (s and s.recipe and ' |c' .. Quintessence.Style.hex.muted .. '(fabriqué par la guilde)|r' or ''))
             line:Show()
         else line:Hide() end
     end
@@ -295,7 +302,9 @@ function renderDetails()
             line.name = shortName(c.key); line.key = c.key
             line.dot:SetColorTexture(online and 0.25 or 0.45, online and 0.85 or 0.45, online and 0.35 or 0.45, 1)
             line.label:SetText('|c' .. classHex(c.class) .. Q.Safe(line.name) .. '|r'
-                .. (c.self and ' |cff9aa4b8(toi)|r' or '') .. (online and '' or ' |cff9aa4b8· hors ligne|r'))
+                .. (Quintessence.Profile and Quintessence.Profile.Priority(c.key) and ' · volontaire' or '')
+                .. (not Q.AcceptingOrders(c.key) and ' · sans commandes' or '')
+                .. (c.self and ' |c' .. Quintessence.Style.hex.muted .. '(toi)|r' or '') .. (online and '' or ' |c' .. Quintessence.Style.hex.muted .. '· hors ligne|r'))
             line.skill:SetText(c.skill and (c.skill .. (c.maxSkill and ('/' .. c.maxSkill) or '')) or '')
             line:ClearAllPoints(); line:SetPoint('TOPLEFT', 0, top - 26 - (i - 1) * 18)
             line:Show()
@@ -321,7 +330,7 @@ local function renderRows()
             if e and state.mode == 'orders' then
                 local incoming = Quintessence.CanonicalKey(e.to) == mine
                 row.icon:SetTexture((e.item and itemIcon(e.item)) or QUESTION_MARK)
-                row.label:SetText((incoming and '|cffffd100← |r' or '|cff9aa4b8→ |r') .. Q.Safe(e.count .. ' × ' .. (e.name or '?')))
+                row.label:SetText((incoming and '|c' .. Quintessence.Style.hex.gold .. '← |r' or '|c' .. Quintessence.Style.hex.muted .. '→ |r') .. Q.Safe(e.count .. ' × ' .. (e.name or '?')))
                 row.cat:SetText(Q.ORDER_STATUSES[e.status] or ''); row.count:SetText('')
                 row:SetSelected(state.selected == e); row:Show()
             elseif e then
@@ -512,7 +521,7 @@ local function create(parent)
     for i = 1, LEFT_ROWS do
         local b = S.Row(leftBox, LEFT_W - 12, LEFT_ROW_H - 1)
         b:SetPoint('TOPLEFT', 0, -(i - 1) * LEFT_ROW_H)
-        b.icon = b:CreateTexture(nil, 'ARTWORK'); b.icon:SetSize(18, 18); b.icon:SetPoint('LEFT', 8, 0); b.icon:Hide()
+        b.icon = b:CreateTexture(nil, 'ARTWORK'); b.icon:SetSize(18, 18); b.icon:SetPoint('LEFT', 8, 0); b.icon:Hide(); b.icon:SetTexCoord(0.08, 0.92, 0.08, 0.92)
         b.label = S.Text(b, 12, S.colors.muted); b.label:SetPoint('LEFT', 10, 0); b.label:SetPoint('RIGHT', -36, 0)
         b.count = S.Text(b, 11, S.colors.muted, 'RIGHT'); b.count:SetPoint('RIGHT', -6, 0)
         b:SetScript('OnClick', function(self)
@@ -622,7 +631,7 @@ local function create(parent)
     for i = 1, MAX_REAGENTS do
         local line = CreateFrame('Button', nil, d)
         line:SetSize(DETAIL_W, 18); line:SetPoint('TOPLEFT', 0, -76 - (i - 1) * 18)
-        line.icon = line:CreateTexture(nil, 'ARTWORK'); line.icon:SetSize(16, 16); line.icon:SetPoint('LEFT', 0, 0)
+        line.icon = line:CreateTexture(nil, 'ARTWORK'); line.icon:SetSize(16, 16); line.icon:SetPoint('LEFT', 0, 0); line.icon:SetTexCoord(0.08, 0.92, 0.08, 0.92)
         line.label = text(line, 'GameFontHighlightSmall'); line.label:SetPoint('LEFT', 22, 0); line.label:SetPoint('RIGHT', 0, 0)
         line:SetScript('OnEnter', function(self) showTooltip(self, nil, self.item) end)
         line:SetScript('OnLeave', hideTooltip)
@@ -664,7 +673,7 @@ local function create(parent)
     -- Détail d'une commande (mode Commandes)
     local od = CreateFrame('Frame', nil, frame)
     od:SetPoint('TOPLEFT', DETAIL_X + 14, -38); od:SetSize(DETAIL_W, ROWS * ROW_H - 16)
-    od.icon = od:CreateTexture(nil, 'ARTWORK'); od.icon:SetSize(36, 36); od.icon:SetPoint('TOPLEFT', 0, 0)
+    od.icon = od:CreateTexture(nil, 'ARTWORK'); od.icon:SetSize(36, 36); od.icon:SetPoint('TOPLEFT', 0, 0); od.icon:SetTexCoord(0.08, 0.92, 0.08, 0.92)
     od.name = text(od, 'GameFontNormal'); od.name:SetPoint('TOPLEFT', 44, -2); od.name:SetWidth(DETAIL_W - 44); od.name:SetWordWrap(true)
     od.who = text(od, 'GameFontHighlightSmall'); od.who:SetPoint('TOPLEFT', 0, -50); od.who:SetWidth(DETAIL_W)
     od.status = text(od, 'GameFontDisableSmall'); od.status:SetPoint('TOPLEFT', 0, -70); od.status:SetWidth(DETAIL_W); od.status:SetWordWrap(true)
@@ -714,13 +723,13 @@ function UI.Order(crafterKey)
     if not e or state.mode ~= 'recipes' or not frame then return end
     local target = crafterKey
     if not target then
-        for _, c in ipairs(e.crafters) do if not c.self and Q.Online(c.key) then target = c.key; break end end
-        if not target then for _, c in ipairs(e.crafters) do if not c.self then target = c.key; break end end end
+        for _, c in ipairs(e.crafters) do if not c.self and Q.AcceptingOrders(c.key) and Q.Online(c.key) then target = c.key; break end end
+        if not target then for _, c in ipairs(e.crafters) do if not c.self and Q.AcceptingOrders(c.key) then target = c.key; break end end end
     end
-    if not target then frame.details.orderStatus:SetText('|cffe5545cPersonne d\'autre ne sait la fabriquer.|r'); return end
+    if not target then frame.details.orderStatus:SetText('|c' .. Quintessence.Style.hex.red .. 'Personne d\'autre ne sait la fabriquer.|r'); return end
     local o, err = Q.PlaceOrder(e, target, state.quantity)
-    frame.details.orderStatus:SetText(o and ('|cff5cd1a8Commande envoyée à ' .. Q.Safe(Quintessence.DisplayName(target)) .. '.|r'
-        .. (Q.Online(target) and '' or ' |cff9aa4b8(hors ligne : elle partira à sa connexion)|r')) or ('|cffe5545c' .. Q.Safe(err) .. '|r'))
+    frame.details.orderStatus:SetText(o and ('|c' .. Quintessence.Style.hex.mint .. 'Commande envoyée à ' .. Q.Safe(Quintessence.DisplayName(target)) .. '.|r'
+        .. (Q.Online(target) and '' or ' |c' .. Quintessence.Style.hex.muted .. '(hors ligne : elle partira à sa connexion)|r')) or ('|c' .. Quintessence.Style.hex.red .. '' .. Q.Safe(err) .. '|r'))
     UI.OnDataChanged()
 end
 --- Ouvre l'onglet Craft sur ce mode ('recipes', 'orders', 'missing').
@@ -730,29 +739,115 @@ function UI.ShowMode(mode)
     UI.Refresh()
 end
 
--- Fenêtre indépendante : ne change pas l’onglet actuellement consulté.
+-- Fenêtre indépendante : commandes lisibles, position libre pour la session.
 local orderNotice
+local noticeExamples = {
+    {from='Tankeuse · TEST',name='Enchantement d’arme',count=1,status='open',icon='Trade_Engraving'},
+    {from='Exemple guilde · TEST',name='Sac en étoffe lunaire',count=1,status='open',icon='INV_Misc_Bag_14'},
+}
 function UI.OrderNoticeVisible() return orderNotice and orderNotice:IsShown() or false end
-function UI.OrderNotice(count)
+function UI.OrderSoundStatus(message)
+    if orderNotice then orderNotice.soundStatus:SetText(message or '') end
+end
+-- Toast discret : les détails ne sont visibles qu'à la demande du joueur.
+function UI.LayoutOrderNotice()
+    local f=orderNotice; if not f then return end
+    local expanded=f.expanded==true
+    f:SetSize(expanded and 640 or 360,expanded and (278+(f.visibleRows or 2)*76) or 82)
+    f.header:SetHeight(expanded and 68 or 38)
+    f.title:ClearAllPoints()
+    f.title:SetFont(STANDARD_TEXT_FONT or 'Fonts\\FRIZQT__.TTF',expanded and 20 or 14,'')
+    if expanded then f.title:SetPoint('TOPLEFT',66,-15) else f.title:SetPoint('TOP',0,-12) end
+    f.icon:SetShown(expanded);f.dragHint:SetShown(expanded);f.mode:SetShown(expanded)
+    f.message:SetShown(expanded);f.more:SetShown(expanded);f.sound:SetShown(expanded);f.soundStatus:SetShown(expanded)
+    f.limit:SetShown(expanded);f.view:SetShown(expanded)
+    for i,row in ipairs(f.rows) do row:SetShown(expanded and i<=(f.visibleRows or 0)) end
+    f.expand:ClearAllPoints();f.expand:SetPoint('BOTTOM',0,expanded and 20 or 10)
+    f.expand:SetLabel(expanded and 'Moins d’infos' or 'Plus d’infos')
+    f.close:ClearAllPoints();f.close:SetSize(expanded and 170 or 22,expanded and 30 or 20)
+    f.close:SetLabel(expanded and 'Plus tard' or 'X')
+    if expanded then f.close:SetPoint('BOTTOMRIGHT',-24,20) else f.close:SetPoint('TOPRIGHT',-6,-7) end
+    local sw,sh=UIParent:GetWidth(),UIParent:GetHeight()
+    local width,height=expanded and 640 or 360,expanded and (278+(f.visibleRows or 2)*76) or 82
+    if type(sw)=='number' and type(sh)=='number' and sw>40 and sh>40 then f:SetScale(math.min(1,(sw-40)/width,(sh-40)/height)) end
+end
+function UI.OrderNotice(count, test)
     if not UIParent then return false end
+    local wasShown=UI.OrderNoticeVisible()
     if not orderNotice then
         local f = CreateFrame('Frame', nil, UIParent)
-        f:SetSize(390, 180); f:SetPoint('CENTER'); f:SetFrameStrata('DIALOG')
-        f:EnableMouse(true)
-        local bg = S.Box(f, S.colors.panel, S.colors.line); bg:SetAllPoints()
-        local title = S.Text(f, 16, S.colors.gold); title:SetPoint('TOPLEFT', 20, -20)
-        title:SetText('Commandes d’artisanat')
-        f.message = S.Text(f, 13, S.colors.text); f.message:SetPoint('TOPLEFT', 20, -54)
-        f.message:SetWidth(350); f.message:SetWordWrap(true)
-        local view = S.Button(f, 'Voir les commandes', 175, 26, 'primary'); view:SetPoint('BOTTOMLEFT', 20, 20)
-        view:SetScript('OnClick', function() f:Hide(); UI.ShowMode('orders') end)
-        local close = S.Button(f, 'Plus tard', 140, 26, 'ghost'); close:SetPoint('BOTTOMRIGHT', -20, 20)
-        close:SetScript('OnClick', function() f:Hide() end)
-        orderNotice = f
+        f:SetSize(360,82); f:SetPoint('TOP',UIParent,'TOP',0,-64); f:SetFrameStrata('HIGH')
+        f:EnableMouse(true); f:SetMovable(true); f:SetClampedToScreen(true)
+        local bg = S.Box(f, S.colors.bg, S.colors.gold); bg:SetAllPoints()
+        local head = S.Box(f, S.colors.raised, S.colors.line); head:SetPoint('TOPLEFT',1,-1); head:SetPoint('TOPRIGHT',-1,-1); head:SetHeight(68)
+        head:EnableMouse(true); head:RegisterForDrag('LeftButton')
+        head:SetScript('OnDragStart',function() f:StartMoving() end)
+        head:SetScript('OnDragStop',function() f:StopMovingOrSizing() end)
+        f.header = head
+        local icon = head:CreateTexture(nil,'ARTWORK'); icon:SetSize(32,32); icon:SetPoint('TOPLEFT',20,-18); icon:SetTexCoord(0.08, 0.92, 0.08, 0.92)
+        icon:SetTexture('Interface\\Icons\\Trade_BlackSmithing')
+        local title = S.Text(head,20,S.colors.gold); title:SetPoint('TOPLEFT',66,-15); title:SetText('Commandes en attente')
+        local drag = S.Text(head,11,S.colors.muted); drag:SetPoint('TOPLEFT',66,-43); drag:SetText('Glisse cet en-tête pour déplacer la fenêtre')
+        f.title,f.icon,f.dragHint=title,icon,drag
+        f.mode = S.Text(head,11,S.colors.mint,'RIGHT'); f.mode:SetPoint('TOPRIGHT',-20,-25)
+        f.message = S.Text(f,13,S.colors.text); f.message:SetPoint('TOPLEFT',24,-84); f.message:SetWidth(592); f.message:SetWordWrap(true)
+        f.rows = {}
+        for i=1,3 do
+            local row = S.Box(f,S.colors.panel,S.colors.line); row:SetSize(592,64); row:SetPoint('TOPLEFT',24,-120-(i-1)*76)
+            row.icon = row:CreateTexture(nil,'ARTWORK'); row.icon:SetSize(30,30); row.icon:SetPoint('TOPLEFT',14,-17); row.icon:SetTexCoord(0.08, 0.92, 0.08, 0.92)
+            row.who = S.Text(row,12,S.colors.mint); row.who:SetPoint('TOPLEFT',58,-11); row.who:SetWidth(380)
+            row.name = S.Text(row,14,S.colors.text); row.name:SetPoint('TOPLEFT',58,-32); row.name:SetWidth(450)
+            row.status = S.Text(row,11,S.colors.gold,'RIGHT'); row.status:SetPoint('TOPRIGHT',-14,-11)
+            row.quantity = S.Text(row,14,S.colors.gold,'RIGHT'); row.quantity:SetPoint('TOPRIGHT',-14,-34)
+            f.rows[i] = row
+        end
+        f.more = S.Text(f,11,S.colors.muted); f.more:SetPoint('BOTTOMLEFT',24,130); f.more:SetWidth(592)
+        f.sound = S.Button(f,'Tester le son',155,26,'ghost'); f.sound:SetPoint('BOTTOMLEFT',24,92)
+        f.soundStatus = S.Text(f,11,S.colors.muted); f.soundStatus:SetPoint('BOTTOMLEFT',195,88); f.soundStatus:SetWidth(420); f.soundStatus:SetWordWrap(true)
+        f.sound:SetScript('OnClick',function() local _,message=Q.TestOrderSound(); UI.OrderSoundStatus(message) end)
+        f.limit = S.Text(f,11,S.colors.gold); f.limit:SetPoint('BOTTOMLEFT',24,62); f.limit:SetWidth(592); f.limit:SetWordWrap(true)
+        f.limit:SetText('Une seule fenêtre automatique toutes les 30 minutes. Tests manuels libres ; le badge reste visible.')
+        local view = S.Button(f,'Voir les commandes',220,30,'ghost'); view:SetPoint('BOTTOMLEFT',24,20)
+        view:SetScript('OnClick',function() f:Hide(); UI.ShowMode('orders') end)
+        local close = S.Button(f,'Plus tard',170,30,'ghost'); close:SetPoint('BOTTOMRIGHT',-24,20)
+        close:SetScript('OnClick',function() f:Hide() end)
+        f.view,f.close = view,close
+        f.expand=S.Button(f,'Plus d’infos',126,24,'ghost')
+        local dot=S.Fill(f.expand,'OVERLAY',S.colors.gold);dot:SetSize(5,5);dot:SetPoint('LEFT',7,0)
+        f.expand:SetScript('OnClick',function() f.expanded=not f.expanded;UI.LayoutOrderNotice() end)
+        orderNotice = f; UI.orderNotice = f
     end
-    orderNotice.message:SetText('Tu as ' .. count .. ' commande' .. (count > 1 and 's' or '')
-        .. ' à traiter. Ouvre la liste pour consulter les demandes et y répondre.')
-    orderNotice:Show()
+    local f,list = orderNotice,{}
+    f.test = test == true
+    if not wasShown then f.expanded=false end
+    if test then list = noticeExamples
+    else
+        for _,o in ipairs(Q.Orders()) do
+            if Quintessence.SameName(o.to,Quintessence.PlayerName()) and (o.status=='open' or o.status=='accepted') then
+                list[#list+1] = o; if #list==3 then break end
+            end
+        end
+    end
+    local shown = math.max(1,math.min(3,#list))
+    f.visibleRows=shown
+    f.mode:SetText(test and 'APERÇU TEST' or 'À TRAITER')
+    f.message:SetText(test and 'TEST · Deux exemples fictifs, sans commande créée ni message envoyé.'
+        or (count..' commande'..(count>1 and 's' or '')..' reçue'..(count>1 and 's' or '')..' à traiter.'))
+    for i,row in ipairs(f.rows) do
+        local o = list[i]
+        row:SetShown(i<=shown)
+        if i<=shown then
+            row.who:SetText(o and ('Demande de '..Q.Safe(test and o.from or Quintessence.DisplayName(o.from))) or 'Demandes reçues')
+            row.name:SetText(o and Q.Safe(o.name or ('Recette #'..tostring(o.spell or o.item or '?'))) or 'Consulte la liste des commandes pour les détails.')
+            row.quantity:SetText(o and ('× '..tostring(o.count or 1)) or '')
+            row.status:SetText(o and (o.status=='accepted' and 'Acceptée' or 'En attente') or '')
+            row.icon:SetTexture('Interface\\Icons\\'..(o and o.icon or 'Trade_BlackSmithing'))
+        end
+    end
+    f.more:SetText(test and 'Ces exemples ne sont pas ajoutés à tes commandes.'
+        or (count>#list and ('+ '..(count-#list)..' autre(s) demande(s) dans la liste.') or 'Le badge reste visible jusqu’au traitement de tes commandes.'))
+    f.soundStatus:SetText('Essai indépendant du réglage des sons automatiques.')
+    UI.LayoutOrderNotice();f:Show()
     return true
 end
 
@@ -765,6 +860,19 @@ Quintessence:RegisterModule({
         return frame
     end,
     refresh = function() UI.Refresh() end,
+    home = function() return Q.Home() end,
+    -- Recherche commune de l'en-tête (conteneur 1.50.0) : recettes connues dans la guilde
+    search = function(query)
+        if not (Q.ready and UI.Filter) then return nil end
+        local out = {}
+        for i, r in ipairs(UI.Filter(nil, query)) do
+            if i > 5 then break end
+            local n = r.crafters and #r.crafters or 0
+            out[#out + 1] = { text = Q.Safe(r.name), hint = 'Recette · ' .. n .. (n > 1 and ' artisans' or ' artisan')
+                .. (r.category and (' · ' .. Q.Safe(r.category)) or ''), action = function() UI.Open(r.name) end }
+        end
+        return out
+    end,
     summary = function()
         if not Q.ready then return nil end
         local idx = UI.BuildIndex()

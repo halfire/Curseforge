@@ -46,8 +46,41 @@ Sh.stats = stats
 local function core() return Quintessence end
 local function announce() return Quintessence and Quintessence.Announce end
 local function key(name) return Quintessence.CanonicalKey(name) end
-local function isOfficer() local a = announce(); return a and a.IsOfficer and a.IsOfficer() == true end
-local function senderIsOfficer(name) local a = announce(); return a and a.SenderIsOfficer and a.SenderIsOfficer(name) == true end
+-- Officiers = rangs 0 et 1 de la guilde (règle de Quintessence.Announce). L'édition CurseForge n'a pas Announce.lua
+-- (outil officier retiré du paquet) : même règle lue ici dans la liste de guilde, pour que ses membres envoient aussi
+-- leur journal (0.12.2, T199).
+local TOP_RANK = 1
+local function sec(v) return type(issecretvalue) == 'function' and issecretvalue(v) end
+local function guildRoster()
+    local ranks, online = {}, {}
+    if type(GetNumGuildMembers) ~= 'function' or type(GetGuildRosterInfo) ~= 'function' then return ranks, online end
+    local ok, n = pcall(GetNumGuildMembers)
+    if not ok or type(n) ~= 'number' or sec(n) then return ranks, online end
+    for i = 1, math.min(n, 1000) do
+        local good, name, _, rank, _, _, _, _, _, isOnline = pcall(GetGuildRosterInfo, i)
+        if good and type(name) == 'string' and not sec(name) and type(rank) == 'number' and not sec(rank) then
+            local k = key(name)
+            ranks[k] = rank
+            if rank <= TOP_RANK and isOnline == true then online[#online + 1] = k end
+        end
+    end
+    table.sort(online)
+    return ranks, online
+end
+Sh.GuildRoster = guildRoster
+local function isOfficer()
+    local a = announce()
+    if a and a.IsOfficer then return a.IsOfficer() == true end
+    local rank = guildRoster()[key(Q.PlayerName())]
+    return rank ~= nil and rank <= TOP_RANK
+end
+local function senderIsOfficer(name)
+    local a = announce()
+    if a and a.SenderIsOfficer then return a.SenderIsOfficer(name) == true end
+    local rank = type(name) == 'string' and guildRoster()[key(name)]
+    return type(rank) == 'number' and rank <= TOP_RANK
+end
+Sh.IsOfficer, Sh.SenderIsOfficer = isOfficer, senderIsOfficer -- (PvPBoard.lua : seul un officier est cru)
 local function guildOk() return not (core().GuildStatus and core().GuildStatus() ~= 'ok') end
 local function now() return P.Now() end
 local function seqOf(id, origin)
@@ -282,9 +315,11 @@ local function busy()
 end
 local function officersOnline()
     local a = announce()
-    if not (a and a.OnlineOfficers) then return {} end
+    local list
+    if a and a.OnlineOfficers then list = a.OnlineOfficers() or {} else local _, online = guildRoster(); list = online end
+    if #list == 0 then return {} end
     local me, out = key(Q.PlayerName()), {}
-    for _, k in ipairs(a.OnlineOfficers() or {}) do if k ~= me then out[#out + 1] = k end end
+    for _, k in ipairs(list) do if k ~= me then out[#out + 1] = k end end
     return out
 end
 Sh.OfficersOnline = officersOnline
@@ -317,7 +352,7 @@ function Sh.SendTo(officer)
 end
 --- Envoie à tous les officiers en ligne (ou plus tard : combat, BG, arène).
 function Sh.Flush()
-    if not (P.ready and guildOk()) or Q.SOSOnly() then return end
+    if not (P.ready and guildOk()) then return end
     if busy() then Sh.Schedule(BUSY_RETRY); return end
     for _, officer in ipairs(officersOnline()) do Sh.SendTo(officer) end
 end
@@ -363,7 +398,7 @@ end
 -- Messages, démarrage et état
 -- ---------------------------------------------------------------------------------------------------------------------
 function Sh.OnMessage(data, sender)
-    if type(data) ~= 'table' or type(sender) ~= 'string' or P.Secret(sender) or Q.SOSOnly() or not guildOk() then return end
+    if type(data) ~= 'table' or type(sender) ~= 'string' or P.Secret(sender) or not guildOk() then return end
     if data.t == 'pvp' then receive(data, sender)
     elseif data.t == 'pvpa' then onAck(data, sender) end
 end

@@ -251,7 +251,11 @@ function P.OnAlive()
     alive = true
 end
 function P.OnKill(attackerGUID, victimGUID)
-    if not P.ready or not playerGuid(victimGUID) or secret(attackerGUID) then return end
+    if not P.ready then return end
+    -- Client 12 : pendant une restriction (combat…), le jeu peut masquer les identifiants du coup fatal ; compté pour
+    -- /qmap debug (0.12.1, T198), sinon ces coups disparaissent sans trace.
+    if secret(attackerGUID) or secret(victimGUID) then diag('hiddenKills'); return end
+    if not playerGuid(victimGUID) then return end
     local pet = text(get(UnitGUID, 'pet'))
     local group, members = groupSnapshot()
     local own = attackerGUID == owner.guid or (pet ~= nil and attackerGUID == pet)
@@ -357,7 +361,6 @@ function P.CaptureScores(winner, duration, completeEvent)
 end
 function P.Init()
     if P.ready then return end
-    if Q.SOSOnly() then return end
     local status = Quintessence.GuildStatus and Quintessence.GuildStatus() or 'ok'
     if status ~= 'ok' then
         if status == 'pending' and (P.initAttempts or 0) < 12 then
@@ -394,14 +397,41 @@ function P.Init()
     enforceBudget()
     if P.Share and P.Share.Start then P.Share.Start() end
 end
+--- Bilan du personnage connecté depuis `since` (tuile PvP de l'accueil) : coups fatals, coups de son groupe, morts face
+--- à un joueur, victoires honorables notées par l'addon (compteur du jeu), champs de bataille joués et gagnés. nil tant
+--- que le journal n'est pas actif. Seuls ses propres relevés comptent (jamais ceux reçus des autres membres).
+function P.Week(since)
+    if not P.ready or not store or not owner then return nil end
+    local out = { kills = 0, groupKills = 0, deaths = 0, honor = 0, played = 0, won = 0, since = since }
+    for _, e in ipairs(store.events) do
+        if (e.at or 0) >= since and type(e.reporter) == 'table' and e.reporter.guid == owner.guid then
+            if e.kind == 'kill' then out.kills = out.kills + 1
+            elseif e.kind == 'group_kill' then out.groupKills = out.groupKills + 1
+            elseif e.kind == 'death' and e.pvp == true then out.deaths = out.deaths + 1
+            elseif e.kind == 'honor_credit' and type(e.evidence) == 'table' then out.honor = out.honor + (number(e.evidence.delta) or 0) end
+        end
+    end
+    local faction = text(get(UnitFactionGroup, 'player'))
+    local mySide = faction == 'Alliance' and 1 or (faction == 'Horde' and 0 or nil)
+    for _, m in ipairs(store.matches) do
+        if (m.at or 0) >= since and type(m.reporter) == 'table' and m.reporter.guid == owner.guid then
+            out.played = out.played + 1
+            if mySide and m.status == 'complete' and m.winner == mySide then out.won = out.won + 1 end
+        end
+    end
+    return out
+end
 function P.Store() return store end
 function P.Owner() return owner end
 function P.Character() return store and owner and store.characters[owner.guid] end
 function P.Context() return context() end
 function P.Debug()
+    if Q.SOSOnly() then Q.Print('Édition CurseForge : SOS et journal PvP (envoyé aux officiers en ligne), sans Vendetta.') end
     if not store then return end
     Q.Print(string.format('Journal PvP v%s : %s · %d événements · %d relevés BG/arène · %d retirés (28 jours / capacité).',
         tostring(store.schema), P.ready and 'actif' or 'en attente', #(store.events or {}), #(store.matches or {}), ((store.diagnostics or {}).pruned or 0) + ((store.diagnostics or {}).budgetPruned or 0)))
+    local d = store.diagnostics or {}
+    Q.Print(string.format('Coups fatals masqués par le jeu (non relevés) : %d · doublons ignorés : %d.', d.hiddenKills or 0, d.duplicateKills or 0))
     if P.Share and P.Share.Status then Q.Print('Partage aux officiers : ' .. P.Share.Status()) end
 end
 local f = CreateFrame('Frame')
@@ -413,7 +443,6 @@ for _, ev in ipairs(events) do
 end
 f:SetScript('OnEvent', function(_, event, a, b)
     Q.Run('journal PvP ' .. event, function()
-        if Q.SOSOnly() then return end
         local entering = event == 'PLAYER_LOGIN' or event == 'PLAYER_ENTERING_WORLD' or event == 'PLAYER_GUILD_UPDATE'
         if entering then
             P.Init()

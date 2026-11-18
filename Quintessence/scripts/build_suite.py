@@ -6,7 +6,7 @@ son propre scripts/build.py, à la version lue dans son code, puis les ZIP sont 
 Usage : python3 scripts/build_suite.py --channel beta
 Promotion : --channel release --promote-beta --validated-sha256 <empreinte>
 Copiés dans le site, avec chacun leur pack.json, et en ligne au prochain déploiement : pack des membres dans
-../site/site/telechargements/, pack complet dans ../site/site/storage/pack-complet/ (servi aux officiers connectés).
+../site/site/storage/pack-membres/ (jamais servi directement, /addons/pack réservé aux membres connectés), pack complet dans ../site/site/storage/pack-complet/ (servi aux officiers connectés).
 """
 import argparse, hashlib, re, subprocess, sys, zipfile
 from pathlib import Path
@@ -24,10 +24,11 @@ ADDONS=[
     ('quinte-group','Core.lua'),
     ('quinte-bis','Core.lua'),
     ('quinte-ride','Protocol.lua'),
-    ('quinte-recrut','Core.lua')
+    ('quinte-recrut','Core.lua'),
+    ('quinte-ban','Core.lua')
 ]
-# Pack du site et dépôt CurseForge : Craft, Fiches, BiS, Donjons & Quêtes, SOS et Camp
-MEMBER_ADDONS=['Quintessence','quinte-craft','quinte-caract','quinte-bis','quinte-group','quinte-map']
+# Pack du site et dépôt CurseForge : modules disponibles pour tous, dont la Liste noire
+MEMBER_ADDONS=['Quintessence','quinte-craft','quinte-caract','quinte-bis','quinte-group','quinte-map','quinte-ban']
 README="""Quintessence - {title}
 ===========================
 
@@ -114,7 +115,7 @@ if site_dir.is_dir():
         (folder/'pack.json').write_text(json.dumps({'file':zip_path.name,'version':core_version,'size':zip_path.stat().st_size,
             'full_sha256':hashlib.sha256(target.read_bytes()).hexdigest(),'channel':'beta','sha256':hashlib.sha256(zip_path.read_bytes()).hexdigest(),'built':datetime.date.today().isoformat(),'addons':[[f,v] for f,v,_ in rows]},ensure_ascii=False,indent=1)+'\n',encoding='utf-8')
         print(folder/zip_path.name)
-    downloads=site_dir/'telechargements'/'beta'
+    downloads=site_dir/'storage'/'pack-membres'/'beta'
     for old in downloads.glob('Quintessence-pack-complet-v*.zip'):old.unlink()
     publish(downloads,member_target,'Quintessence-pack-v*.zip',members)
     publish(site_dir/'storage'/'pack-complet'/'beta',target,'Quintessence-pack-complet-v*.zip',built)

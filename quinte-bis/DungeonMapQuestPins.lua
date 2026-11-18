@@ -79,7 +79,8 @@ local function tooltip(quest, located)
     if not GameTooltip then return end
     GameTooltip:SetText(Q.Safe(quest.title))
     Q.AddQuestXPTooltip(quest.id, not quest.virtual)
-    GameTooltip:AddLine(quest.status or '', S.colors.gold[1], S.colors.gold[2], S.colors.gold[3], true)
+    local accent = S.OnDark and S.OnDark('gold') or S.colors.gold -- infobulle : fond sombre, même en thème clair
+    GameTooltip:AddLine(quest.status or '', accent[1], accent[2], accent[3], true)
     if quest.start and quest.start ~= '' then GameTooltip:AddLine('Départ : ' .. Q.Safe(quest.start), 1, 1, 1, true) end
     if quest.finish and quest.finish ~= '' then GameTooltip:AddLine('Retour : ' .. Q.Safe(quest.finish), 1, 1, 1, true) end
     if quest.objective and quest.objective ~= '' then GameTooltip:AddLine(Q.Safe(quest.objective), 1, 1, 1, true) end

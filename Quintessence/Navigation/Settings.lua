@@ -32,7 +32,7 @@ function N.RefreshSettings()
     end
     if Core.Characters then Core.Characters.RefreshSettings() end
 end
-local function create(parent)
+local function createTravel(parent)
     panel = CreateFrame('Frame', nil, parent)
     panel:SetSize(1078, 658) -- toute la zone de contenu (1.39.0), textes de la même taille
     buttons = {}
@@ -64,6 +64,41 @@ local function create(parent)
     N.RefreshSettings()
     return panel
 end
-Core:RegisterModule({ id = 'settings', title = 'Réglages', order = 98,
-    icon = 'Interface\\Icons\\Trade_Engineering', width = 1078, height = 658,
-    create = create, refresh = N.RefreshSettings, summary = function() return 'Voyages : affichage, activation et démarrage automatique.' end })
+-- Les préférences du profil et le parcours de bienvenue appartiennent au conteneur de base.
+local Settings={}
+Core.Settings=Settings
+local holder, profilePanel, travelPanel, displayPanel, tabs
+-- Onglets de Réglages : Affichage (1.49.0 : interface, taille et synchro, venues de l'ancien accueil), Profil, Voyages
+local function tabOf() return (Core.settingsTab == 'travel' or Core.settingsTab == 'display') and Core.settingsTab or 'profile' end
+function Settings.Refresh()
+ if not holder then return end
+ local tab=tabOf()
+ profilePanel:SetShown(tab=='profile');travelPanel:SetShown(tab=='travel');displayPanel:SetShown(tab=='display')
+ tabs.profile:SetActive(tab=='profile');tabs.travel:SetActive(tab=='travel');tabs.display:SetActive(tab=='display')
+ if tab=='profile' then Core.Profile.Refresh() elseif tab=='travel' then N.RefreshSettings() else Core.UI.RefreshDisplay() end
+end
+function Settings.Open(tab)
+ Core.settingsTab=tab or 'profile';Core.UI.Open('settings')
+end
+local function create(parent)
+ holder=CreateFrame('Frame',nil,parent);holder:SetSize(1078,658)
+ travelPanel=createTravel(holder);travelPanel:SetPoint('TOPLEFT',0,0)
+ displayPanel=Core.UI.CreateDisplayPanel(holder);displayPanel:SetPoint('TOPLEFT',0,0)
+ profilePanel=Core.Profile.CreatePanel(holder);profilePanel:SetPoint('TOPLEFT',0,0)
+ tabs={}
+ tabs.display=S.Button(holder,'Affichage',130,28,'ghost');tabs.display:SetPoint('TOPLEFT',528,-4)
+ tabs.profile=S.Button(holder,'Profil',130,28,'ghost');tabs.profile:SetPoint('TOPLEFT',668,-4)
+ tabs.travel=S.Button(holder,'Voyages',130,28,'ghost');tabs.travel:SetPoint('TOPLEFT',808,-4)
+ tabs.welcome=S.Button(holder,'Revoir l’accueil',130,28,'ghost');tabs.welcome:SetPoint('TOPLEFT',948,-4)
+ for _,b in pairs(tabs) do b:SetFrameLevel(holder:GetFrameLevel()+10) end
+ tabs.profile:SetScript('OnClick',function() Core.settingsTab='profile';Settings.Refresh() end)
+ tabs.travel:SetScript('OnClick',function() Core.settingsTab='travel';Settings.Refresh() end)
+ tabs.display:SetScript('OnClick',function() Core.settingsTab='display';Settings.Refresh() end)
+ tabs.welcome:SetScript('OnClick',function() Core.Profile.ReplayWelcome() end)
+ holder.tabs,holder.profile,holder.travel,holder.display=tabs,profilePanel,travelPanel,displayPanel
+ holder.characters,holder.entrancePins=travelPanel.characters,travelPanel.entrancePins
+ Settings.panel=holder;Settings.Refresh();return holder
+end
+Core:RegisterModule({ id='settings', title='Réglages', order=98,
+ icon='Interface\\Icons\\Trade_Engineering',width=1078,height=658,
+ create=create,refresh=Settings.Refresh,summary=function() return 'Affichage, profil, accueil et voyages : tes préférences.' end })

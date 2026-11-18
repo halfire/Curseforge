@@ -5,7 +5,7 @@ local addonName, Q = ...
   Règle Retail 12+ : uniquement nos propres cadres, aucune écriture dans les objets de Blizzard.
 ]]
 local Core = Quintessence
-Q.name, Q.version = addonName or 'quinte-group', '0.32.0'
+Q.name, Q.version = addonName or 'quinte-group', '0.34.2'
 Q.debug = { errors = {}, slow = {} }
 
 function Q.Call(fn, ...)
@@ -17,6 +17,8 @@ function Q.Error(context, reason)
     local list = Q.debug.errors
     list[#list + 1] = context .. ': ' .. tostring(reason)
     if #list > 20 then table.remove(list, 1) end
+    -- Historique de 10 jours du conteneur (page /quinte erreurs, T223)
+    if Quintessence and Quintessence.LogError then pcall(Quintessence.LogError, Q.name or 'quinte-group', context, reason) end
 end
 
 local clock = debugprofilestop
@@ -38,7 +40,7 @@ function Q.Safe(text) return (tostring(text or ''):gsub('|', '||')) end
 
 function Q.Print(text)
     if DEFAULT_CHAT_FRAME and DEFAULT_CHAT_FRAME.AddMessage then
-        DEFAULT_CHAT_FRAME:AddMessage('|cff3fb950Quintessence Groupe|r ' .. text)
+        DEFAULT_CHAT_FRAME:AddMessage((Quintessence and Quintessence.Style and Quintessence.Style.ChatText or tostring)('|c' .. Quintessence.Style.hex.mint .. 'Quintessence Groupe|r ' .. text))
     end
 end
 

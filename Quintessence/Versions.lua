@@ -160,7 +160,7 @@ function V.CheckNewer(entry)
     V.update = { from = entry.name, items = newer, label = label }
     if warned[label] then return end
     warned[label] = true
-    Core.Print('|cffffd100Nouvelle version disponible|r : ' .. Core.Safe(label) .. ' (chez ' .. Core.Safe(entry.name or '?')
+    Core.Print('|c' .. Core.Style.hex.gold .. 'Nouvelle version disponible|r : ' .. Core.Safe(label) .. ' (chez ' .. Core.Safe(entry.name or '?')
         .. ') : ' .. updateHint() .. '.')
 end
 
@@ -294,7 +294,7 @@ function V.Report()
     local mineRow
     for _, row in ipairs(rows) do if row.entry.isPlayer then mineRow = row end end
     if mineRow and not mineRow.upToDate then
-        Core.Print('|cffffd100Ton pack n’est pas à jour|r : ' .. updateHint() .. '.')
+        Core.Print('|c' .. Core.Style.hex.gold .. 'Ton pack n’est pas à jour|r : ' .. updateHint() .. '.')
     end
     if V.Refresh then Core.Run('versions', V.Refresh) end
 end

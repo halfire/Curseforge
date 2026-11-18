@@ -14,9 +14,9 @@ local S = Quintessence.Style
 
 local QUALITY_HEX = { [0] = 'ff9d9d9d', 'ffffffff', 'ff1eff00', 'ff0070dd', 'ffa335ee', 'ffff8000', 'ffe6cc80' }
 local ROLE_TAGS = {
-    TANK = '|cff6fa8ff[Tank]|r',
-    HEALER = '|cff5cd1a8[Soin]|r',
-    DAMAGER = '|cffe5545c[DPS]|r',
+    TANK = '|c' .. Quintessence.Style.hex.blue .. '[Tank]|r',
+    HEALER = '|c' .. Quintessence.Style.hex.mint .. '[Soin]|r',
+    DAMAGER = '|c' .. Quintessence.Style.hex.red .. '[DPS]|r',
 }
 
 local function classHex(class)
@@ -393,7 +393,7 @@ local function showQuestRewards(quest)
         rewardPanel.rows = {}
         for i = 1, 5 do
             local row = S.Row(rewardPanel, 410, 30); row:SetPoint('TOPLEFT', 14, -78 - (i - 1) * 34)
-            row.icon = row:CreateTexture(nil, 'ARTWORK'); row.icon:SetSize(24, 24); row.icon:SetPoint('LEFT', 4, 0)
+            row.icon = row:CreateTexture(nil, 'ARTWORK'); row.icon:SetSize(24, 24); row.icon:SetPoint('LEFT', 4, 0); row.icon:SetTexCoord(0.08, 0.92, 0.08, 0.92)
             row.text = S.Text(row, 12, S.colors.text); row.text:SetPoint('LEFT', 36, 0); row.text:SetWidth(366)
             row:SetScript('OnEnter', function(self) showItemTooltip(self, self.itemID) end)
             row:SetScript('OnLeave', hideTooltip)
@@ -1089,7 +1089,7 @@ function UI.RefreshDungeons()
             r.itemName:SetWidth(310)
             r.membersList:SetPoint('RIGHT', -10, 0); r.membersList:SetWidth(IW - 360)
             r.icon:SetTexture(lt.icon or 'Interface\\Icons\\INV_Misc_QuestionMark')
-            local qHex = QUALITY_HEX[lt.quality or 3] or 'ffffffff'
+            local qHex = ((Quintessence.Style.QualityHex and Quintessence.Style.QualityHex(lt.quality or 3)) or QUALITY_HEX[lt.quality or 3]) or 'ffffffff'
             r.itemName:SetText('|c' .. qHex .. Q.Safe(lt.name) .. '|r')
 
             local names = {}
@@ -1215,9 +1215,9 @@ function UI.RefreshCodex(filter)
             r.frame.itemLink = item.link
             local _, tex = Q.GetItemDisplayInfo(item.id)
             r.icon:SetTexture(tex or 'Interface\\Icons\\INV_Misc_QuestionMark')
-            local qHex = QUALITY_HEX[item.quality or 4] or 'ffa335ee'
+            local qHex = ((Quintessence.Style.QualityHex and Quintessence.Style.QualityHex(item.quality or 4)) or QUALITY_HEX[item.quality or 4]) or 'ffa335ee'
             r.nameText:SetText(item.link or ('|c' .. qHex .. Q.Safe(item.name) .. '|r'))
-            r.metaText:SetText(string.format('Découvert par |cffffffff%s|r · %s', Q.Safe(item.finder or 'Guilde'), Q.Safe(item.zone or 'Inconnue')))
+            r.metaText:SetText(string.format('Découvert par |c' .. Quintessence.Style.hex.text .. '%s|r · %s', Q.Safe(item.finder or 'Guilde'), Q.Safe(item.zone or 'Inconnue')))
             r.ilvlText:SetText('iLvl ' .. (item.ilvl or 60))
         else
             r.frame:Hide()
@@ -1240,6 +1240,7 @@ local function switchTab(tabId)
             btn:SetActive(id == tabId)
         end
     end
+    if mainFrame.tabBar and mainFrame.tabBar.Mark then mainFrame.tabBar:Mark(tabId) end
     UI.Refresh()
 end
 
@@ -1255,16 +1256,22 @@ local function create(parent)
     if Q.NoCodex() then table.remove(tabDefs, 3) end
     tabDefs[#tabDefs + 1] = { id = 'guides', label = 'Guide Quintessence', w = 160 }
 
-    local tabBtns = {}
-    local posX = 0
-    for _, def in ipairs(tabDefs) do
-        local btn = S.Button(mainFrame, def.label, def.w, 28, 'ghost')
-        btn:SetPoint('TOPLEFT', posX, 0)
-        btn:SetScript('OnClick', function() switchTab(def.id) end)
-        tabBtns[def.id] = btn
-        posX = posX + def.w + 8
+    -- Barre d'onglets commune du conteneur (1.50.0) : onglet choisi affiché dans l'en-tête « Module › onglet »
+    if S.Tabs then
+        mainFrame.tabBar = S.Tabs(mainFrame, tabDefs, switchTab, { module = 'group', gap = 8 })
+        mainFrame.tabButtons = mainFrame.tabBar.buttons
+    else
+        local tabBtns = {}
+        local posX = 0
+        for _, def in ipairs(tabDefs) do
+            local btn = S.Button(mainFrame, def.label, def.w, 28, 'ghost')
+            btn:SetPoint('TOPLEFT', posX, 0)
+            btn:SetScript('OnClick', function() switchTab(def.id) end)
+            tabBtns[def.id] = btn
+            posX = posX + def.w + 8
+        end
+        mainFrame.tabButtons = tabBtns
     end
-    mainFrame.tabButtons = tabBtns
 
     mainFrame.status = S.Text(mainFrame, 11, S.colors.gold, 'RIGHT')
     mainFrame.status:SetPoint('TOPRIGHT', -2, -8)
@@ -1299,6 +1306,62 @@ function UI.Open()
     Quintessence.UI.Open('group')
 end
 
+--- Ouvre un onglet du module (dungeons, leveling, codex, guides), avec un donjon choisi pour l'onglet Donjons.
+function UI.ShowTab(tabId, dungeonCode)
+    UI.Open()
+    if dungeonCode then dungeonState.selectedDungeon = Q.NormalizeDungeonCode(dungeonCode); dungeonState.memberOffset = 0 end
+    if mainFrame and tabs[tabId] then switchTab(tabId) end
+end
+
+-- Accueil de Quintessence (conteneur 1.49.0) : tuile Donjons et quêtes en commun dans la colonne À faire
+local ROLE_WORDS = { TANK = 'tank', HEALER = 'soigneur', DAMAGER = 'DPS' }
+function Q.Home()
+    if not Q.ready then return nil end
+    local list, lines, people = Q.HomeDungeons(), {}, {}
+    for _, d in ipairs(list) do for _, m in ipairs(d.members) do people[m.name] = true end end
+    local count = 0
+    for _ in pairs(people) do count = count + 1 end
+    for i = 1, math.min(3, #list) do
+        local d = list[i]
+        local names = {}
+        for j = 1, math.min(3, #d.members) do
+            local m = d.members[j]
+            names[#names + 1] = Q.Safe(Quintessence.DisplayName(m.name)) .. ' (' .. ROLE_WORDS[m.role] .. ')'
+        end
+        if #d.members > 3 then names[#names + 1] = '+' .. (#d.members - 3) end
+        local missing = {}
+        if d.roles.TANK == 0 then missing[#missing + 1] = 'un tank' end
+        if d.roles.HEALER == 0 then missing[#missing + 1] = 'un soigneur' end
+        local short = d.info and (d.info.short or d.info.name) or d.code
+        lines[#lines + 1] = { Q.Safe(short) .. (d.info and d.info.minLvl and (' ' .. d.info.minLvl .. '–' .. d.info.maxLvl) or '')
+            .. (d.forAlt and (' · pour ' .. Q.Safe(d.forAlt)) or '')
+            .. (#missing > 0 and (' · il manque ' .. table.concat(missing, ' et ')) or ''), d.forAlt and 'muted' or 'gold' }
+        lines[#lines + 1] = { '   ' .. table.concat(names, ', '), 'text' }
+    end
+    if #list == 0 then lines[#lines + 1] = { 'Personne ne cherche de donjon à ton niveau (ni à celui de tes rerolls).', 'muted' } end
+    local mine = Q.MySignups()
+    if #mine > 0 then
+        local shorts = {}
+        for _, code in ipairs(mine) do local info = Q.GetDungeonInfo(code); shorts[#shorts + 1] = Q.Safe(info and (info.short or info.name) or code) end
+        lines[#lines + 1] = { 'Tu es inscrit : ' .. table.concat(shorts, ', '), 'mint' }
+    else lines[#lines + 1] = { 'Inscris-toi dans l’onglet Donjons pour être trouvé.', 'muted' } end
+    local first = list[1] and list[1].code or mine[1]
+    local out = { tile = { title = 'Donjons', icon = 'Interface\\Icons\\INV_Misc_Book_08', order = 30, value = count,
+        label = count > 1 and 'membres cherchent un groupe' or 'membre cherche un groupe', lines = lines,
+        hint = 'Clic : onglet Donjons, bouton Inviter', action = function() UI.ShowTab('dungeons', first) end } }
+    -- À faire : quêtes en commun avec des membres connectés (deux au plus)
+    local shared = Q.FindSharedQuests and Q.FindSharedQuests() or {}
+    out.todo = {}
+    for i = 1, math.min(2, #shared) do
+        local q, who = shared[i], shared[i].members[1]
+        local whoName = type(who) == 'table' and (who.name or who[1]) or who
+        out.todo[#out.todo + 1] = { text = 'Quête en commun : ' .. Q.Safe(q.title) .. ' (avec ' .. Q.Safe(Quintessence.DisplayName(tostring(whoName or '?')))
+            .. (#q.members > 1 and (' +' .. (#q.members - 1)) or '') .. ')', tone = 'mint', order = 60,
+            action = function() UI.ShowTab('leveling'); UI.ShowSharedQuest(q.title) end }
+    end
+    return out
+end
+
 function UI.Toggle() Quintessence.UI.Toggle('group') end
 
 Quintessence:RegisterModule({
@@ -1314,6 +1377,7 @@ Quintessence:RegisterModule({
         return mainFrame
     end,
     refresh = function() UI.Refresh() end,
+    home = function() return Q.Home() end,
     summary = function()
         if not Q.ready then return nil end
         return Q.Summary and Q.Summary() or 'Recherche de donjon'

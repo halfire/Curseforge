@@ -65,7 +65,8 @@ function Q.LayerLabel(layer)
     return (layer and layer > 0) and ('Layer ' .. layer) or 'Layer ?'
 end
 
--- SOS le plus récent, lu par Quintessence/UI.lua (bandeau de l'accueil) : jamais renseigné avant
+-- SOS le plus récent, lu par l'accueil des conteneurs d'avant 1.49.0 (Release, CurseForge) ; depuis 1.49.0 le bandeau
+-- vient de Q.Home (UI.lua). Jamais renseigné avant
 local function setActiveSOS(list)
     local a = list[1]
     QuinteMapDB.activeSOS = a and { player = a.name, zone = a.zone, x = a.x, y = a.y, layer = a.layer, time = a.time } or nil
@@ -129,7 +130,7 @@ function Q.SendSOS()
         })
     end
 
-    Q.Print(string.format('|cffff2020[APPEL AUX ARMES]|r Alerte transmise à la guilde à %s%s (%.1f, %.1f - %s) !',
+    Q.Print(string.format('|c' .. Quintessence.Style.hex.red .. '[APPEL AUX ARMES]|r Alerte transmise à la guilde à %s%s (%.1f, %.1f - %s) !',
         zone, subzone ~= '' and (' - ' .. subzone) or '', x, y, Q.LayerLabel(layer)))
 
     Q.GetActiveSOS()
@@ -156,8 +157,8 @@ function Q.ClearSOS()
         })
     end
 
-    Q.Print(had and '|cff3fb950Alerte levée.|r La guilde sait que tu es désormais en sécurité.'
-        or '|cff3fb950Fin d’alerte envoyée à la guilde.|r')
+    Q.Print(had and '|c' .. Quintessence.Style.hex.mint .. 'Alerte levée.|r La guilde sait que tu es désormais en sécurité.'
+        or '|c' .. Quintessence.Style.hex.mint .. 'Fin d’alerte envoyée à la guilde.|r')
     Q.GetActiveSOS()
     if Q.UI and Q.UI.RefreshSOS then Q.UI.RefreshSOS() end
 end
@@ -190,7 +191,7 @@ function Q.OnReceiveSOS(data, sender)
         targetInfo = string.format(' [Agresseur : %s]', sos.targetName)
     end
 
-    local msg = string.format('|cffff2020[SOS GUILDE]|r |cffffffff%s|r attaqué à %s%s (coords %.1f, %.1f - |cff38bdf8%s|r)%s !',
+    local msg = string.format('|c' .. Quintessence.Style.hex.red .. '[SOS GUILDE]|r |cffffffff%s|r attaqué à %s%s (coords %.1f, %.1f - |c' .. Quintessence.Style.hex.blue .. '%s|r)%s !',
         Q.Safe(sos.name), Q.Safe(sos.zone or 'Inconnue'), (sos.subzone and sos.subzone ~= '') and (' - ' .. sos.subzone) or '',
         sos.x or 0, sos.y or 0, Q.LayerLabel(Q.LayerFor(sos)), targetInfo)
 
@@ -214,7 +215,7 @@ function Q.OnReceiveSOSClear(_, sender)
     local who = Q.Who(sender)
     if alerts[who] then
         alerts[who] = nil
-        Q.Print('|cff3fb950[Sécurité]|r ' .. Q.Safe(Q.DisplayName(sender)) .. ' a levé son alerte SOS.')
+        Q.Print('|c' .. Quintessence.Style.hex.mint .. '[Sécurité]|r ' .. Q.Safe(Q.DisplayName(sender)) .. ' a levé son alerte SOS.')
         Q.GetActiveSOS()
         if Q.UI and Q.UI.RefreshSOS then Q.UI.RefreshSOS() end
     end

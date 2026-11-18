@@ -43,8 +43,8 @@ local refreshPending = false
 local function itemText(id, fallback)
     local name, quality = Q.ItemName(id)
     -- (pas encore en cache : nom anglais des tables de butin en attendant le nom du jeu)
-    if not name then return '|cff94a1b8' .. (fallback and Q.Safe(fallback) or ('Objet #' .. id)) .. '…|r' end
-    return '|c' .. (QUALITY_HEX[quality or 1] or 'ffffffff') .. Q.Safe(name) .. '|r'
+    if not name then return '|c' .. Quintessence.Style.hex.muted .. '' .. (fallback and Q.Safe(fallback) or ('Objet #' .. id)) .. '…|r' end
+    return '|c' .. (((Quintessence.Style.QualityHex and Quintessence.Style.QualityHex(quality or 1)) or QUALITY_HEX[quality or 1]) or 'ffffffff') .. Q.Safe(name) .. '|r'
 end
 local function showItemTooltip(owner, id)
     if not id or not GameTooltip then return end
@@ -78,9 +78,9 @@ local function renderList()
         if item then
             row.icon:SetTexture(Q.ItemIcon(item.item)); row.icon:Show()
             row.label:SetText(itemText(item.item))
-            row.source:SetText(item.obtained and '|cff5cd1a8obtenu|r' or (item.source and Q.Safe(Q.DungeonName(item.source)) or '|cffe5545csource ?|r'))
+            row.source:SetText(item.obtained and '|c' .. Quintessence.Style.hex.mint .. 'obtenu|r' or (item.source and Q.Safe(Q.DungeonName(item.source)) or '|c' .. Quintessence.Style.hex.red .. 'source ?|r'))
         else
-            row.icon:Hide(); row.label:SetText('|cff94a1b8— vide —|r'); row.source:SetText('')
+            row.icon:Hide(); row.label:SetText('|c' .. Quintessence.Style.hex.muted .. '— vide —|r'); row.source:SetText('')
         end
     end
     -- Éditeur de l'emplacement choisi
@@ -91,10 +91,10 @@ local function renderList()
         e.name:SetText(itemText(item.item))
         local bossName, bossIn = Q.BossOf(item.item)
         local bossText = (bossName and bossIn == item.source) and (' · ' .. Q.Safe(bossName)) or ''
-        e.where:SetText(item.source and (Q.Safe(Q.DungeonName(item.source)) .. bossText .. '  |cff94a1b8' .. Q.DungeonLevels(item.source) .. '|r')
-            or '|cffe5545cChoisis où le trouver ci-dessous.|r')
+        e.where:SetText(item.source and (Q.Safe(Q.DungeonName(item.source)) .. bossText .. '  |c' .. Quintessence.Style.hex.muted .. '' .. Q.DungeonLevels(item.source) .. '|r')
+            or '|c' .. Quintessence.Style.hex.red .. 'Choisis où le trouver ci-dessous.|r')
     else
-        e.icon:Hide(); e.name:SetText('|cff94a1b8Aucun objet choisi|r'); e.where:SetText('Fais Maj+clic sur un objet du jeu, glisse-le ici ou colle son numéro / adresse Wowhead.')
+        e.icon:Hide(); e.name:SetText('|c' .. Quintessence.Style.hex.muted .. 'Aucun objet choisi|r'); e.where:SetText('Fais Maj+clic sur un objet du jeu, glisse-le ici ou colle son numéro / adresse Wowhead.')
     end
     e.obtained:SetShown(item ~= nil); e.clear:SetShown(item ~= nil)
     e.obtained:SetActive(item and item.obtained); e.obtained:SetLabel(item and item.obtained and 'Obtenu' or 'Marquer obtenu')
@@ -263,12 +263,12 @@ local function renderCards()
             local mine = isMyLevel(d)
             local levels = Q.DungeonLevels(d.key)
             local parts = {}
-            if isRaid(d.key) then parts[#parts + 1] = '|cffe6b450Raid|r' end
+            if isRaid(d.key) then parts[#parts + 1] = '|c' .. Quintessence.Style.hex.gold .. 'Raid|r' end
             if levels ~= '' then parts[#parts + 1] = levels end
             local shown = loot and #loot.bosses or 0
             if shown > 0 then parts[#parts + 1] = shown .. ' boss' elseif loot then parts[#parts + 1] = 'vu par la guilde' else parts[#parts + 1] = 'butin inconnu' end
-            if mine then parts[#parts + 1] = '|cff5cd1a8ton niveau|r' end
-            card.label:SetText((loot and '' or '|cff94a1b8') .. Q.Safe(d.name) .. (loot and '' or '|r'))
+            if mine then parts[#parts + 1] = '|c' .. Quintessence.Style.hex.mint .. 'ton niveau|r' end
+            card.label:SetText((loot and '' or '|c' .. Quintessence.Style.hex.muted .. '') .. Q.Safe(d.name) .. (loot and '' or '|r'))
             card.info:SetText(table.concat(parts, ' · '))
             card.hover:SetShown(true)
             card.image:SetTexture(Q.DungeonImage(d.key))
@@ -285,7 +285,7 @@ local function renderLoot()
     v.cards:SetShown(not raid); v.detail:SetShown(raid ~= nil)
     if not raid then return renderCards() end
     local levels = Q.DungeonLevels(raid.key)
-    v.dungeonName:SetText(Q.Safe(raid.name or Q.DungeonName(raid.key)) .. (levels ~= '' and ('  |cff94a1b8' .. levels .. '|r') or ''))
+    v.dungeonName:SetText(Q.Safe(raid.name or Q.DungeonName(raid.key)) .. (levels ~= '' and ('  |c' .. Quintessence.Style.hex.muted .. '' .. levels .. '|r') or ''))
     local bosses = Q.LootBosses(raid)
     state.boss = math.max(1, math.min(state.boss, #bosses))
     state.bossOffset = math.max(0, math.min(state.bossOffset, #bosses - BOSS_ROWS))
@@ -320,7 +320,7 @@ local function renderLoot()
             row.icon:SetTexture(Q.ItemIcon(it[1]))
             row.label:SetText(itemText(it[1], it[3]))
             local code = Q.LootCode(it) or '?'
-            row.slotText:SetText((CODE_NAMES[code] or code) .. (it.boss and (' · ' .. Q.Safe(it.boss)) or '') .. (inList and ('  |cff5cd1a8dans ta liste (' .. (Q.SLOT_NAMES[inList] or '?') .. ')|r') or ''))
+            row.slotText:SetText((CODE_NAMES[code] or code) .. (it.boss and (' · ' .. Q.Safe(it.boss)) or '') .. (inList and ('  |c' .. Quintessence.Style.hex.mint .. 'dans ta liste (' .. (Q.SLOT_NAMES[inList] or '?') .. ')|r') or ''))
             row:Show()
         else row:Hide() end
     end
@@ -346,7 +346,7 @@ local function createLoot(parent)
         local card = S.Box(v.cards, S.colors.panel, S.colors.line, 'Button'); card:SetSize(CARD_W, CARD_H)
         card:SetPoint('TOPLEFT', ((i - 1) % CARD_COLUMNS) * (CARD_W + 8), -32 - math.floor((i - 1) / CARD_COLUMNS) * (CARD_H + CARD_GAP))
         card.image = card:CreateTexture(nil, 'ARTWORK'); card.image:SetPoint('TOPLEFT', 1, -1); card.image:SetPoint('TOPRIGHT', -1, -1); card.image:SetHeight(70); card.image:SetTexCoord(0, 1, 0, 0.78)
-        card.hover = S.Fill(card, 'HIGHLIGHT', { 1, 1, 1, 0.07 }); card.hover:SetAllPoints()
+        card.hover = S.Fill(card, 'HIGHLIGHT', S.colors.hover or { 1, 1, 1, 0.07 }); card.hover:SetAllPoints()
         card.label = S.Text(card, 12, S.colors.text); card.label:SetPoint('TOPLEFT', 8, -73); card.label:SetWidth(CARD_W - 16); card.label:SetWordWrap(false)
         card.info = S.Text(card, 10, S.colors.muted); card.info:SetPoint('BOTTOMLEFT', 8, 5); card.info:SetWidth(CARD_W - 16)
         card:SetScript('OnClick', function(self)
@@ -411,8 +411,8 @@ local function createLoot(parent)
                     local slot = Q.InMyList(self.item)
                     if slot then
                         Q.ClearSlot(slot)
-                        state.picked = '|cffe5545cRetiré :|r ' .. itemText(self.item) .. ' |cff94a1b8(' .. (Q.SLOT_NAMES[slot] or '?') .. ')|r'
-                    else state.picked = itemText(self.item) .. ' |cff94a1b8n\'est pas dans ta liste.|r' end
+                        state.picked = '|c' .. Quintessence.Style.hex.red .. 'Retiré :|r ' .. itemText(self.item) .. ' |c' .. Quintessence.Style.hex.muted .. '(' .. (Q.SLOT_NAMES[slot] or '?') .. ')|r'
+                    else state.picked = itemText(self.item) .. ' |c' .. Quintessence.Style.hex.muted .. 'n\'est pas dans ta liste.|r' end
                     UI.Refresh()
                 end)
                 return
@@ -421,8 +421,8 @@ local function createLoot(parent)
             Q.Run('butin', function()
                 local ok, result = Q.PickRaidItem(self.item, state.raid, state.slot)
                 if ok then
-                    state.picked = '|cff5cd1a8Ajouté :|r ' .. itemText(self.item) .. ' |cff94a1b8(' .. (Q.SLOT_NAMES[result] or '?') .. ')|r'
-                else state.picked = '|cffe5545c' .. Q.Safe(result) .. '|r' end
+                    state.picked = '|c' .. Quintessence.Style.hex.mint .. 'Ajouté :|r ' .. itemText(self.item) .. ' |c' .. Quintessence.Style.hex.muted .. '(' .. (Q.SLOT_NAMES[result] or '?') .. ')|r'
+                else state.picked = '|c' .. Quintessence.Style.hex.red .. '' .. Q.Safe(result) .. '|r' end
                 UI.Refresh()
             end)
         end)
@@ -451,7 +451,7 @@ local function onItemLink(link)
         local ok, result = Q.PickRaidItem(link, nil, state.slot)
         if ok then
             state.slot = result
-            state.picked = '|cff5cd1a8Ajouté :|r ' .. itemText(Q.ParseItem(link)) .. ' |cff94a1b8(' .. (Q.SLOT_NAMES[result] or '?') .. ')|r'
+            state.picked = '|c' .. Quintessence.Style.hex.mint .. 'Ajouté :|r ' .. itemText(Q.ParseItem(link)) .. ' |c' .. Quintessence.Style.hex.muted .. '(' .. (Q.SLOT_NAMES[result] or '?') .. ')|r'
         else Q.Print(result) end
         UI.Refresh()
     end)
@@ -481,7 +481,7 @@ local function renderNeeds()
         if g then
             row.title:SetText(Q.Safe(g.name))
             row.sub:SetText(#g.members .. ' membre' .. (#g.members > 1 and 's' or '') .. ' · ' .. g.count .. ' objet' .. (g.count > 1 and 's' or '')
-                .. (g.online > 0 and ('  |cff5cd1a8' .. g.online .. ' en ligne|r') or ''))
+                .. (g.online > 0 and ('  |c' .. Quintessence.Style.hex.mint .. '' .. g.online .. ' en ligne|r') or ''))
             row:SetSelected(g.key == state.dungeon); row:Show()
         else row:Hide() end
     end
@@ -517,8 +517,8 @@ local function renderNeeds()
         row.member = m
         if m then
             row.dot:SetVertexColor(unpack(m.online and S.colors.mint or S.colors.line))
-            row.name:SetText('|c' .. Q.ClassHex(m.class) .. Q.Safe(m.name) .. '|r' .. (m.level and ('  |cff94a1b8niv. ' .. m.level .. '|r') or '')
-                .. (m.key == Q.Key() and '  |cffd9b35c(toi)|r' or ''))
+            row.name:SetText('|c' .. Q.ClassHex(m.class) .. Q.Safe(m.name) .. '|r' .. (m.level and ('  |c' .. Quintessence.Style.hex.muted .. 'niv. ' .. m.level .. '|r') or '')
+                .. (m.key == Q.Key() and '  |c' .. Quintessence.Style.hex.gold .. '(toi)|r' or ''))
             local names = {}
             for _, it in ipairs(m.items) do
                 local txt = itemText(it.item)
@@ -527,7 +527,7 @@ local function renderNeeds()
                 end
                 names[#names + 1] = txt
             end
-            row.items:SetText(table.concat(names, '|cff94a1b8, |r'))
+            row.items:SetText(table.concat(names, '|c' .. Quintessence.Style.hex.muted .. ', |r'))
             row:Show()
         else row:Hide() end
     end

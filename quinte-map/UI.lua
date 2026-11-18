@@ -1,9 +1,8 @@
 local _, Q = ...
 --[[
   UI.lua : Interface utilisateur du module Quinte-map dans la fenêtre Quintessence (1078 × 658).
-  Deux sous-onglets :
-    1. SOS PvP sauvage : appel aux armes en 1 clic et alertes des membres agressés.
-    2. Feux de campement : carte et suivi des campements sociaux de la guilde.
+  Section « SOS et PvP » : SOS PvP sauvage (appel aux armes en 1 clic et alertes des membres agressés).
+  Feux de campement et rares retirés en 0.13.0 (demande du GM).
   Règle Retail 12+ : uniquement nos propres cadres, aucune écriture dans les objets de Blizzard.
 ]]
 
@@ -163,7 +162,7 @@ function UI.RefreshSOS()
             r.name:SetText(string.format('|c%s%s|r  ·  attaqué il y a |c%s%s|r%s',
                 cHex, Q.Safe(a.name), S.hex.red, elapsedText, targetStr))
 
-            r.pos:SetText(string.format('%s%s  ·  Coordonnées : |cffffffff%.1f, %.1f|r  ·  |c%s%s|r',
+            r.pos:SetText(string.format('%s%s  ·  Coordonnées : |c' .. Quintessence.Style.hex.text .. '%.1f, %.1f|r  ·  |c%s%s|r',
                 Q.Safe(a.zone or 'Inconnue'),
                 (a.subzone and a.subzone ~= '') and (' (' .. Q.Safe(a.subzone) .. ')') or '',
                 a.x or 0, a.y or 0, S.hex.gold, Q.LayerLabel(Q.LayerFor(a))))
@@ -390,10 +389,10 @@ function UI.RefreshVendetta()
                 and ('  |c' .. S.hex.mint .. '[Vengé par ' .. Q.Safe(e.avengedBy or 'la guilde') .. ']|r')
                 or ('  |c' .. S.hex.red .. '[À VENGER]|r')
 
-            r.enemy:SetText(string.format('|c%s%s|r%s  ·  Victime : |cffffffff%s|r (il y a %s)%s',
+            r.enemy:SetText(string.format('|c%s%s|r%s  ·  Victime : |c' .. Quintessence.Style.hex.text .. '%s|r (il y a %s)%s',
                 eHex, Q.Safe(e.enemy), killsBadge, Q.Safe(e.victim or 'Membre'), elapsedText, statusBadge))
 
-            r.meta:SetText(string.format('%s%s  ·  Coordonnées : |cffffffff%.1f, %.1f|r  ·  |c%s%s|r',
+            r.meta:SetText(string.format('%s%s  ·  Coordonnées : |c' .. Quintessence.Style.hex.text .. '%.1f, %.1f|r  ·  |c%s%s|r',
                 Q.Safe(e.zone or 'Inconnue'),
                 (e.subzone and e.subzone ~= '') and (' (' .. Q.Safe(e.subzone) .. ')') or '',
                 e.x or 0, e.y or 0, S.hex.gold, Q.LayerLabel(e.layer)))
@@ -430,193 +429,180 @@ function UI.RefreshVendetta()
 end
 
 -- =========================================================================
--- ONGLET 3 : FEUX DE CAMPEMENT (CAMPING)
+-- VENDETTAS, PRIMES ET CLASSEMENT (0.14.0, T218) : calculés par le site, reçus par Quinte-sync ou en jeu
 -- =========================================================================
 
-local function createCampPanel(parent)
-    local panel = CreateFrame('Frame', nil, parent)
-    panel:SetAllPoints()
-
-    -- Bandeau de contrôle supérieur
-    local topBox = S.Box(panel, S.colors.panel, S.colors.line)
-    topBox:SetPoint('TOPLEFT', 0, 0)
-    topBox:SetSize(PW, 56)
-
-    local campIcon = topBox:CreateTexture(nil, 'ARTWORK')
-    campIcon:SetSize(34, 34); campIcon:SetPoint('LEFT', 14, 0)
-    campIcon:SetTexture('Interface\\Icons\\Spell_Fire_Fire')
-    campIcon:SetTexCoord(0.08, 0.92, 0.08, 0.92)
-
-    local campTitle = S.Text(topBox, 14, S.colors.text)
-    campTitle:SetPoint('TOPLEFT', 58, -10)
-    campTitle:SetText('Feux de campement de la guilde')
-
-    local campDesc = S.Text(topBox, 11, S.colors.muted)
-    campDesc:SetPoint('TOPLEFT', 58, -30)
-    campDesc:SetText('Partage ton campement sur la carte du monde pour offrir repos et buffs aux membres.')
-
-    local removeBtn = S.Button(topBox, 'Replier', 100, 30, 'ghost')
-    removeBtn:SetPoint('RIGHT', -14, 0)
-    removeBtn:SetScript('OnClick', function() Q.RemoveCamp() end)
-
-    local deployBtn = S.Button(topBox, 'Poser mon campement (30 min)', 200, 30, 'primary')
-    deployBtn:SetPoint('RIGHT', removeBtn, 'LEFT', -8, 0)
-    deployBtn:SetScript('OnClick', function() Q.DeployCamp() end)
-
-    -- Conteneur des campements actifs
-    local listBox = S.Box(panel, S.colors.panel, S.colors.line)
-    listBox:SetPoint('TOPLEFT', 0, -66)
-    listBox:SetSize(PW, PH - 66)
-
-    local listHeading = S.Heading(listBox, 'Campements actifs sur les layers')
-    listHeading:SetPoint('TOPLEFT', 16, -12)
-
-    local rows = {}
-    for i = 1, LIST_ROWS do
-        local r = S.Row(listBox, PW - 2, 40)
-        r:SetPoint('TOPLEFT', 1, -34 - (i - 1) * 41)
-
-        local icon = r:CreateTexture(nil, 'ARTWORK')
-        icon:SetSize(24, 24); icon:SetPoint('LEFT', 14, 0)
-        icon:SetTexture('Interface\\Icons\\Spell_Fire_Fire')
-        icon:SetTexCoord(0.08, 0.92, 0.08, 0.92)
-
-        local nameText = S.Text(r, 13, S.colors.text)
-        nameText:SetPoint('TOPLEFT', 48, -5)
-        nameText:SetWidth(PW - 390)
-
-        local posText = S.Text(r, 11, S.colors.muted)
-        posText:SetPoint('TOPLEFT', 48, -22)
-        posText:SetWidth(PW - 390)
-
-        local joinBtn = S.Button(r, 'Rejoindre', 130, 26, 'primary')
-        joinBtn:SetPoint('RIGHT', -164, 0)
-
-        local mapBtn = S.Button(r, 'Carte', 70, 26, 'ghost')
-        mapBtn:SetPoint('RIGHT', -14, 0)
-
-        local routeBtn = S.Button(r, 'Chemin', 64, 26, 'ghost')
-        routeBtn:SetPoint('RIGHT', -92, 0)
-
-        rows[i] = {
-            frame = r,
-            name = nameText,
-            pos = posText,
-            joinBtn = joinBtn,
-            routeBtn = routeBtn,
-            mapBtn = mapBtn
-        }
-    end
-    panel.rows = rows
-
-    local emptyText = S.Text(listBox, 12, S.colors.muted, 'CENTER')
-    emptyText:SetPoint('CENTER', 0, -10)
-    emptyText:SetWidth(660)
-    emptyText:SetWordWrap(true)
-    emptyText:SetText('Aucun feu de campement de guilde actuellement actif.\nPose le tien pour offrir repos et buffs sociaux aux membres de passage.')
-    panel.emptyText = emptyText
-
-    return panel
+local BOARD_ROWS = math.floor((PH - 76) / 31) -- 18
+local boardState = { offset = 0, period = 'week' }
+local function ago(at)
+    local d = math.floor(math.max(0, Q.Now() - (tonumber(at) or 0)) / 86400)
+    return d == 0 and 'aujourd’hui' or (d == 1 and 'hier' or ('il y a ' .. d .. ' j'))
 end
-
-function UI.RefreshCamps()
-    local p = tabs.camps
-    if not p or not p:IsVisible() then return end
-
-    local camps = Q.GetActiveCamps()
-    if #camps == 0 then
-        p.emptyText:Show()
-        for _, r in ipairs(p.rows) do r.frame:Hide() end
-        return
-    end
-
-    p.emptyText:Hide()
-    local now = Q.Now()
-
-    for i, r in ipairs(p.rows) do
-        local c = camps[i]
-        if c then
-            r.frame:Show()
-            local cHex = classHex(c.class)
-            local remaining = math.max(0, (c.expiresAt or 0) - now)
-            local mins = math.floor(remaining / 60)
-
-            r.name:SetText(string.format('Campement de |c%s%s|r  ·  encore |c%s%d min|r', cHex, Q.Safe(c.owner), S.hex.mint, mins))
-            r.pos:SetText(string.format('%s%s  ·  Coordonnées : |cffffffff%.1f, %.1f|r  ·  |c%s%s|r',
-                Q.Safe(c.zone or 'Inconnue'),
-                (c.subzone and c.subzone ~= '') and (' (' .. Q.Safe(c.subzone) .. ')') or '',
-                c.x or 0, c.y or 0, S.hex.gold, Q.LayerLabel(Q.LayerFor(c))))
-
-            r.joinBtn:SetScript('OnClick', function()
-                invitePlayer(c.owner)
-                Q.Print('Demande de groupe envoyée à ' .. c.owner .. ' pour rejoindre son campement.')
-            end)
-
-            r.mapBtn:SetScript('OnClick', function()
-                Q.ShowOnWorldMap(c.mapID, c.x, c.y, 'Campement ' .. c.owner)
-            end)
-            r.routeBtn:SetScript('OnClick', function()
-                Q.ShowRoute(c.mapID, c.x, c.y, 'Campement ' .. c.owner)
-            end)
-        else
-            r.frame:Hide()
+local function boardStatus()
+    local g = Q.Board and Q.Board.Generated()
+    if not g then return 'Pas encore de liste : elle arrive du site par Quinte-sync chez un officier, puis en jeu.' end
+    return 'Calculé par le site ' .. ago(g) .. ' (' .. date('%d/%m %H:%M', g) .. ').'
+end
+local function boardPanel(parent, kind)
+    local panel = CreateFrame('Frame', nil, parent); panel:SetAllPoints()
+    local top = S.Box(panel, S.colors.panel, S.colors.line); top:SetPoint('TOPLEFT', 0, 0); top:SetSize(PW, 56)
+    local icon = top:CreateTexture(nil, 'ARTWORK'); icon:SetSize(34, 34); icon:SetPoint('LEFT', 14, 0)
+    icon:SetTexture(kind == 'rank' and 'Interface\\Icons\\INV_Misc_Trophy_03' or 'Interface\\Icons\\Ability_Rogue_FeignDeath')
+    icon:SetTexCoord(0.08, 0.92, 0.08, 0.92)
+    local title = S.Text(top, 14, S.colors.text); title:SetPoint('TOPLEFT', 58, -10)
+    title:SetText(kind == 'rank' and 'Classement PvP de la guilde' or 'Vendettas et primes')
+    panel.status = S.Text(top, 11, S.colors.muted); panel.status:SetPoint('TOPLEFT', 58, -30); panel.status:SetWidth(PW - 330)
+    if kind == 'rank' then
+        panel.periods = {}
+        for i, def in ipairs({ { 'week', 'Cette semaine' }, { 'month', '30 jours' } }) do
+            local b = S.Button(top, def[2], 120, 28, 'ghost'); b:SetPoint('RIGHT', -14 - (2 - i) * 128, 0)
+            b:SetScript('OnClick', function() boardState.period = def[1]; boardState.offset = 0; UI.RefreshBoard() end)
+            panel.periods[def[1]] = b
         end
     end
-end
-
--- =========================================================================
--- RARES REPÉRÉS
--- =========================================================================
-
-local function createRarePanel(parent)
-    local panel = CreateFrame('Frame', nil, parent)
-    panel:SetAllPoints()
-    local topBox = S.Box(panel, S.colors.panel, S.colors.line)
-    topBox:SetPoint('TOPLEFT', 0, 0); topBox:SetSize(PW, 56)
-    local icon = topBox:CreateTexture(nil, 'ARTWORK')
-    icon:SetSize(34, 34); icon:SetPoint('LEFT', 14, 0); icon:SetTexture('Interface\\Icons\\Ability_Hunter_SniperShot'); icon:SetTexCoord(0.08, 0.92, 0.08, 0.92)
-    local title = S.Text(topBox, 14, S.colors.text); title:SetPoint('TOPLEFT', 58, -10); title:SetText('Monstres rares repérés par la guilde')
-    local desc = S.Text(topBox, 11, S.colors.muted); desc:SetPoint('TOPLEFT', 58, -30)
-    desc:SetText('Cible, survole ou croise un rare : la guilde reçoit sa position et son layer (30 min).')
-    panel.alertToggle = S.Button(topBox, '', 170, 30, 'ghost'); panel.alertToggle:SetPoint('RIGHT', -14, 0)
-    panel.alertToggle:SetScript('OnClick', function()
-        QuinteMapDB.settings.rareAlert = QuinteMapDB.settings.rareAlert == false and true or false
-        UI.RefreshRares()
-    end)
-    local listBox = S.Box(panel, S.colors.panel, S.colors.line)
-    listBox:SetPoint('TOPLEFT', 0, -66); listBox:SetSize(PW, PH - 66)
-    local heading = S.Heading(listBox, 'Rares vus récemment'); heading:SetPoint('TOPLEFT', 16, -12)
-    panel.rows = {}
-    for i = 1, LIST_ROWS do
-        local r = S.Row(listBox, PW - 2, 40); r:SetPoint('TOPLEFT', 1, -34 - (i - 1) * 41)
-        local nameText = S.Text(r, 13, S.colors.text); nameText:SetPoint('TOPLEFT', 16, -5); nameText:SetWidth(PW - 160)
-        local posText = S.Text(r, 11, S.colors.muted); posText:SetPoint('TOPLEFT', 16, -22); posText:SetWidth(PW - 160)
-        local mapBtn = S.Button(r, 'Carte', 70, 26, 'ghost'); mapBtn:SetPoint('RIGHT', -14, 0)
-        panel.rows[i] = { frame = r, name = nameText, pos = posText, mapBtn = mapBtn }
+    if kind == 'vendetta' then
+        -- Objectifs de la semaine, avis de recherche, dernières primes tombées (0.15.0, T223) : plus de liste de noms
+        local body = S.Box(panel, S.colors.panel, S.colors.line); body:SetPoint('TOPLEFT', 0, -66); body:SetSize(PW, PH - 66)
+        local function heading(text, y)
+            local h = S.Text(body, 12, S.colors.gold); h:SetPoint('TOPLEFT', 16, y); h:SetText(text); return h
+        end
+        panel.objHead = heading('Objectifs de la semaine', -12)
+        panel.objectives = {}
+        local OW = math.floor((PW - 32 - 3 * 10) / 4)
+        for i = 1, 4 do
+            local o = S.Box(body, S.colors.raised or S.colors.panel, S.colors.line); o:SetSize(OW, 96)
+            o:SetPoint('TOPLEFT', 16 + (i - 1) * (OW + 10), -32)
+            o.title = S.Text(o, 12, S.colors.text); o.title:SetPoint('TOPLEFT', 10, -8); o.title:SetWidth(OW - 20)
+            o.text = S.Text(o, 10, S.colors.muted); o.text:SetPoint('TOPLEFT', 10, -26); o.text:SetWidth(OW - 20)
+            o.text:SetWordWrap(true); if o.text.SetMaxLines then o.text:SetMaxLines(3) end
+            o.bar = S.Box(o, S.colors.line, S.colors.line); o.bar:SetSize(OW - 70, 8); o.bar:SetPoint('BOTTOMLEFT', 10, 10)
+            o.fill = o.bar:CreateTexture(nil, 'ARTWORK'); o.fill:SetPoint('LEFT'); o.fill:SetHeight(8)
+            o.fill:SetColorTexture(unpack(S.colors.gold))
+            o.count = S.Text(o, 11, S.colors.text, 'RIGHT'); o.count:SetPoint('BOTTOMRIGHT', -10, 7); o.count:SetWidth(54)
+            o:Hide(); panel.objectives[i] = o
+        end
+        panel.wantedHead = heading('Avis de recherche', -142)
+        panel.posters = {}
+        local CW = math.floor((PW - 32 - 2 * 12) / 3)
+        for i = 1, 3 do
+            local c = S.Box(body, S.colors.raised or S.colors.panel, i == 1 and S.colors.gold or S.colors.line); c:SetSize(CW, 178)
+            c:SetPoint('TOPLEFT', 16 + (i - 1) * (CW + 12), -162)
+            c.head = S.Text(c, 10, S.colors.red, 'CENTER'); c.head:SetPoint('TOP', 0, -10); c.head:SetWidth(CW - 20)
+            c.name = S.Text(c, 16, S.colors.text, 'CENTER'); c.name:SetPoint('TOP', 0, -28); c.name:SetWidth(CW - 20)
+            c.info = S.Text(c, 10, S.colors.muted, 'CENTER'); c.info:SetPoint('TOP', 0, -52); c.info:SetWidth(CW - 20)
+            c.bounty = S.Text(c, 24, S.colors.gold, 'CENTER'); c.bounty:SetPoint('TOP', 0, -72); c.bounty:SetWidth(CW - 20)
+            c.deaths = S.Text(c, 11, S.colors.text, 'CENTER'); c.deaths:SetPoint('TOP', 0, -112); c.deaths:SetWidth(CW - 20)
+            c.seen = S.Text(c, 10, S.colors.muted, 'CENTER'); c.seen:SetPoint('TOP', 0, -134); c.seen:SetWidth(CW - 20)
+            c.seen:SetWordWrap(true)
+            c:Hide(); panel.posters[i] = c
+        end
+        panel.noWanted = S.Text(body, 12, S.colors.muted, 'CENTER'); panel.noWanted:SetPoint('TOP', 0, -230); panel.noWanted:SetWidth(PW - 80)
+        panel.noWanted:SetWordWrap(true)
+        panel.huntHead = heading('Dernières primes tombées', -356)
+        panel.hunter = S.Text(body, 12, S.colors.text, 'RIGHT'); panel.hunter:SetPoint('TOPRIGHT', -16, -356); panel.hunter:SetWidth(PW / 2)
+        panel.hunts = {}
+        for i = 1, 6 do
+            local t = S.Text(body, 12, S.colors.text); t:SetPoint('TOPLEFT', 24, -378 - (i - 1) * 22); t:SetWidth(PW - 48)
+            panel.hunts[i] = t
+        end
+        panel.rows = {}
+        panel.empty = S.Text(body, 12, S.colors.muted, 'CENTER'); panel.empty:SetPoint('CENTER', 0, -10); panel.empty:SetWidth(660)
+        panel.empty:SetWordWrap(true); panel.empty:Hide()
+        panel.kind = kind
+        return panel
     end
-    local emptyText = S.Text(listBox, 12, S.colors.muted, 'CENTER')
-    emptyText:SetPoint('CENTER', 0, -10); emptyText:SetWidth(660); emptyText:SetWordWrap(true)
-    emptyText:SetText('Aucun rare repéré depuis 30 minutes.')
-    panel.emptyText = emptyText
+    local list = S.Box(panel, S.colors.panel, S.colors.line); list:SetPoint('TOPLEFT', 0, -66); list:SetSize(PW, PH - 66)
+    list:EnableMouseWheel(true)
+    list:SetScript('OnMouseWheel', function(_, delta) boardState.offset = math.max(0, boardState.offset - delta * 3); UI.RefreshBoard() end)
+    panel.heading = S.Text(list, 11, S.colors.gold); panel.heading:SetPoint('TOPLEFT', 16, -12); panel.heading:SetWidth(PW - 32)
+    panel.heading:SetText('Membre · kills normaux · grey kills · morts · champs de bataille · primes tombées')
+    panel.rows = {}
+    for i = 1, BOARD_ROWS do
+        local r = S.Row(list, PW - 2, 30); r:SetPoint('TOPLEFT', 1, -34 - (i - 1) * 31)
+        r.main = S.Text(r, 12, S.colors.text); r.main:SetPoint('LEFT', 14, 0); r.main:SetWidth(PW - 30)
+        panel.rows[i] = r
+    end
+    panel.empty = S.Text(list, 12, S.colors.muted, 'CENTER'); panel.empty:SetPoint('CENTER', 0, -10); panel.empty:SetWidth(660)
+    panel.empty:SetWordWrap(true)
+    panel.kind = kind
     return panel
 end
-
-function UI.RefreshRares()
-    local p = tabs.rares
-    if not p or not p:IsVisible() then return end
-    p.alertToggle:SetLabel(QuinteMapDB.settings.rareAlert == false and 'Alertes dans le chat : non' or 'Alertes dans le chat : oui')
-    local list, now = Q.GetActiveRares(), Q.Now()
-    p.emptyText:SetShown(#list == 0)
-    for i, row in ipairs(p.rows) do
-        local r = list[i]
-        if r then
-            row.frame:Show()
-            row.name:SetText(string.format('|c%s%s|r%s  ·  il y a %d min', S.hex.gold, Q.Safe(r.name), r.elite and ' (élite)' or '', math.floor((now - (r.time or now)) / 60)))
-            row.pos:SetText(string.format('%s  ·  |cffffffff%.1f, %.1f|r  ·  |c%s%s|r  ·  vu par %s', Q.Safe(r.zone or 'Inconnue'), r.x or 0, r.y or 0,
-                S.hex.gold, Q.LayerLabel(Q.LayerFor(r)), Q.Safe(Q.DisplayName(r.by or '?'))))
-            row.mapBtn:SetScript('OnClick', function() Q.ShowOnWorldMap(r.mapID, r.x, r.y, r.name) end)
-        else row.frame:Hide() end
+local function pts(n) return n .. ' pt' .. (n > 1 and 's' or '') end
+--- Onglet Vendettas : objectifs de la semaine, trois avis de recherche, dernières primes tombées (0.15.0, T223).
+function UI.RefreshWanted(p)
+    local hex = Quintessence.Style.hex
+    local B = Q.Board
+    local objectives = B and B.Objectives() or {}
+    for i, o in ipairs(p.objectives) do
+        local d = objectives[i]
+        if d then
+            local done = d.done >= d.goal
+            o.title:SetText((done and '|TInterface\\RaidFrame\\ReadyCheck-Ready:14|t ' or '') .. Q.Safe(d.title))
+            o.text:SetText(Q.Safe(d.text))
+            o.fill:SetWidth(math.max(1, math.floor((o.bar:GetWidth() or 1) * math.min(1, d.done / math.max(1, d.goal)))))
+            o.fill:SetShown(d.done > 0)
+            o.count:SetText(math.min(d.done, d.goal) .. ' / ' .. d.goal)
+            o:Show()
+        else o:Hide() end
     end
+    p.objHead:SetShown(#objectives > 0)
+    local wanted = B and B.WantedList() or {}
+    for i, c in ipairs(p.posters) do
+        local v = wanted[i]
+        if v then
+            c.head:SetText(i == 1 and 'ENNEMI PUBLIC N°1' or 'RECHERCHÉ')
+            c.name:SetText(Q.Safe(v.name))
+            c.info:SetText((v.level and ('niveau ' .. v.level) or 'niveau inconnu') .. (v.class and (' · ' .. Q.Safe(LOCALIZED_CLASS_NAMES_MALE and LOCALIZED_CLASS_NAMES_MALE[v.class] or v.class)) or ''))
+            c.bounty:SetText(pts(v.bounty))
+            c.deaths:SetText(v.deaths .. ' membre' .. (v.deaths > 1 and 's' or '') .. ' tué' .. (v.deaths > 1 and 's' or '')
+                .. ((v.greyDeaths or 0) > 0 and ('  ·  |c' .. hex.red .. 'ganker|r') or ''))
+            c.seen:SetText('vu ' .. ago(v.last) .. (v.zone and (' · ' .. Q.Safe(v.zone)) or ''))
+            c:Show()
+        else c:Hide() end
+    end
+    p.noWanted:SetText(B and B.Generated() and 'Personne n’est recherché : tous les membres tués ont été vengés. Bravo !'
+        or 'Pas encore de liste : elle arrive du site par Quinte-sync chez un officier, puis en jeu.')
+    p.noWanted:SetShown(#wanted == 0)
+    local hunts = B and B.Hunts() or {}
+    for i, t in ipairs(p.hunts) do
+        local h = hunts[i]
+        if h then
+            t:SetText('|c' .. hex.gold .. Q.Safe(h.by) .. '|r a abattu ' .. Q.Safe(h.target) .. '  |c' .. hex.mint .. '+' .. pts(h.points) .. '|r  ·  ' .. ago(h.at))
+            t:Show()
+        else t:Hide() end
+    end
+    p.huntHead:SetShown(#hunts > 0)
+    local hunter = B and B.Hunter()
+    p.hunter:SetText(hunter and ('Chasseur de la semaine : |c' .. hex.gold .. Q.Safe(hunter.name) .. '|r (' .. pts(hunter.points) .. ')') or '')
+end
+function UI.Tab(id) return tabs[id] end
+function UI.RefreshBoard()
+    local p = tabs[activeTab]
+    if not (p and (p.kind == 'rank' or p.kind == 'vendetta')) then return end
+    p.status:SetText(boardStatus())
+    local hex = Quintessence.Style.hex
+    local lines = {}
+    if p.kind == 'rank' then
+        for id, b in pairs(p.periods) do b:SetActive(id == boardState.period) end
+        for i, r in ipairs(Q.Board and Q.Board.Ranking(boardState.period) or {}) do
+            lines[#lines + 1] = string.format('%d. |c%s%s|r  ·  |c%s%d kill%s|r  ·  %d grey kill%s  ·  %d mort%s  ·  %d BG (%d gagné%s)  ·  %d prime%s%s',
+                i, hex.gold, Q.Safe(r.name), hex.mint, r.kills, r.kills > 1 and 's' or '', r.greyKills, r.greyKills > 1 and 's' or '',
+                r.deaths, r.deaths > 1 and 's' or '', r.battlegrounds, r.won, r.won > 1 and 's' or '', r.bounties, r.bounties > 1 and 's' or '',
+                (r.bountyPoints or 0) > 0 and (' (' .. r.bountyPoints .. ' pts)') or '')
+        end
+        local ws = boardState.period == 'week' and Q.Board and Q.Board.WeekStart()
+        p.heading:SetText('Membre · kills normaux · grey kills · morts · champs de bataille · primes tombées'
+            .. (ws and ('  —  semaine depuis le mercredi ' .. date('%d/%m', ws)) or ''))
+        p.empty:SetText('Rien sur cette période. Le classement vient du journal PvP des membres, calculé par le site.')
+    else
+        return UI.RefreshWanted(p)
+    end
+    boardState.offset = math.max(0, math.min(boardState.offset, math.max(0, #lines - BOARD_ROWS)))
+    for i, r in ipairs(p.rows) do
+        local text = lines[boardState.offset + i]
+        if text then r.main:SetText(text); r:Show() else r:Hide() end
+    end
+    p.empty:SetShown(#lines == 0)
 end
 
 -- =========================================================================
@@ -633,6 +619,7 @@ local function switchTab(tabId)
             btn:SetActive(id == tabId)
         end
     end
+    if mainFrame.tabBar and mainFrame.tabBar.Mark then mainFrame.tabBar:Mark(tabId) end
     UI.Refresh()
 end
 
@@ -642,21 +629,26 @@ local function create(parent)
 
     local tabDefs = {
         { id = 'sos', label = 'SOS PvP sauvage', w = 148 },
-        { id = 'camps', label = 'Feux de campement', w = 158 },
-        { id = 'rares', label = 'Rares repérés', w = 130 },
+        { id = 'vendettas', label = 'Vendettas et primes', w = 168 },
+        { id = 'classement', label = 'Classement', w = 120 },
     }
-    if Q.SOSOnly() then tabDefs = { tabDefs[1] } end
 
-    local tabBtns = {}
-    local posX = 0
-    for _, def in ipairs(tabDefs) do
-        local btn = S.Button(mainFrame, def.label, def.w, 28, 'ghost')
-        btn:SetPoint('TOPLEFT', posX, 0)
-        btn:SetScript('OnClick', function() switchTab(def.id) end)
-        tabBtns[def.id] = btn
-        posX = posX + def.w + 8
+    -- Barre d'onglets commune du conteneur (1.50.0) : onglet choisi affiché dans l'en-tête « Module › onglet »
+    if S.Tabs then
+        mainFrame.tabBar = S.Tabs(mainFrame, tabDefs, switchTab, { module = 'map', gap = 8 })
+        mainFrame.tabButtons = mainFrame.tabBar.buttons
+    else
+        local tabBtns = {}
+        local posX = 0
+        for _, def in ipairs(tabDefs) do
+            local btn = S.Button(mainFrame, def.label, def.w, 28, 'ghost')
+            btn:SetPoint('TOPLEFT', posX, 0)
+            btn:SetScript('OnClick', function() switchTab(def.id) end)
+            tabBtns[def.id] = btn
+            posX = posX + def.w + 8
+        end
+        mainFrame.tabButtons = tabBtns
     end
-    mainFrame.tabButtons = tabBtns
 
     mainFrame.status = S.Text(mainFrame, 11, S.colors.gold, 'RIGHT')
     mainFrame.status:SetPoint('TOPRIGHT', -2, -8)
@@ -666,8 +658,8 @@ local function create(parent)
     content:SetPoint('BOTTOMRIGHT', 0, 0)
 
     tabs.sos = createSOSPanel(content)
-    tabs.camps = createCampPanel(content)
-    tabs.rares = createRarePanel(content)
+    tabs.vendettas = boardPanel(content, 'vendetta')
+    tabs.classement = boardPanel(content, 'rank')
 
     mainFrame:SetScript('OnShow', function() Q.Run('fenêtre', UI.Refresh) end)
     switchTab(activeTab or 'sos')
@@ -679,16 +671,13 @@ function UI.Refresh()
         mainFrame.status:SetText(Q.Summary())
     end
     if activeTab == 'sos' then UI.RefreshSOS() end
-    if activeTab == 'vendetta' then UI.RefreshVendetta() end
-    if activeTab == 'camps' then UI.RefreshCamps() end
-    if activeTab == 'rares' then UI.RefreshRares() end
+    if activeTab == 'vendettas' or activeTab == 'classement' then UI.RefreshBoard() end
 end
 
 function UI.Open(tabId)
     if not Q.ready and Q.Init then Q.Init() end
-    if Q.SOSOnly() then tabId = tabId and 'sos' or nil end
-    if tabId == 'vendetta' then tabId = 'sos' end
-    if tabId and (tabId == 'sos' or tabId == 'camps' or tabId == 'rares') then
+    if tabId == 'vendetta' then tabId = 'vendettas' end
+    if tabId and (tabId == 'sos' or tabs[tabId]) then
         activeTab = tabId
     end
     Quintessence.UI.Open('map')
@@ -697,9 +686,42 @@ end
 
 function UI.Toggle() Quintessence.UI.Toggle('map') end
 
+-- Accueil de Quintessence (conteneur 1.49.0) : bandeau SOS (même en édition SOS seul) et tuile PvP de la semaine
+local DAYS = { 'dim.', 'lun.', 'mar.', 'mer.', 'jeu.', 'ven.', 'sam.' }
+function Q.Home()
+    if not Q.ready then return nil end
+    local out = {}
+    local list = Q.GetActiveSOS()
+    local a = list[1]
+    if a then
+        out.alert = { text = 'SOS de ' .. Q.Safe(Q.DisplayName(a.name or '?')) .. ' — ' .. Q.Safe(a.zone or 'zone inconnue')
+            .. (a.layer and (' (' .. Q.LayerLabel(a.layer) .. ')') or '') .. (#list > 1 and (' · ' .. #list .. ' alertes en cours') or ''),
+            button = a.mapID and 'Chemin' or 'Voir le SOS',
+            action = function()
+                if a.mapID and Q.ShowRoute then Q.ShowRoute(a.mapID, a.x, a.y, 'SOS ' .. a.name) else UI.Open('sos') end
+            end }
+    end
+    local P = Q.PvP
+    if not P then return out end
+    local since = Quintessence.WeekStart and Quintessence.WeekStart() or (Q.Now() - 7 * 86400)
+    local w = P.Week and P.Week(since)
+    local from = 'Depuis ' .. DAYS[tonumber(date('%w', since)) + 1] .. ' ' .. tonumber(date('%H', since)) .. ' h (reset de la semaine)'
+    local lines
+    if w then
+        lines = { { 'Victoires honorables notées : ' .. w.honor, 'text' }, { 'Coups fatals de ton groupe : ' .. w.groupKills, 'text' },
+            { 'Morts face à des joueurs : ' .. w.deaths, w.deaths > 0 and 'red' or 'text' },
+            { 'Champs de bataille : ' .. w.played .. ' joué' .. (w.played > 1 and 's' or '') .. ', ' .. w.won .. ' gagné' .. (w.won > 1 and 's' or ''), 'text' },
+            { from, 'muted' } }
+    else lines = { { 'Journal PvP pas encore actif sur ce personnage.', 'muted' }, { from, 'muted' } } end
+    out.tile = { title = 'PvP cette semaine', icon = 'Interface\\Icons\\INV_BannerPVP_02', order = 10,
+        value = w and w.kills or '—', label = (w and w.kills == 1) and 'coup fatal' or 'coups fatals', lines = lines,
+        hint = 'Clic : ouvrir la carte et les SOS', action = function() UI.Open() end }
+    return out
+end
+
 Quintessence:RegisterModule({
     id = 'map',
-    title = Q.SOSOnly() and 'SOS' or 'SOS & Camps',
+    title = 'SOS et PvP',
     order = 55,
     icon = 'Interface\\Icons\\INV_BannerPVP_02',
     version = Q.version,
@@ -710,6 +732,7 @@ Quintessence:RegisterModule({
         return mainFrame
     end,
     refresh = function() UI.Refresh() end,
+    home = function() return Q.Home() end,
     summary = function()
         if not Q.ready then return nil end
         return Q.Summary and Q.Summary() or 'Carte tactique'

@@ -80,11 +80,11 @@ function Q.SetWaypoint(mapID, x, y, title, open, route)
     local label = Q.Safe(title or 'Objectif')
     local opened = open and openWorldMap(mID)
     if opened == 'ok' then
-        Q.Print(string.format('Carte ouverte sur |cffffd100%s|r (%.1f, %.1f)%s.', label, x, y,
+        Q.Print(string.format('Carte ouverte sur |c' .. Quintessence.Style.hex.gold .. '%s|r (%.1f, %.1f)%s.', label, x, y,
             waypointSet and ', repère et flèche de suivi placés' or ''))
         return
     elseif opened == 'combat' then
-        Q.Print(string.format('Repère placé sur |cffffd100%s|r (%.1f, %.1f) : la carte s’ouvrira à la fin du combat.', label, x, y))
+        Q.Print(string.format('Repère placé sur |c' .. Quintessence.Style.hex.gold .. '%s|r (%.1f, %.1f) : la carte s’ouvrira à la fin du combat.', label, x, y))
         return
     end
     if mID then
@@ -93,7 +93,7 @@ function Q.SetWaypoint(mapID, x, y, title, open, route)
         local link = string.format('|cffffff00|Hworldmap:%d:%d:%d|h[Carte : %s (%.1f, %.1f)]|h|r', mID, coordX, coordY, label, x, y)
         Q.Print(string.format('Repère placé : %s%s.', link, waypointSet and ' (flèche de suivi activée)' or ''))
     else
-        Q.Print(string.format('Repère placé vers |cffffd100%s|r (%.1f, %.1f).', label, x, y))
+        Q.Print(string.format('Repère placé vers |c' .. Quintessence.Style.hex.gold .. '%s|r (%.1f, %.1f).', label, x, y))
     end
 end
 

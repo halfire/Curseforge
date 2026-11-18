@@ -1,6 +1,6 @@
 local addonName, Q = ...
 -- Nom réel du dossier installé (ex. « Quinte-Caract » cloné depuis GitHub) : ADDON_LOADED le renvoie tel quel.
-Q.name, Q.version = addonName or 'quinte-caract', '0.16.0'
+Q.name, Q.version = addonName or 'quinte-caract', '0.20.1'
 Q.api, Q.errors, Q.pendingItems = {}, {}, {}
 Q.scans, Q.changes, Q.slow = 0, 0, {}
 
@@ -23,6 +23,8 @@ end
 function Q.Error(context, reason)
     Q.errors[#Q.errors + 1] = context .. ': ' .. tostring(reason)
     if #Q.errors > 10 then table.remove(Q.errors, 1) end
+    -- Historique de 10 jours du conteneur (page /quinte erreurs, T223)
+    if Quintessence and Quintessence.LogError then pcall(Quintessence.LogError, Q.name or 'quinte-caract', context, reason) end
 end
 -- Chronomètre : tout traitement de plus de 50 ms est noté (visible dans /qcaract debug).
 function Q.Run(context, fn, ...)
@@ -56,7 +58,7 @@ function Q.Key() return Quintessence.Key() end
 function Q.Safe(value) return (tostring(value or '?'):gsub('|', '||')) end
 function Q.Print(value)
     if DEFAULT_CHAT_FRAME and DEFAULT_CHAT_FRAME.AddMessage then
-        DEFAULT_CHAT_FRAME:AddMessage('|cff70d5bfQuintessence|r ' .. value)
+        DEFAULT_CHAT_FRAME:AddMessage((Quintessence and Quintessence.Style and Quintessence.Style.ChatText or tostring)('|cff70d5bfQuintessence|r ' .. value))
     end
 end
 function Q.Equal(a, b)

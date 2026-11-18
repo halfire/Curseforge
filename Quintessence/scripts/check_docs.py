@@ -21,7 +21,7 @@ from pathlib import Path
 
 SUITE = Path(__file__).resolve().parents[2]
 MODULES = ['Quintessence', 'quinte-craft', 'quinte-caract', 'quinte-event', 'quinte-raid', 'quinte-layer',
-           'quinte-map', 'quinte-group', 'quinte-bis', 'quinte-ride', 'quinte-recrut']
+           'quinte-map', 'quinte-group', 'quinte-bis', 'quinte-ride', 'quinte-recrut', 'quinte-ban']
 BEGIN, END = '<!-- auto:debut -->', '<!-- auto:fin -->'
 NOT_EVENTS = ('INVTYPE_', 'ANCHOR_', 'RAID_CLASS', 'SOUNDKIT', 'ITEM_QUALITY', 'LE_', 'ERR_', 'WOW_PROJECT')
 LAYOUT = {'TOPLEFT', 'TOPRIGHT', 'BOTTOMLEFT', 'BOTTOMRIGHT', 'CENTER', 'ARTWORK', 'BACKGROUND', 'OVERLAY',

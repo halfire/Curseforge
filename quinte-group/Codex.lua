@@ -38,7 +38,7 @@ function Q.AddCodexItem(itemID, itemLink, name, quality, ilvl, equipLoc, zone, f
     end
 
     if QuinteGroupDB.settings and QuinteGroupDB.settings.announceCodex then
-        Q.Print(string.format('|cffffd200[Codex Secret]|r Nouvel objet découvert par |cffffffff%s|r : %s à %s !',
+        Q.Print(string.format('|c' .. Quintessence.Style.hex.gold .. '[Codex Secret]|r Nouvel objet découvert par |cffffffff%s|r : %s à %s !',
             itemData.finder, itemData.link, itemData.zone))
     end
 
@@ -57,7 +57,7 @@ function Q.OnReceiveCodexItem(data, sender)
     if not QuinteGroupDB.codex[itemID] then
         QuinteGroupDB.codex[itemID] = item
         if QuinteGroupDB.settings and QuinteGroupDB.settings.announceCodex then
-            Q.Print(string.format('|cffffd200[Codex Secret]|r Nouvel objet partagé par |cffffffff%s|r : %s !',
+            Q.Print(string.format('|c' .. Quintessence.Style.hex.gold .. '[Codex Secret]|r Nouvel objet partagé par |cffffffff%s|r : %s !',
                 sender or item.finder or 'Guilde', item.link or item.name))
         end
         if Q.UI and Q.UI.RefreshCodex then Q.UI.RefreshCodex() end

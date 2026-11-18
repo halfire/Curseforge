@@ -902,9 +902,83 @@ function Q.InviteCompatibleGroup(dungeonCode)
 
     if #comp.excluded > 0 then
         local firstEx = comp.excluded[1]
-        Q.Print(string.format('|cffff7070Attention :|r %s a été mis en réserve (conflit avec %s sur %s). Créez un 2e groupe pour maximiser les loots !',
+        Q.Print(string.format('|c' .. Quintessence.Style.hex.red .. 'Attention :|r %s a été mis en réserve (conflit avec %s sur %s). Créez un 2e groupe pour maximiser les loots !',
             firstEx.member.name, firstEx.conflictWith, firstEx.conflictItem.name))
     end
+end
+
+--- Accueil de Quintessence (conteneur 1.49.0) : membres connectés inscrits à un donjon, regroupés par donjon.
+--- { { code, info, members = { {name, role, level, class} }, roles = { TANK, HEALER, DAMAGER }, forAlt } }, seulement les
+--- donjons à son niveau ou à celui d'un de ses rerolls (forAlt = nom du reroll), les siens d'abord, puis les plus demandés. Inscriptions reçues de moins de 2 h (renvoyées toutes les 20 min par leurs auteurs),
+--- jamais celles d'un membre déconnecté ni la sienne.
+function Q.HomeDungeons()
+    local byCode, list, now = {}, {}, Q.Now()
+    local myName = Q.PlayerName and Q.PlayerName()
+    local myKey = prefKey(myName or '')
+    for key, p in pairs(QuinteGroupDB.memberPreferences or {}) do
+        local name = type(p) == 'table' and p.name or key
+        if key ~= myKey and type(p) == 'table' and p.status == 'active' and (now - (p.updated or 0)) < 7200
+            and not (myName and Quintessence.SameName and Quintessence.SameName(name, myName))
+            and not (Quintessence.IsOnline and Quintessence.IsOnline(name) == false) then
+            for code in pairs(dungeonSet(p.dungeons)) do
+                code = Q.NormalizeDungeonCode(code)
+                local d = byCode[code]
+                if not d then
+                    d = { code = code, info = Q.GetDungeonInfo(code), members = {}, roles = { TANK = 0, HEALER = 0, DAMAGER = 0 } }
+                    byCode[code] = d; list[#list + 1] = d
+                end
+                local role = p.role == 'TANK' and 'TANK' or (p.role == 'HEALER' and 'HEALER' or 'DAMAGER')
+                d.members[#d.members + 1] = { name = name, role = role, level = p.level, class = p.class }
+                d.roles[role] = d.roles[role] + 1
+            end
+        end
+    end
+    -- Seulement les donjons faisables par ce personnage ou un de ses rerolls (registre des personnages du compte,
+    -- Quintessence.Characters.Own) : un 60 ne voit pas les Mortemines, sauf s'il a un reroll de ce niveau (T193).
+    local mine = Q.MyLevels()
+    local function fitter(d)
+        local info = d.info
+        if not (info and info.minLvl and info.maxLvl) then return nil end
+        for _, c in ipairs(mine) do
+            if c.level >= info.minLvl - 2 and c.level <= info.maxLvl + 2 then return c end
+        end
+    end
+    local order = { TANK = 1, HEALER = 2, DAMAGER = 3 }
+    local kept = {}
+    for _, d in ipairs(list) do
+        local who = fitter(d)
+        if who then
+            d.fits, d.forAlt = true, not who.current and who.name or nil
+            table.sort(d.members, function(a, b) if a.role ~= b.role then return order[a.role] < order[b.role] end return a.name < b.name end)
+            kept[#kept + 1] = d
+        end
+    end
+    table.sort(kept, function(a, b)
+        if (a.forAlt == nil) ~= (b.forAlt == nil) then return a.forAlt == nil end
+        if #a.members ~= #b.members then return #a.members > #b.members end
+        return a.code < b.code
+    end)
+    return kept
+end
+
+--- Niveaux du joueur : personnage connecté d'abord, puis ses rerolls connus du conteneur. { { name, level, current } }
+function Q.MyLevels()
+    local out = {}
+    local level = tonumber(UnitLevel and UnitLevel('player'))
+    if level then out[1] = { name = Q.PlayerName and Q.PlayerName() or '?', level = level, current = true } end
+    local C = Quintessence and Quintessence.Characters
+    local ok, own = pcall(C and C.Own or function() return {} end)
+    if ok and type(own) == 'table' then
+        local me = Q.PlayerName and Q.PlayerName()
+        for _, c in ipairs(own) do
+            local lv = tonumber(c.level)
+            if lv and not (me and Quintessence.SameName(c.key or c.name or '', me)) then
+                out[#out + 1] = { name = Quintessence.DisplayName(c.key or c.name or '?'), level = lv, current = false }
+            end
+        end
+    end
+    if #out == 0 then out[1] = { name = '?', level = 60, current = true } end
+    return out
 end
 
 -- Liste des membres en recherche de donjon (rétro-compatibilité LFG)
