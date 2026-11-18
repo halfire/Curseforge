@@ -1,6 +1,6 @@
 # Quintessence pour CurseForge
 
-Édition membres uniquement : conteneur, Craft, Fiches, BiS, Donjons & Quêtes et Carte/SOS. Les fonctions de guilde exigent l’appartenance à Quintessence. Description prête à copier et création du projet : [PROJET-CURSEFORGE.md](PROJET-CURSEFORGE.md).
+Édition membres uniquement : conteneur, Craft, Fiches, BiS, Donjons & Quêtes Carte/SOS et Liste noire/blanche (quinte-ban). Les fonctions de guilde exigent l’appartenance à Quintessence. Description prête à copier et création du projet : [PROJET-CURSEFORGE.md](PROJET-CURSEFORGE.md).
 
 Ce dépôt est généré lors de la **promotion d’une Bêta validée en Release**, par `Quintessence/scripts/build_suite.py --channel release --promote-beta --validated-sha256 <empreinte>`. Ne pas modifier les dossiers d’addons à la main. La construction Bêta ne touche jamais ce dépôt.
 
@@ -11,3 +11,5 @@ Pousser un nouveau pack.json Release sur main déclenche Pack CurseForge, enviro
 T83 : projet CurseForge 1786751, variable GitHub CF_PROJECT_ID. Le workflow accepte le secret existant CURSEFORGE en repli de CF_API_KEY ; aucune valeur de clé lue ni manipulée. Ancienne variable PROJECT (786751) ignorée.
 
 Déploiement vérifié le 12 novembre 2026 : [Pack CurseForge #44](https://github.com/halfire/Curseforge/actions/runs/43320808953) réussi (commit 178c476). Release 1.44.3 reçue par le projet 1786751, fichier 9582601, client Forever 1.60.1. Statut initial CurseForge « Processing » ; approbation de modération distincte. Les futurs changements de pack.json Release sur main déclenchent le même envoi.
+
+Correctif de publication 1.52.1 (T229, 18 novembre 2026) : l’uploader accepte les sept addons membres, dont quinte-ban 0.6.0. Test de construction sur le manifeste réel ; exclusions des fichiers officiers conservées.

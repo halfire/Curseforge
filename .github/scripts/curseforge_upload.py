@@ -21,7 +21,7 @@ import uuid
 import zipfile
 from pathlib import Path
 
-MEMBER_ADDONS = {'Quintessence', 'quinte-craft', 'quinte-caract', 'quinte-bis', 'quinte-group', 'quinte-map'}
+MEMBER_ADDONS = {'Quintessence', 'quinte-craft', 'quinte-caract', 'quinte-bis', 'quinte-group', 'quinte-map', 'quinte-ban'}
 OFFICER_FILES = {'Announce.lua', 'Officers.lua', 'GuildLog.lua', 'PvPLog.lua'}
 
 USER_AGENT = 'quintessence-pack-upload'
@@ -44,7 +44,7 @@ def request(base, token, path, data=None, content_type=None):
 def build_zip(folder, addons):
     """ZIP des seuls dossiers d'addons listés dans pack.json."""
     if {name for name, _ in addons} != MEMBER_ADDONS or len(addons) != len(MEMBER_ADDONS):
-        raise SystemExit('CurseForge accepte uniquement les six addons membres.')
+        raise SystemExit('CurseForge accepte uniquement les sept addons membres, dont quinte-ban.')
     out = io.BytesIO()
     with zipfile.ZipFile(out, 'w', zipfile.ZIP_DEFLATED) as target:
         for name, _ in addons:

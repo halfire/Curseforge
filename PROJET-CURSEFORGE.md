@@ -21,7 +21,8 @@ Quintessence rassemble les outils d’entraide des membres de notre guilde PvE d
 - **Fiches** : consulter les personnages, leur équipement, leurs métiers et leurs accès aux raids et donjons.
 - **BiS et butins** : préparer ses besoins, explorer les butins et les plans de donjons.
 - **Donjons & Quêtes** : retrouver les quêtes de donjon et préparer une sortie avec les compagnons de guilde.
-- **SOS et Camp** : signaler une difficulté et partager les points utiles entre membres.
+- **SOS et PvP** : signaler une difficulté et consulter les objectifs PvP de la guilde.
+- **Liste noire et blanche** : signaler ou recommander un joueur et recevoir une alerte de groupe pour les joueurs signalés.
 - **Voyages et Versions** : préparer un itinéraire et suivre les versions installées.
 
 Ouvre la fenêtre avec **/quinte** ou son bouton de minicarte. Le conteneur Quintessence est obligatoire ; les modules sont facultatifs. Les échanges entre membres passent par les messages d’addon du jeu. Les fonctions de guilde s’activent uniquement pour les membres de **Quintessence** : cette suite n’est pas destinée à toutes les guildes.
