@@ -1,10 +1,10 @@
 {
- "version": "1.52.1",
+ "version": "1.52.2",
  "channel": "release",
  "addons": [
   [
    "Quintessence",
-   "1.52.1"
+   "1.52.2"
   ],
   [
    "quinte-craft",
@@ -27,9 +27,13 @@
    "0.12.7"
   ],
   [
+   "quinte-ride",
+   "0.7.1"
+  ],
+  [
    "quinte-ban",
    "0.6.0"
   ]
  ],
- "validated_beta_sha256": "2ee935fee23700f3a5f4a6f56b3329cb02be66201c76b4a858073788d8f1d5b4"
+ "validated_beta_sha256": "177d991c1d13fe96030a566cb0ee35e00a5b603ede6ff290f715f8327b967990"
 }

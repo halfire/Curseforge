@@ -28,7 +28,7 @@ local REPLY_GAP = 3600         -- au plus une réponse privée par membre et par
 local CHECK_WAIT = 15          -- attente des réponses du ping
 V.PACK_URL = 'quintessence-community.fr/addons/pack'
 -- Édition CurseForge ou pack du site : seuls ces modules existent, ceux des autres membres ne sont ni comptés ni nommés
-local CURSEFORGE_MODULES = { craft = true, caract = true, bis = true, group = true, map = true }
+local CURSEFORGE_MODULES = { craft = true, caract = true, bis = true, group = true, map = true, noire = true, ride = true }
 local function updateHint()
     if Core.IsCurseForge() then return 'mets-le à jour avec l’application CurseForge' end
     if Core.Officers and Core.Announce.IsOfficer() and not Core.Edition() then

@@ -1,0 +1,14 @@
+## Interface: 16001, 110207, 120000, 120001, 120005, 120007, 120100, 120105, 120200
+## Title: |cff4a54e8Quintessence|r : Ride the Bus
+## Group: Quintessence
+## Notes: Module Quintessence - Ride the Bus, jeu de cartes de 2 à 8 membres de la guilde (onglet Ride the Bus, /qride). Nécessite l'addon Quintessence.
+## Author: Quintessence
+## Version: 0.7.1
+## SavedVariables: QuinteRideDB
+## Dependencies: Quintessence
+## IconTexture: Interface\Icons\INV_Misc_Head_Dragon_01
+Protocol.lua
+Game.lua
+Network.lua
+Cards.lua
+UI.lua

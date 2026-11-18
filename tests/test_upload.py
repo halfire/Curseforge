@@ -18,6 +18,7 @@ class Upload(unittest.TestCase):
         with zipfile.ZipFile(io.BytesIO(m.build_zip(root,pack['addons']))) as archive:
             self.assertIn('quinte-ban/Core.lua',archive.namelist())
             self.assertIn('quinte-ban/quinte-ban.toc',archive.namelist())
+            self.assertIn('quinte-ride/quinte-ride.toc',archive.namelist())
             self.assertFalse(any(Path(n).name in m.OFFICER_FILES for n in archive.namelist()))
 
     def test_members_only(self):

@@ -27,8 +27,8 @@ ADDONS=[
     ('quinte-recrut','Core.lua'),
     ('quinte-ban','Core.lua')
 ]
-# Pack du site et dépôt CurseForge : modules disponibles pour tous, dont la Liste noire
-MEMBER_ADDONS=['Quintessence','quinte-craft','quinte-caract','quinte-bis','quinte-group','quinte-map','quinte-ban']
+# Pack du site et dépôt CurseForge : modules disponibles pour tous, dont la Liste noire et Ride the Bus (T230)
+MEMBER_ADDONS=['Quintessence','quinte-craft','quinte-caract','quinte-bis','quinte-group','quinte-map','quinte-ban','quinte-ride']
 README="""Quintessence - {title}
 ===========================
 

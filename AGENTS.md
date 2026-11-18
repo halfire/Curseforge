@@ -2,7 +2,7 @@
 
 Lire ../AGENTS.md et ../agents/REGLES.md, verrou Curseforge avant toute écriture.
 Les dossiers d’addons et pack.json sont générés par la promotion d’une bêta validée depuis Quintessence/scripts/build_suite.py. Ne pas les modifier à la main. Seule une tâche Publier avec verrou tout lance la construction ou la promotion réelle.
-Aucune bêta sur CurseForge. Liste blanche des sept addons membres (dont quinte-ban) et exclusion physique des fichiers officiers dans release_channels.py et dans l’uploader. Members.lua garde le repérage des destinataires, sans outil officier.
+Aucune bêta sur CurseForge. Liste blanche des huit addons membres (dont quinte-ban et, depuis T230, quinte-ride) et exclusion physique des fichiers officiers dans release_channels.py et dans l’uploader. Members.lua garde le repérage des destinataires, sans outil officier.
 Secrets uniquement dans GitHub Actions, jamais lus ni affichés dans les journaux. Instructions propriétaire : PROJET-CURSEFORGE.md. Tant que la première promotion n’a pas eu lieu, l’ancien pack.json est volontairement refusé par le contrôle de validation.
 T229 : le contrôle de l’uploader inclut quinte-ban ; tester le vrai pack.json pour éviter une liste autorisée obsolète.
 
