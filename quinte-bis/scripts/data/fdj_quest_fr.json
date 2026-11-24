@@ -1,0 +1,114 @@
+{
+  "1951": {
+    "name": "Les rituels de puissance",
+    "objective": "Rapportez le livre Les rituels de puissance à Tabetha, au marécage d’Âprefange."
+  },
+  "1949": {
+    "name": "Secrets cachés",
+    "objective": "Parlez au mage Tirth dans les Salines, aux Mille pointes."
+  },
+  "1950": {
+    "name": "Le mot de passe",
+    "objective": "Découvrez la formule du coffret de Tirth, puis retournez le voir."
+  },
+  "82084": {
+    "name": "Une leçon de lecture",
+    "objective": "Récupérez les ouvrages demandés par le bibliothécaire.",
+    "pickup": "Garion Wendell, Hurlevent",
+    "turnin": "Garion Wendell, Hurlevent",
+    "note": "Quête de classe du Mage."
+  },
+  "92070": {
+    "name": "Un souvenir perdu",
+    "objective": "Retrouvez le propriétaire du collier à breloques de plumes.",
+    "pickup": "Objet trouvé dans Blackmaw Hold : collier à breloques de plumes",
+    "turnin": "Propriétaire du collier, emplacement à confirmer",
+    "note": "Cette quête commence en utilisant l’objet. Le destinataire et sa position restent à confirmer."
+  },
+  "97327": {
+    "name": "Les sacoches de Blackmaw",
+    "objective": "Récupérez 5 sacoches dans Blackmaw Hold et rapportez-les à Ekkal, aux ruines d’Eldarath en Azshara."
+  },
+  "96246": {
+    "name": "Les sacoches de Blackmaw",
+    "objective": "Récupérez 5 sacoches dans Blackmaw Hold et rapportez-les à Ekkal, aux ruines d’Eldarath en Azshara.",
+    "note": "Quête répétable après la première collecte de sacoches."
+  },
+  "92066": {
+    "name": "Les deux ours",
+    "objective": "Trouvez les totems d’Ursoc et d’Ursol dans Blackmaw Hold, puis rapportez-les au gardien du savoir Nok, à Ursolan.",
+    "pickup": "Gardien du savoir Nok, Ursolan, Azshara (41.4, 20.0)",
+    "note": "Réputation neutre ou supérieure auprès des Grumegueules.",
+    "turnin": "Gardien du savoir Nok, Ursolan, Azshara (41.4, 20.0)"
+  },
+  "92065": {
+    "name": "La reconquête de Blackmaw",
+    "objective": "Rapportez la tête de Varrox Bleakhoof au gardien Rageroar, à Ursolan.",
+    "pickup": "Gardien Rageroar, Ursolan, Azshara (42.4, 20.2)",
+    "note": "Varrox est le dernier boss. Réputation neutre ou supérieure auprès des Grumegueules.",
+    "turnin": "Gardien Rageroar, Ursolan, Azshara (42.4, 20.2)"
+  },
+  "95262": {
+    "name": "La prison secrète",
+    "objective": "Entrez dans la prison d’Alcaz et découvrez ce qu’est devenu le roi de Hurlevent.",
+    "turnin": "Dans la prison d’Alcaz, destinataire non identifié"
+  },
+  "96381": {
+    "name": "Un travail salissant",
+    "objective": "Dans la prison d’Alcaz, tuez 15 soldats Strashaz et 8 enchanteresses Strashaz. Rapportez la tête de Ca’zass à Sully McCleary."
+  },
+  "96335": {
+    "name": "L’homme aux chaînes de fer",
+    "objective": "Récupérez la clé des entraves d’Alcaz sur l’Interrogateur et libérez Mason Connery."
+  },
+  "95924": {
+    "name": "Panique sur le site de fouilles",
+    "objective": "Tuez Venomridge, 6 matriarches ravasaures et 8 ravasaures cuir-de-fer dans Shaper’s Terrace.",
+    "pickup": "Conservateur Thorius, hall des Explorateurs, Forgefer (71.5, 15.7)",
+    "turnin": "Conservateur Thorius, hall des Explorateurs, Forgefer (71.5, 15.7)",
+    "note": "Le texte demande 9 ravasaures cuir-de-fer, tandis que le compteur en demande 8."
+  },
+  "95925": {
+    "name": "Cartographier le chemin",
+    "objective": "Cartographiez les cinq sites de Shaper’s Terrace avec le matériel de cartographie de la Ligue des explorateurs.",
+    "pickup": "Conservateur Thorius, hall des Explorateurs, Forgefer (71.5, 15.7)",
+    "turnin": "Conservateur Thorius, hall des Explorateurs, Forgefer (71.5, 15.7)",
+    "note": "Utilisez le matériel de cartographie de la Ligue des explorateurs sur chaque lieu demandé."
+  },
+  "93404": {
+    "name": "Pourriture et regrets",
+    "objective": "Récupérez une fiole d’eau de Chanteterre à Maraudon, puis éteignez l’arbre en feu près de Woodwyrd, aux jardins abandonnés.",
+    "note": "Utilisez la fiole sur l’arbre en feu à côté de Woodwyrd."
+  },
+  "93604": {
+    "name": "Le sang d’Agamaggan",
+    "objective": "Récupérez le sang virulent d’Agamaggan aux Souilles de Tranchebauge, puis rapportez-le à Kog’thug le Brave.",
+    "note": "Activez un chaudron de sang pour invoquer le sang virulent d’Agamaggan. Un chaudron se trouve dans la tente la plus proche du dernier boss. Le sang du Kraal ne convient pas."
+  },
+  "1701": {
+    "note": "Quête de classe du Guerrier. La fiole de phlogistique se récupère sur Roogug au Kraal de Tranchebauge."
+  },
+  "9015": {
+    "note": "Placez la bannière au centre du Cercle de la loi avant l’arrivée du combattant habituel, puis vainquez Theldren et ses gladiateurs."
+  },
+  "1947": {
+    "name": "Voyager vers le Marais",
+    "pickup": "Votre maître des mages : Jennea Cannon à Hurlevent ou Bink à Forgefer",
+    "turnin": "Tabetha, marécage d’Âprefange",
+    "objective": "Parlez à Tabetha."
+  },
+  "95790": {
+    "name": "Des recherches digestes",
+    "pickup": "Journal partiellement digéré au sol dans Shaper’s Terrace, dans les plaines verdoyantes",
+    "turnin": "Conservateur Thorius, hall des Explorateurs, Forgefer (71.5, 15.7)",
+    "objective": "Récupérez 15 pages de journal partiellement digérées dans Shaper’s Terrace.",
+    "note": "Cliquez sur le journal au sol dans le donjon pour commencer cette quête. Titre de secours traduit localement."
+  },
+  "82062": {
+    "name": "Et ils vécurent heureux",
+    "pickup": "Voyageur endurci, corniche cachée au-dessus de la lave dans les Profondeurs de Rochenoire",
+    "turnin": "Voyageur endurci, Profondeurs de Rochenoire",
+    "objective": "Parlez au voyageur endurci.",
+    "note": "Depuis le pont à l’est du Cercle de la loi, vers le nord au-dessus de la lave, sautez du parapet près du petit brasero sur la plateforme contre le mur. Suivez le mur à gauche jusqu’à la corniche en dessous. La porte mène au-dessus du seigneur Incendius, sans retour possible. Quête non partageable. Titre de secours traduit localement."
+  }
+}

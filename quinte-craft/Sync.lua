@@ -39,7 +39,9 @@ function Q.SpellName(id)
     if ok and type(name)=='string' then return name end
 end
 local function identity(record,recordKey,now)
-    if type(record)~='table' or not string100(recordKey) or not string100(record.name) or not string100(record.realm) then return nil end
+    -- (royaume vide permis : clé « Prénom Nom- » d'un joueur dont le jeu cache le royaume, client Forever 71037)
+    if type(record)~='table' or not string100(recordKey) or not string100(record.name)
+        or not (record.realm=='' or string100(record.realm)) then return nil end
     if Sync.CanonicalKey(record.name..'-'..record.realm:gsub('%s',''))~=Sync.CanonicalKey(recordKey) then return nil end
     if record.class~=nil and (not string100(record.class) or not record.class:match('^[A-Z_]+$')) then return nil end
     if record.level~=nil and not integer(record.level,1,1000) then return nil end
@@ -283,8 +285,10 @@ local function need(db,remote)
         if m.updated>=now-60*86400 and (m.updated>=RESET_AT or not launched(now)) and Q.sync:Member(m.key) and (not c or c.source~='self') and not (gone and m.updated<=gone) then
             local names={}
             for name,updated in pairs(m.professions) do
-                local p=c and c.professions[name]
-                if not p or updated>p.updated then names[#names+1]=name end
+                -- (nom rangé : « Cooking » d'un ancien client comparé à « Cuisine » ; Poisons jamais demandé)
+                local wanted=Q.ProfessionName(name)
+                local p=wanted and c and c.professions[wanted]
+                if wanted and (not p or updated>p.updated) then names[#names+1]=name end
             end
             if not c or m.updated>c.updated or #names>0 then requests[#requests+1]={key=m.key,professions=names,identity=not c or m.updated>c.updated} end
         end
@@ -334,7 +338,9 @@ local function merge(db,part,sender,now,request)
         if not string100(name) or not allowed[name] then return false end
         local validated=profession(p,now);if not validated then return false end
         if validated.updated>clean.updated then return false end
-        cleaned[name]=validated
+        -- (rangé sous son nom français, le plus récent des deux si « Cooking » et « Cuisine » arrivent ensemble)
+        local wanted=Q.ProfessionName(name)
+        if wanted and (not cleaned[wanted] or validated.updated>cleaned[wanted].updated) then cleaned[wanted]=validated end
     end
     local changed=false
     if not c then
@@ -358,3 +364,40 @@ function Q.SyncInit()
         Cleanup=cleanup,Changed=Q.Changed})
 end
 Q.SyncAdapter={Manifest=manifest,Need=need,Export=export,Merge=merge,Cleanup=cleanup,ValidateProfession=profession}
+
+-- Fenêtre /quinte debug (conteneur 1.52.11, T252) : nos personnages artisans (vérifiés ? annoncés ?) et ce que nous
+-- gardons des autres. Lecture seule.
+function Q.DiagnosticLines()
+    local db,out=QuinteCraftDB,{}
+    local D=Quintessence.Diagnostic or {}
+    local when,ago=D.When or tostring,D.Ago or function() return '?' end
+    out[#out+1]='Module '..tostring(Q.version)..' · relevés '..tostring(Q.debug.scans)..' · changements '..tostring(Q.debug.changes)
+        ..' · erreurs '..#Q.debug.errors..' · catalogue refusé '..tostring(Q.catalogueRefused or 0)
+    if type(db)~='table' or type(db.characters)~='table' then out[#out+1]='QuinteCraftDB absente ou illisible.';return out end
+    local now=Q.Now()
+    local announced={}
+    local entries=0
+    for _,batch in ipairs(manifest(db)) do for _,row in ipairs(batch) do entries=entries+1;announced[row.key]=true end end
+    local total,received,old=0,0,0
+    for key,c in pairs(db.characters) do
+        if type(c)=='table' then
+            total=total+1
+            if c.source=='self' then
+                local profs,ok,recipes=0,0,0
+                for _,p in pairs(type(c.professions)=='table' and c.professions or {}) do
+                    profs=profs+1
+                    if profession(p,now) then ok=ok+1 end
+                    if type(p)=='table' and type(p.recipes)=='table' then for _ in pairs(p.recipes) do recipes=recipes+1 end end
+                end
+                out[#out+1]='À moi : '..tostring(key)..' · '..profs..' métier(s), '..ok..' vérifié(s), '..recipes..' recette(s) · relevé le '..when(c.updated)
+                    ..' (il y a '..ago(c.updated,now)..') · annoncé aux autres : '..(announced[key] and 'oui' or 'NON')
+            else
+                received=received+1
+                if (tonumber(c.updated) or 0)<now-3*86400 then old=old+1 end
+            end
+        end
+    end
+    out[#out+1]='Personnages : '..total..' (reçus '..received..', reçus il y a plus de 3 jours '..old..') · annoncés '..entries
+    return out
+end
+if Quintessence.RegisterDiagnostic then Quintessence.RegisterDiagnostic('craft','Craft (quinte-craft)',function() return Q.DiagnosticLines() end) end

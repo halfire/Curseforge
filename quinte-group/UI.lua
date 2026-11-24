@@ -1256,6 +1256,8 @@ local function create(parent)
     if Q.NoCodex() then table.remove(tabDefs, 3) end
     tabDefs[#tabDefs + 1] = { id = 'guides', label = 'Guide Quintessence', w = 160 }
 
+    tabDefs[#tabDefs + 1] = { id = 'lfg', label = 'Recherche de groupe', w = 170 }
+
     -- Barre d'onglets commune du conteneur (1.50.0) : onglet choisi affiché dans l'en-tête « Module › onglet »
     if S.Tabs then
         mainFrame.tabBar = S.Tabs(mainFrame, tabDefs, switchTab, { module = 'group', gap = 8 })
@@ -1284,6 +1286,7 @@ local function create(parent)
     tabs.dungeons = createDungeonsPanel(content)
     tabs.codex = createCodexPanel(content)
     tabs.guides = Q.CreateGuidesPanel(content, PW, PH)
+    tabs.lfg = Q.CreateLFGPanel(content)
 
     mainFrame:SetScript('OnHide', function() if rewardPanel then rewardPanel:Hide() end end)
     mainFrame:SetScript('OnShow', function() Q.Run('fenêtre', UI.Refresh) end)
@@ -1306,7 +1309,7 @@ function UI.Open()
     Quintessence.UI.Open('group')
 end
 
---- Ouvre un onglet du module (dungeons, leveling, codex, guides), avec un donjon choisi pour l'onglet Donjons.
+--- Ouvre un onglet du module (dungeons, leveling, codex, guides, lfg), avec un donjon choisi pour l'onglet Donjons.
 function UI.ShowTab(tabId, dungeonCode)
     UI.Open()
     if dungeonCode then dungeonState.selectedDungeon = Q.NormalizeDungeonCode(dungeonCode); dungeonState.memberOffset = 0 end

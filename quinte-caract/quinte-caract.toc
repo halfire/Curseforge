@@ -3,7 +3,7 @@
 ## Group: Quintessence
 ## Notes: Module Quintessence - Fiches personnage de la guilde : stuff, stats, PvP (onglet Fiches, /qcaract). Nécessite l'addon Quintessence.
 ## Author: Quintessence
-## Version: 0.20.1
+## Version: 0.20.4
 ## SavedVariables: QuinteCaractDB
 ## Dependencies: Quintessence
 ## IconTexture: Interface\Icons\INV_Misc_Head_Dragon_01

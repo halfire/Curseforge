@@ -70,7 +70,7 @@ function Q.PexTick(at)
     end
     if UnitIsAFK then
         local ok, afk = pcall(UnitIsAFK, 'player')
-        if ok and afk and not secret(afk) then return false end
+        if ok and not secret(afk) and afk then return false end
     end
     local map, minutes = currentMap(), TICK / 60
     j.min = math.min(j.min + minutes, MAX_MINUTES)

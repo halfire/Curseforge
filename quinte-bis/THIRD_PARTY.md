@@ -56,3 +56,9 @@ ForeverDungeonJournal 2.0, auteur Exehn. À la demande expresse du GM : données
 ressources fournies, normalisées dans DungeonReference.lua ; images nécessaires dans Media/FDJ. Aucune interface FDJ
 chargée au runtime. Provenance, empreintes des fichiers/ressources et limites : docs/REFERENCE_DONJONS.md et
 scripts/data/fdj_sources.json. Les fichiers fournis ne déclarent pas de licence générale ; pas de réattribution de leurs droits.
+
+Actualisation T250 (24/11/2026) : dossier fourni « ForeverDungeonJournal 4 », .toc **2.1.5**,
+auteur Exehn. 339 ressources utilisées (plans/portraits), empreintes dans
+`scripts/data/fdj_sources.json`, faits normalisés et comparaison dans
+`scripts/data/fdj_update_20261124.json`. Même provenance et absence de licence générale
+explicite que la livraison antérieure ; aucun code d’interface tiers ajouté au runtime.

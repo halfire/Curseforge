@@ -13,7 +13,7 @@ local addonName, Core = ...
   Règle Retail 12+ : aucune écriture dans une table, une fonction ou un cadre de Blizzard.
 ]]
 Quintessence = Core -- seule globale publique de la suite (nom propre, jamais une globale de Blizzard)
-Core.name, Core.version = addonName or 'Quintessence', '1.52.2'
+Core.name, Core.version = addonName or 'Quintessence', '1.52.13'
 Core.modules, Core.syncModules, Core.channels, Core.debug = {}, {}, {}, { errors = {}, slow = {} }
 
 function Core.Call(fn, ...)
@@ -114,6 +114,38 @@ end
 -- la région ; UnitName y renvoie le nom de famille en 2e valeur ; chuchotement refusé avec un royaume).
 local Names = LibStub('LibQuinteSync-1.0')
 function Core.Realm() return Names.Realm() end
+--- Royaume des clés quand le jeu n'en donne plus (client Forever 1.60.1.71037, novembre 2026 : chaîne vide). On reprend
+--- celui de ce personnage dans le registre du compte (QuintessenceDB.characterProfile), sinon le plus fréquent de nos
+--- personnages : les clés « Prénom Nom-Royaume » restent celles d'avant la mise à jour du jeu, pour les autres membres
+--- et pour le site. Sans personnage connu (nouvelle installation), la clé reste sans royaume (« Prénom Nom- »).
+function Core.ResolveRealm()
+    local game = Names.GameRealm()
+    if game ~= '' then return game end
+    local profile = type(QuintessenceDB) == 'table' and QuintessenceDB.characterProfile
+    local own = type(profile) == 'table' and type(profile.own) == 'table' and profile.own or {}
+    local name = Names.PlayerName()
+    local me = type(name) == 'string' and name ~= '' and name ~= 'Unknown' and name ~= UNKNOWNOBJECT and Names.CanonicalKey(name)
+    local counts, best, mine = {}, nil, nil
+    for k, c in pairs(own) do
+        local realm = type(c) == 'table' and c.realm
+        if type(realm) == 'string' and realm ~= '' then
+            counts[realm] = (counts[realm] or 0) + 1
+            if me and k == me then mine = realm end
+        end
+    end
+    for realm, n in pairs(counts) do
+        if not best or n > counts[best] or (n == counts[best] and realm < best) then best = realm end
+    end
+    local chosen = mine or best
+    if chosen and Names.SetRealm(chosen) then return chosen end
+    return Core.Realm()
+end
+--- Royaume à écrire dans une fiche : celui du jeu tel quel (espaces comprises), sinon celui des clés (Core.Realm).
+function Core.RealmName()
+    local ok, name = pcall(GetRealmName)
+    if ok and type(name) == 'string' and name ~= '' and not (issecretvalue and issecretvalue(name)) then return name end
+    return Core.Realm()
+end
 --- Nom complet du joueur (« Prénom Nom » sur Forever, « Nom » ailleurs).
 function Core.PlayerName() return Names.PlayerName() or UnitName('player') end
 --- Clé de son personnage dans les données des modules : « Nom-Royaume » (Forever : « Prénom Nom-Royaume »).
@@ -279,28 +311,72 @@ function Core.LinkItem(item)
 end
 
 --- Anciennes clés possibles du joueur dans les données d'un module (avant 1.3.0, WoW Forever : « Prénom-Royaume »,
---- sans le nom de famille). Sur les autres clients, la liste est vide.
-function Core.LegacyKeys()
+--- sans le nom de famille). Sur les autres clients, la liste est vide. records (facultatif) : les fiches du module,
+--- dont toute autre clé du même personnage est reprise (même nom canonique : « Prénom Nom- », autre royaume).
+function Core.LegacyKeys(records)
     local first = UnitName('player')
     local out = {}
     -- (au chargement le jeu donne « Unknown » : rien à déplacer, sinon la fiche partait sous « Unknown-Royaume »)
     if type(first) ~= 'string' or first == '' or first == UNKNOWNOBJECT or first == 'Unknown' then return out end
     local key = Core.Key()
-    for _, old in ipairs({ first .. '-' .. Core.Realm(), first .. '-' .. (GetRealmName():gsub('%s', '')) }) do
+    local candidates = { first .. '-' .. Core.Realm(), first .. '-' .. Names.GameRealm() }
+    -- Clé sans royaume (« Prénom Nom- ») prise pendant que le jeu cachait le royaume, avant que le conteneur le retrouve
+    if Core.Realm() ~= '' then candidates[#candidates + 1] = Core.PlayerName() .. '-' end
+    if type(records) == 'table' then
+        local me, found = Names.CanonicalKey(key), {}
+        for k in pairs(records) do
+            if type(k) == 'string' and k ~= key and Names.CanonicalKey(k) == me then found[#found + 1] = k end
+        end
+        table.sort(found) -- (ordre stable d'une session à l'autre)
+        for _, k in ipairs(found) do candidates[#candidates + 1] = k end
+    end
+    for _, old in ipairs(candidates) do
         if old ~= key and not out[old] then out[old] = true; out[#out + 1] = old end
     end
     return out
 end
 --- Déplace la fiche du joueur rangée sous une ancienne clé vers la bonne clé ; rename(fiche) corrige ses champs.
-function Core.MigrateSelf(records, rename)
+--- Fiche déjà présente sous la bonne clé : merge(fiche, ancienne) les réunit, sinon la plus récente (updated) reste.
+--- Appel gardé et refait à la connexion (Core.MigrateSelfAgain) : à l'ADDON_LOADED d'une connexion (pas d'un /reload),
+--- le jeu donne « Unknown » pour le joueur, rien ne pouvait être déplacé et la fiche « Prénom Nom- » de la période du
+--- royaume caché restait à côté de « Prénom Nom-Royaume » : fiche et craft en double (Bêta 1.52.12, rapport du GM).
+local selfMigrations = {}
+function Core.MigrateSelf(records, rename, merge)
     if type(records) ~= 'table' then return false end
+    local remembered = false
+    for _, m in ipairs(selfMigrations) do
+        if m.records == records then m.rename, m.merge, remembered = rename, merge, true end
+    end
+    if not remembered then selfMigrations[#selfMigrations + 1] = { records = records, rename = rename, merge = merge } end
     local key, moved = Core.Key(), false
-    for _, old in ipairs(Core.LegacyKeys()) do
+    local me = Names.CanonicalKey(key)
+    for _, old in ipairs(Core.LegacyKeys(records)) do
         local record = records[old]
-        if type(record) == 'table' and record.source == 'self' then
-            if not records[key] then records[key] = record; if rename then rename(record) end end
+        -- (copie reçue de sa propre fiche sous une autre clé : jamais utile, la sienne fait foi)
+        if type(record) == 'table' and record.source ~= 'self' and Names.CanonicalKey(old) == me then
+            records[old] = nil; moved = true
+        elseif type(record) == 'table' and record.source == 'self' then
+            if record.realm == '' and Core.Realm() ~= '' then record.realm = Core.Realm() end
+            local current = records[key]
+            if type(current) ~= 'table' then records[key] = record; if rename then rename(record) end
+            elseif merge then merge(current, record)
+            elseif (tonumber(record.updated) or 0) > (tonumber(current.updated) or 0) then
+                records[key] = record; if rename then rename(record) end
+            end
+            -- (fiche déplacée datée de maintenant : elle remplace chez les autres la copie gardée sous l'ancienne clé)
+            if records[key] == record and type(record.updated) == 'number' then
+                record.updated = math.max(Core.Now(), record.updated + 1)
+            end
             records[old] = nil; moved = true
         end
+    end
+    return moved
+end
+--- Refait les déplacements des modules une fois le nom du joueur et son royaume sûrs (PLAYER_LOGIN, avant la synchro).
+function Core.MigrateSelfAgain()
+    local moved = false
+    for _, m in ipairs(selfMigrations) do
+        if Core.MigrateSelf(m.records, m.rename, m.merge) then moved = true end
     end
     return moved
 end
@@ -343,6 +419,8 @@ function Core.Init()
     -- Interface choisie (moderne par défaut), fixée pour la session avant la création de toute fenêtre
     QuintessenceDB.theme = Core.Style.ThemeName(QuintessenceDB.theme) or 'modern'
     Core.Style.Apply(QuintessenceDB.theme)
+    -- Royaume caché par le jeu : retrouvé avant que les modules calculent leurs clés (leur ADDON_LOADED vient après)
+    Core.Run('royaume', Core.ResolveRealm)
     Core.ready = true
     Core.Run('synchro', Core.SyncInit)
     if Core.Versions then Core.Run('versions', Core.Versions.Init) end
@@ -381,6 +459,10 @@ frame:SetScript('OnEvent', function(_, event, arg, arg2)
             return Core.GuildChanged()
         end
         Core.Init()
+        -- (nom du joueur sûr à la connexion : royaume de ce personnage précis s'il était encore « Unknown » au chargement)
+        Core.Run('royaume', Core.ResolveRealm)
+        -- (fiches du joueur des modules réunies sous sa clé : à l'ADDON_LOADED, le nom pouvait encore être « Unknown »)
+        Core.Run('fiches du joueur', Core.MigrateSelfAgain)
         Core.StartSync()
         Core.MinimapCreate()
         if not Core.loginDone then
@@ -409,7 +491,9 @@ SlashCmdList.QUINTESSENCE = function(message)
             Core.Print('Synchro : ' .. (QuintessenceDB.syncEnabled and 'activée' or 'désactivée'))
         elseif command == 'profil' then Core.Profile.Open()
         elseif command == 'visite' or command == 'tour' then if Core.Tour then Core.Tour.Start() end
-        elseif command == 'debug' then Core.Debug()
+        -- (1.52.11, T252) fenêtre de diagnostic à copier ; « /quinte debug chat » : l'ancien résumé dans le chat
+        elseif command == 'debug' then
+            if value == 'chat' or not (Core.Diagnostic and Core.Diagnostic.Open) then Core.Debug() else Core.Diagnostic.Open() end
         elseif command == 'erreurs' or command == 'errors' or command == 'error' then Core.ShowErrors(value)
         elseif command == 'test' then Core.Test()
         elseif command == 'versions' or command == 'version' then

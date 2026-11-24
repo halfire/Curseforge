@@ -53,7 +53,8 @@ local function changed(d, force)
 end
 function C.Remember(key, name, realm, level, at, sixty, quiet)
     local d = db()
-    if not d or not text(key) or not text(name) or not text(realm) or not number(level, 1000) or level < 1
+    -- (royaume vide accepté : le jeu le cache depuis le client 71037 et une nouvelle installation n'a rien pour le retrouver)
+    if not d or not text(key) or not text(name) or not (text(realm) or realm == '') or not number(level, 1000) or level < 1
         or not Core.SameName(key, name .. '-' .. realm) or name == 'Unknown' or name == UNKNOWNOBJECT then return false end
     at = number(at, Core.Now() + 300) and at or Core.Now()
     local k, c = id(key), d.own[id(key)]

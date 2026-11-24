@@ -135,7 +135,9 @@ end
 
 function Q.CollectCharacter()
     local name = Q.String(Quintessence.PlayerName(), 100)
-    local realm = Q.String(Q.Read('GetRealmName', GetRealmName), 100)
+    -- Royaume du conteneur : le jeu le cache depuis le client Forever 71037 (chaîne vide) et la fiche n'était plus
+    -- relevée du tout ; le conteneur reprend celui d'avant (Quintessence.ResolveRealm), vide seulement sans historique.
+    local realm = Q.Realm()
     if not name or not realm then return nil end
     local _, class = Q.Read('UnitClass', UnitClass, 'player')
     local _, race = Q.Read('UnitRace', UnitRace, 'player')

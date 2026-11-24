@@ -1,0 +1,101 @@
+<Ui xmlns="http://www.blizzard.com/wow/ui/" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.blizzard.com/wow/ui/ ..\..\FrameXML\UI.xsd">
+	<!--
+		LFG Forever's settings row for a line of text: the "Message" fields under
+		"Auto-whisper on Ask to Join" and "Auto-whisper on Invite". Blizzard ships
+		no text-input settings row, so this is one of our own, laid out like
+		Blizzard's rows:
+
+		* the Text label, as SettingsListElementTemplate's
+		  (Blizzard_SettingControls.xml:49-53); the mixin anchors it on Init;
+		* a Tooltip hover area over the label holding Blizzard's HoverBackground
+		  highlight, as that template's (:56-69); the mixin gives it its
+		  tooltip on Init;
+		* the "?" at the right, which lists the row's placeholders;
+		* the EditBox where Blizzard's controls sit: from the row's centre
+		  minus 80 (Blizzard_SettingControls.lua:592) to just before the "?".
+
+		IT INHERITS NO BLIZZARD ROW AND TAKES NO BLIZZARD ROW MIXIN, and no frame
+		of it declares a script. Blizzard's settings list builds the row inside
+		a protected call, then reads it outside one (ScrollBoxListView.lua:111,
+		:361-395). Built on Blizzard's row template and mixins, the row carried
+		Blizzard's methods as values of ours, the list read one of them tainted,
+		and every row built after it, the Keybindings page's included, ran as
+		LFG Forever. The only mixin is ours, holding only the methods Blizzard
+		calls inside its protected calls. .claude/rules/settings-list-taint.md
+	-->
+	<Frame name="QuinteLFGSettingsMessageRowTemplate" mixin="QuinteLFGSettingsMessageRowMixin" virtual="true">
+		<Size x="280" y="26"/>
+		<Layers>
+			<Layer level="OVERLAY">
+				<FontString parentKey="Text" inherits="GameFontNormal" justifyH="LEFT" wordwrap="false"/>
+			</Layer>
+		</Layers>
+		<Frames>
+			<Frame parentKey="Tooltip">
+				<Anchors>
+					<Anchor point="TOPLEFT"/>
+					<Anchor point="BOTTOMRIGHT" relativePoint="BOTTOM" x="-80"/>
+				</Anchors>
+				<Layers>
+					<Layer level="BACKGROUND">
+						<Texture parentKey="HoverBackground" inherits="HoverBackgroundTemplate"/>
+					</Layer>
+				</Layers>
+			</Frame>
+			<Frame parentKey="Help">
+				<Size x="20" y="20"/>
+				<Anchors>
+					<Anchor point="TOPRIGHT" x="-20" y="-3"/>
+				</Anchors>
+				<Layers>
+					<Layer level="OVERLAY">
+						<FontString parentKey="Text" inherits="GameFontNormal" text="?">
+							<Anchors>
+								<Anchor point="CENTER"/>
+							</Anchors>
+						</FontString>
+					</Layer>
+				</Layers>
+			</Frame>
+			<EditBox parentKey="EditBox" inherits="InputBoxTemplate" autoFocus="false">
+				<Size y="20"/>
+				<Anchors>
+					<Anchor point="TOPLEFT" relativePoint="TOP" x="-75" y="-3"/>
+					<Anchor point="TOPRIGHT" relativeKey="$parent.Help" relativePoint="TOPLEFT" x="-4" y="0"/>
+				</Anchors>
+			</EditBox>
+		</Frames>
+	</Frame>
+
+	<!--
+		LFG Forever's settings row for a sentence: the one in Miscellaneous that
+		says where the other languages come from. Blizzard's only text row,
+		SettingsAddOnDisabledLabelTemplate (Blizzard_SettingControls.xml:36-47),
+		shows one fixed string and has no code to change it, so this is one of
+		our own, laid out like it: the text at x = 37, where every label starts.
+		It wraps across the row to 20 short of its right edge (the "?" margin
+		above), centred on the row.
+
+		THE HEIGHT IS FIXED. The list takes a row's height from its template
+		(Blizzard_SettingsList.lua:68-71), and nothing of ours may change that.
+		45 is the height of Blizzard's section header (:13) and holds three lines
+		of GameFontNormal; maxLines cuts a longer translation short instead of
+		drawing it over the row below.
+
+		The same rule as the row above: no Blizzard row, no Blizzard row mixin,
+		no script. The mixin holds Init alone. .claude/rules/language-packs-row.md
+	-->
+	<Frame name="QuinteLFGSettingsTextRowTemplate" mixin="QuinteLFGSettingsTextRowMixin" virtual="true">
+		<Size x="280" y="45"/>
+		<Layers>
+			<Layer level="OVERLAY">
+				<FontString parentKey="Text" inherits="GameFontNormal" justifyH="LEFT" justifyV="MIDDLE" maxLines="3">
+					<Anchors>
+						<Anchor point="LEFT" x="37"/>
+						<Anchor point="RIGHT" x="-20"/>
+					</Anchors>
+				</FontString>
+			</Layer>
+		</Layers>
+	</Frame>
+</Ui>

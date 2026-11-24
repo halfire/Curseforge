@@ -1,6 +1,6 @@
 local addonName, Q = ...
 -- quinte-bis : listes BiS des membres et besoins par donjon, pour savoir qui emmener où (module de Quintessence).
-Q.name, Q.version, Q.revision = addonName or 'quinte-bis', '0.12.7', 0
+Q.name, Q.version, Q.revision = addonName or 'quinte-bis', '0.12.10', 0
 Q.debug = { errors = {}, slow = {} }
 
 function Q.Call(fn, ...)
@@ -27,7 +27,8 @@ function Q.Run(context, fn, ...)
 end
 function Q.Now() return (time or GetServerTime)() end
 function Q.Tick(previous) return math.max(Q.Now(), (previous or 0) + 1) end
-function Q.Realm() return (GetRealmName():gsub('%s', '')) end
+-- (royaume du conteneur quand le jeu le cache, client Forever 71037)
+function Q.Realm() return ((Quintessence.RealmName or GetRealmName)():gsub('%s', '')) end
 -- Clé du personnage : celle du conteneur (nom complet « Prénom Nom » sur WoW Forever)
 function Q.Key() return Quintessence.Key() end
 function Q.Safe(text) return (tostring(text or ''):gsub('|', '||')) end
@@ -50,7 +51,8 @@ function Q.Init()
     if QuinteBisDB.format ~= 1 or type(QuinteBisDB.characters) ~= 'table' then
         Q.disabled = true; Q.Print('Format de sauvegarde inconnu : quinte-bis suspendu pour préserver le fichier.'); return
     end
-    -- WoW Forever : fiche enregistrée avant 1.3.0 sous « Prénom-Royaume » → « Prénom Nom-Royaume »
+    -- WoW Forever : fiche enregistrée avant 1.3.0 sous « Prénom-Royaume » → « Prénom Nom-Royaume », ou sous
+    -- « Prénom Nom- » pendant que le jeu cachait le royaume (la plus récente des deux reste)
     Quintessence.MigrateSelf(QuinteBisDB.characters, function(c) c.name = Quintessence.PlayerName() end)
     Q.ready = true
     Q.Run('personnage', Q.Mine)

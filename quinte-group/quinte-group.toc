@@ -3,7 +3,7 @@
 ## Group: Quintessence
 ## Notes: Module Quintessence - Compagnon de leveling, quêtes partagées, préférences de donjons et Codex secret de WoW Forever (/qgroup).
 ## Author: Quintessence
-## Version: 0.34.2
+## Version: 0.36.8
 ## SavedVariables: QuinteGroupDB
 ## Dependencies: Quintessence
 ## IconTexture: Interface\Icons\INV_Misc_Head_Dragon_01
@@ -22,4 +22,27 @@ Party.lua
 Codex.lua
 GuideData.lua
 Guides.lua
+LFGHost.lua
+ThirdParty/LFGForever/locale.lua
+ThirdParty/LFGForever/db.lua
+ThirdParty/LFGForever/activitynames.lua
+ThirdParty/LFGForever/main.lua
+ThirdParty/LFGForever/relations.lua
+ThirdParty/LFGForever/talents.lua
+ThirdParty/LFGForever/settings.lua
+ThirdParty/LFGForever/settings.xml
+ThirdParty/LFGForever/listpanel.lua
+ThirdParty/LFGForever/playerrow.lua
+ThirdParty/LFGForever/whisperlog.lua
+ThirdParty/LFGForever/recentparty.lua
+ThirdParty/LFGForever/playerratings.lua
+ThirdParty/LFGForever/filterpanel_shared.lua
+ThirdParty/LFGForever/filterpanel_miscellaneous.lua
+ThirdParty/LFGForever/filterpanel_groupclasses.lua
+ThirdParty/LFGForever/filterpanel.lua
+ThirdParty/LFGForever/window.lua
+ThirdParty/LFGForever/rateleavers.lua
+ThirdParty/LFGForever/minimap.lua
+ThirdParty/LFGForever/slash.lua
+LFG.lua
 UI.lua

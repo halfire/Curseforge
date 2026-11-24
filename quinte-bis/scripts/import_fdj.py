@@ -9,6 +9,15 @@ from lupa.lua51 import LuaRuntime
 ROOT=Path(__file__).resolve().parents[1]
 GROUP=ROOT.parent/'quinte-group'
 NAMES={'Hall of Thanes':'THANES','Ruins of Lordaeron':'LORDAERON','Excavation Site: Wetlands':'EXCAV','City of Dalaran':'DALARAN','The Drowned City':'DROWNED',"Krol'dok Stronghold":'KROLDOK','Alcaz Prison':'ALCAZ','Blackmaw Hold':'BLACKMAW',"Shaper's Terrace":'SHAPER','Ragefire Chasm':'RFC','Wailing Caverns':'WC','The Deadmines':'DM','Shadowfang Keep':'SFK','The Stockade':'STOCKS','Blackfathom Deeps':'BFD','Gnomeregan':'GNOMER','Razorfen Kraul':'RFK','Razorfen Downs':'RFD','Uldaman':'ULDA',"Zul'Farrak":'ZF','Maraudon':'MARA','Sunken Temple':'ST','Blackrock Depths':'BRD','Lower Blackrock Spire':'LBRS','Upper Blackrock Spire':'UBRS','Dire Maul: East':'DME','Dire Maul: West':'DMW','Dire Maul: North':'DMN','Scarlet Monastery: Graveyard':'SM_GY','Scarlet Monastery: Library':'SM_LIB','Scarlet Monastery: Armory':'SM_ARM','Scarlet Monastery: Cathedral':'SM_CATH','Stratholme: Living':'STRAT','Stratholme: Undead':'STRAT','Scholomance':'SCHOLO'}
+CLASS_MASKS={'WARRIOR':1,'PALADIN':2,'HUNTER':4,'ROGUE':8,'PRIEST':16,'SHAMAN':64,'MAGE':128,'WARLOCK':256,'DRUID':1024}
+def class_mask(classes, fallback=None):
+    """FDJ 2.1.5 autorise une classe ou plusieurs ; garder le masque commun aux deux modules."""
+    if classes is None:return fallback
+    if isinstance(classes,str):classes=[classes]
+    if not isinstance(classes,list) or any(c not in CLASS_MASKS for c in classes):
+        raise ValueError('Classe FDJ inconnue : '+repr(classes))
+    return sum(CLASS_MASKS[c] for c in set(classes)) or fallback
+
 def literal(source,assignment):
     start=source.index('{',source.index(assignment)); i=start; depth=0
     # Les commentaires et chaînes sont ignorés pour compter les accolades de la table.
@@ -96,6 +105,7 @@ def main():
     translations=ROOT/'scripts/data/fdj_quest_fr.json'
     for key, fields in json.loads(translations.read_text()).items():
         frq.setdefault(int(key),{}).update(fields)
+    used['Quintessence/fdj_quest_fr.json']=hashlib.sha256(translations.read_bytes()).hexdigest()
     used['Localization/Content_frFR.lua']=hashlib.sha256((src/'Localization/Content_frFR.lua').read_bytes()).hexdigest()
     def asset(path):
         if not isinstance(path,str) or 'ForeverDungeonJournal\\Media\\' not in path:return path
@@ -174,7 +184,7 @@ def main():
                 # Correction explicite dans cette mise à jour ; autres niveaux déjà recoupés conservés.
                 if qid == 92457:
                     current[3]=max(current[3] or 1,combined.get('requires') or 1)
-            questmeta[qid]={'title':q['name'],'prereqs':prereqs,'class':{'WARRIOR':1,'PALADIN':2,'HUNTER':4,'ROGUE':8,'PRIEST':16,'SHAMAN':64,'MAGE':128,'WARLOCK':256,'DRUID':1024}.get(q.get('classOnly'),baseline.get(qid,{}).get('class')),'start':combined.get('pickup'),'finish':combined.get('turnin'),'objective':combined.get('objective'),'note':combined.get('note'),'description':combined.get('description')}
+            questmeta[qid]={'title':q['name'],'prereqs':prereqs,'class':class_mask(q.get('classOnly'),baseline.get(qid,{}).get('class')),'start':combined.get('pickupAlliance') or combined.get('pickup'),'finish':combined.get('turnin'),'objective':combined.get('objective'),'note':combined.get('note'),'description':combined.get('description')}
             for sid,meta in [(qid,{**info,**q})]+[(s['id'],details.get(s['id'],{})) for s in prereqs]:
                 p=point(meta.get('startMap') or meta.get('map') or starts.get(sourceid if sid==qid else sid))
                 destination=point(meta.get('turninMap'))

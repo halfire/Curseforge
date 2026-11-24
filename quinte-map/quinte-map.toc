@@ -3,7 +3,7 @@
 ## Group: Quintessence
 ## Notes: Module Quintessence - SOS PvP sauvage et journal PvP de la guilde (/qmap, /qsos).
 ## Author: Quintessence
-## Version: 0.15.0
+## Version: 0.15.2
 ## SavedVariables: QuinteMapDB
 ## Dependencies: Quintessence
 ## IconTexture: Interface\Icons\INV_Misc_Head_Dragon_01

@@ -5,7 +5,7 @@ local addonName, Q = ...
   Règle Retail 12+ : uniquement nos propres cadres, aucune écriture dans les objets de Blizzard.
 ]]
 local Core = Quintessence
-Q.name, Q.version = addonName or 'quinte-group', '0.34.2'
+Q.name, Q.version = addonName or 'quinte-group', '0.36.8'
 Q.debug = { errors = {}, slow = {} }
 
 function Q.Call(fn, ...)
@@ -134,10 +134,12 @@ SlashCmdList.QUINTEGROUP = function(message)
             local code = (message or ''):match('^%s*%S+%s+(%S+)')
             local ok, err = Q.ResetSignups(code)
             if not ok then Q.Print(err) end
+        elseif cmd == 'lfg' then
+            Q.UI.ShowTab('lfg')
         elseif cmd == 'debug' then
             Q.Debug()
         else
-            Q.Print('/qgroup : ouvrir l\'interface de groupe · /qgroup quests · /qgroup pref' .. (Q.NoCodex() and '' or ' · /qgroup codex') .. ' · /qgroup debug · /qgroup vider (officiers)')
+            Q.Print('/qgroup : ouvrir l\'interface de groupe · /qgroup quests · /qgroup pref' .. (Q.NoCodex() and '' or ' · /qgroup codex') .. ' · /qgroup lfg · /qgroup debug · /qgroup vider (officiers)')
         end
     end)
 end

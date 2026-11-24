@@ -124,3 +124,34 @@ L’XP de FOREVER_QUEST_XP_FALLBACK prime sur liveXPFallback ; aucun texte rewar
 car il peut contenir un ancien multiplicateur. Les objets noteRewardItems ne sont pas des récompenses
 directes et sont exclus. Tableau explicitement vide conservé, absence de donnée distincte.
 Au runtime un gain positif du client prime, sinon la valeur de référence reste indicative.
+
+## Source fournie le 24/11/2026 — FDJ 2.1.5 (T250)
+
+Le dossier « ForeverDungeonJournal 4 » déclare **2.1.5** dans son .toc. Import complet par la
+commande ci-dessus : 33 plans, 339 ressources utilisées, 236 entrées de quêtes principales.
+Les empreintes des données amont et du complément français local figurent dans fdj_sources.json.
+Le rapport `scripts/data/fdj_update_20261124.json` conserve les ajouts/retraits par boss et objet,
+les numéros ajoutés par donjon et les valeurs avant/après de chaque champ de quête modifié.
+
+- Sept nouvelles quêtes distinctes, huit ajouts par donjon : 79946 (Cathédrale), 80411 (Zul’Farrak),
+  81790 (Maraudon et Rochenoire), 82062 (Rochenoire), 8413 (Temple), 97169 (Scholomance),
+  95790 (Shaper’s Terrace). Les 228 entrées précédentes restent présentes.
+- 47 nouvelles fiches de quêtes/prérequis et lieux de départ ; 43 nouveaux lieux de retour.
+  Les XP de 120 fiches existantes changent et 19 listes de récompenses sont actualisées.
+  Les valeurs restent indicatives, sans multiplier de nouveau les gains fournis.
+- 124 objets uniques et 181 attributions boss/objet ajoutés au complément FDJ précédent,
+  sans retrait d’objet unique. Aucun probableLoot, aucun catalogue de raid modifié.
+- Trois plans supplémentaires : Blackmaw (six étages), Scholomance (quatre), Pic supérieur (un).
+  Onze plans existants changent, notamment Alcaz (deux étages) et le Temple.
+  ScholomanceOLD désigne nos images Classic Scholomance ; aucun téléchargement supplémentaire.
+- Les trois positions alternatives de Lorgus Jett restent toutes disponibles après fusion avec
+  le catalogue. Le nom du boss seul ne doit plus écraser ses autres positions.
+- `classOnly` accepte maintenant une liste, convertie en masque sans doublon (7507 : 3,
+  Guerrier + Paladin). Les autres classes restent filtrées par les mêmes consommateurs.
+- Le complément français local est actualisé : il ne prétend plus que Thorius et les donneurs
+  d’Ursolan sont inconnus. Les titres 95790 et 82062 sont des traductions descriptives de secours ;
+  les titres du client gardent la priorité. La première étape Mage 1947 utilise les maîtres Alliance.
+
+Tests : vraies listes et boutons simulés Group/BiS, classes, chaînes, XP/reste, récompenses,
+ressources SHA-256, tous les nouveaux objets dans le catalogue chargé, étages, positions alternatives,
+cartes en lecture seule, guides et LFG préservés, suite Forever globale. Rien vérifié en jeu.

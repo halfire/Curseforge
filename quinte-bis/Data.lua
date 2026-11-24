@@ -60,6 +60,14 @@ function Q.PutCharacter(c, sender)
     if Quintessence.SameName(key, Q.Key()) then return false end
     local mine = QuinteBisDB.characters[key]
     if mine and (mine.updated or 0) >= c.updated then return false end
+    -- Même personnage sous une autre clé (« Prénom Nom- » prise pendant que le jeu cachait le royaume) : une seule
+    -- fiche par personnage, la plus récente
+    for other, o in pairs(QuinteBisDB.characters) do
+        if other ~= key and Quintessence.SameName(other, key) then
+            if (o.updated or 0) >= c.updated then return false end
+            QuinteBisDB.characters[other] = nil
+        end
+    end
     c.source, c.syncedFrom = 'sync', sender
     QuinteBisDB.characters[key] = c
     return true
@@ -73,6 +81,20 @@ function Q.Prune(roster, now)
     for key, c in pairs(QuinteBisDB.characters) do
         if c.source ~= 'self' and ((roster and not roster[canonical(key)]) or (c.updated or 0) < now - 120 * 86400) then
             QuinteBisDB.characters[key] = nil; changed = true
+        end
+    end
+    -- Même personnage sous deux clés (« Prénom Nom- » prise pendant que le jeu cachait le royaume, puis
+    -- « Prénom Nom-Royaume ») : la fiche reçue la plus récente reste, l'autre est oubliée (la sienne n'est jamais touchée)
+    local kept = {}
+    for key, c in pairs(QuinteBisDB.characters) do
+        local id = canonical(key)
+        local other = kept[id]
+        if not other then kept[id] = key
+        else
+            local o = QuinteBisDB.characters[other]
+            local drop = key
+            if c.source == 'self' or (o.source ~= 'self' and (c.updated or 0) > (o.updated or 0)) then drop = other; kept[id] = key end
+            if QuinteBisDB.characters[drop].source ~= 'self' then QuinteBisDB.characters[drop] = nil; changed = true end
         end
     end
     if changed then Q.Changed(false) end -- index des infobulles et fenêtre à jour

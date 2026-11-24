@@ -277,7 +277,9 @@ function Q.MissingRecipes(profession)
     local line
     for id, l in pairs(Q.ALL_RECIPES) do
         professionOfLine[id] = professionOfLine[id] or lineName(l)
-        if professionOfLine[id] == profession then line = l end
+        -- (métiers rangés en français : « Cooking » d'un client anglais retrouve la ligne « Cuisine »)
+        local n = professionOfLine[id]
+        if n == profession or (n and Q.ProfessionName(n) == profession) then line = l end
     end
     if not line then return {} end
     local known = {}

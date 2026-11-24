@@ -86,6 +86,8 @@ end
 local assetsByName
 local function mapAsset(name)
     if not name then return nil end
+    -- FDJ 2.1.5 nomme explicitement l'ancien plan de Scholomance ; nos images Classic portent son nom court.
+    name = name:gsub('^ScholomanceOLD_', 'Scholomance_')
     if not assetsByName then
         assetsByName = {}
         for key, value in pairs(Q.DUNGEON_MAP_ASSETS or {}) do assetsByName[key:lower()] = value end
@@ -144,10 +146,16 @@ function M.Data(code)
     local catalogue = Core.GetDungeonBosses and call(Core.GetDungeonBosses, code)
     if type(catalogue) == 'table' and #catalogue > 0 then
         local placed, merged = {}, {}
-        for _, boss in ipairs(data.bosses) do placed[plain(boss.name)] = boss end
+        for _, boss in ipairs(data.bosses) do
+            local key = plain(boss.name)
+            placed[key] = placed[key] or {}
+            placed[key][#placed[key] + 1] = boss
+        end
         for _, boss in ipairs(catalogue) do
-            local position = placed[plain(boss.name)]
-            merged[#merged + 1] = position or { name = boss.name }
+            local positions = placed[plain(boss.name)]
+            if positions then
+                for _, position in ipairs(positions) do merged[#merged + 1] = position end
+            else merged[#merged + 1] = { name = boss.name } end
             placed[plain(boss.name)] = nil
         end
         -- Rencontres natives localisées : conserver leurs positions même si le catalogue utilise le nom anglais.

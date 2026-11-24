@@ -5,7 +5,7 @@ local addonName, Q = ...
   Règle Retail 12+ : uniquement nos propres cadres, aucune écriture dans les objets de Blizzard.
 ]]
 local Core = Quintessence
-Q.name, Q.version = addonName or 'quinte-map', '0.15.0'
+Q.name, Q.version = addonName or 'quinte-map', '0.15.2'
 Q.debug = { errors = {}, slow = {} }
 
 function Q.Call(fn, ...)
@@ -170,9 +170,13 @@ SlashCmdList.QUINTEMAP = function(message)
             Q.Debug() -- Ancien alias : diagnostic du journal, aucune alerte ni saisie.
         elseif cmd == 'debug' then
             Q.Debug()
+        elseif cmd == 'recus' or cmd == 'reçus' then
+            if Q.PvP and Q.PvP.Share and Q.PvP.Share.ReceivedReport then
+                for _, line in ipairs(Q.PvP.Share.ReceivedReport()) do Q.Print(Q.Safe(line)) end
+            end
         else
             if Q.SOSOnly() then return Q.Print('/qmap : ouvrir le SOS · /qsos : lancer un SOS · /qmap safe : lever mon alerte') end
-            Q.Print('/qmap : ouvrir SOS et PvP · /qsos : lancer un SOS · /qmap safe : lever mon alerte')
+            Q.Print('/qmap : ouvrir SOS et PvP · /qsos : lancer un SOS · /qmap safe : lever mon alerte · /qmap recus : journal PvP reçu (officiers)')
         end
     end)
 end

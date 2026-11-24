@@ -1,6 +1,6 @@
 local addonName, Q = ...
 -- Nom réel du dossier installé (ex. « Quinte-craft » cloné depuis GitHub) : ADDON_LOADED le renvoie tel quel.
-Q.name, Q.version, Q.revision = addonName or 'quinte-craft', '0.18.1', 0
+Q.name, Q.version, Q.revision = addonName or 'quinte-craft', '0.18.4', 0
 Q.debug = { errors = {}, scans = 0, changes = 0, slow = {} }
 function Q.Call(fn, ...)
     if type(fn) ~= 'function' then return false end
@@ -43,10 +43,26 @@ function Q.Changed(localChange)
     if localChange and Q.sync then Q.sync:NotifyLocal() end
     if Q.UI then Q.UI.OnDataChanged() end
 end
+--- Réunit dans sa fiche une ancienne fiche du même personnage (clé d'avant) : chaque métier garde son relevé le plus récent
+function Q.MergeSelf(target, old)
+    if type(target.professions) ~= 'table' then target.professions = {} end
+    local changed = false
+    for name, p in pairs(type(old.professions) == 'table' and old.professions or {}) do
+        local mine = target.professions[name]
+        if type(p) == 'table' and (type(mine) ~= 'table' or (tonumber(p.updated) or 0) > (tonumber(mine.updated) or 0)) then
+            target.professions[name] = p; changed = true
+        end
+    end
+    -- (date avancée : la fiche réunie remplace chez les autres celle qu'ils avaient)
+    if changed or (tonumber(old.updated) or 0) > (tonumber(target.updated) or 0) then
+        target.updated = Q.Tick(math.max(tonumber(target.updated) or 0, tonumber(old.updated) or 0))
+    end
+end
 function Q.Identity(level)
     local key = Q.Key()
     local c = QuinteCraftDB.characters[key]
-    local name, realm = Quintessence.PlayerName(), GetRealmName()
+    -- (royaume du conteneur quand le jeu le cache, client Forever 71037 : sinon clé « Prénom Nom- » refusée par la synchro)
+    local name, realm = Quintessence.PlayerName(), (Quintessence.RealmName or GetRealmName)()
     local _, class = UnitClass('player')
     level = tonumber(level) or UnitLevel('player')
     if not c or c.source ~= 'self' then
@@ -76,8 +92,11 @@ function Q.Init()
     end
     -- Sortie de WoW Forever : craft de la bêta effacé une fois (le perso connecté est relevé de nouveau)
     if Q.ResetBeforeLaunch then Q.ResetBeforeLaunch(QuinteCraftDB) end
-    -- WoW Forever : fiche enregistrée avant 1.3.0 sous « Prénom-Royaume » → « Prénom Nom-Royaume »
-    Quintessence.MigrateSelf(QuinteCraftDB.characters, function(c) c.name = Quintessence.PlayerName() end)
+    -- WoW Forever : fiche enregistrée avant 1.3.0 sous « Prénom-Royaume » → « Prénom Nom-Royaume », ou sous
+    -- « Prénom Nom- » pendant que le jeu cachait le royaume : métiers réunis, le plus récent de chacun gardé
+    -- Noms des métiers ramenés au français (« Cooking » → « Cuisine », doublons réunis), Poisons retiré
+    for _, c in pairs(QuinteCraftDB.characters) do Q.NormalizeProfessions(c) end
+    Quintessence.MigrateSelf(QuinteCraftDB.characters, function(c) c.name = Quintessence.PlayerName() end, Q.MergeSelf)
     Q.ready = true
     Q.Run('synchro', Q.SyncInit)
     Q.Run('infobulle', Q.TooltipInit)

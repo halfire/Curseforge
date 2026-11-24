@@ -1,30 +1,30 @@
 {
- "version": "1.52.2",
+ "version": "1.52.13",
  "channel": "release",
  "addons": [
   [
    "Quintessence",
-   "1.52.2"
+   "1.52.13"
   ],
   [
    "quinte-craft",
-   "0.18.1"
+   "0.18.4"
   ],
   [
    "quinte-caract",
-   "0.20.1"
+   "0.20.4"
   ],
   [
    "quinte-map",
-   "0.15.0"
+   "0.15.2"
   ],
   [
    "quinte-group",
-   "0.34.2"
+   "0.36.8"
   ],
   [
    "quinte-bis",
-   "0.12.7"
+   "0.12.10"
   ],
   [
    "quinte-ride",
@@ -35,5 +35,5 @@
    "0.6.0"
   ]
  ],
- "validated_beta_sha256": "177d991c1d13fe96030a566cb0ee35e00a5b603ede6ff290f715f8327b967990"
+ "validated_beta_sha256": "f883f63c70eff11d97765f705371bccd138fef5d2ac25a3474b702570ba83700"
 }

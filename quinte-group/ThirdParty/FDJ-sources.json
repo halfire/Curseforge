@@ -1,18 +1,19 @@
 {
-  "source": "ForeverDungeonJournal 2.0.3, dossier fourni le 2026-11-13",
+  "source": "ForeverDungeonJournal 2.1.5, dossier fourni le 2026-11-24",
   "files": {
-    "ForeverDungeonJournal.toc": "442016bd3bdec218a2da0412a9bd0b4da2162f1bebb24ac64ebfa69b5d98c9c2",
-    "Localization/Content_frFR.lua": "1878decf0005be90d1f2194064dd4afb7cfa031a35aae2cb036a25d61defedf8",
-    "Localization/Content_NewDungeons.lua": "9b8acc60efb332a0877e17c0d17d007811eeecdc1187b925708378cf35f3f1e8",
-    "Data/Dungeons.lua": "68200b235457fa37b34355af7e494857d9871f8251d94db7c8c458446df7864e",
+    "ForeverDungeonJournal.toc": "0af25701a067012a8d848a8a83b11bdee6bfc1cd6f1890714911cefbc793e043",
+    "Localization/Content_frFR.lua": "40b9f9cafe1acf035ff2228b482372d9ea8ee837861be282ecd818ce74ea2e44",
+    "Localization/Content_NewDungeons.lua": "dc6b4faeb8e5ff118890af3f80dff6c938e734386bcb281d0a7a40ffe1d421b3",
+    "Data/Dungeons.lua": "c25f5cd37062dfc015651a4b983084eebd10082459ee8bdfea989907f2a1ebb0",
     "Data/SharedLoot.lua": "0026801396eb0baa261494e05fce0f68db1bc6965a3ddae554bdb336f9040dce",
-    "Data/Bosses.lua": "56f6f5fdd8210c8a9d8485c8eb9c5a6bca9386122e7e982f91920616f0bdd584",
-    "Data/QuestMaps.lua": "eb4cd3c130cea876b70c0173ee3111aa5791a03edba7f35a08427c85537cb2fd",
-    "Data/QuestChains.lua": "9741c962d669aee8041ec9323839e478202b9cb85ba74ef2b01ab94b1166818d",
-    "Data/QuestRewards.lua": "4d15d445855a13ea628a46d3c968995fb98a44ece8ac10f525996be60f03a8ce",
-    "Data/QuestShareability.lua": "3b1e65b5d0ac89cd020e657044c48e1d63a2db94ed4156b04d3e6dcf6139497b",
-    "Data/QuestUpdates.lua": "a65f7b732bf2e48d6f41bef3f5bffd68e9e2806a67ec2cbb81aaceee1f83c4b1",
-    "Localization/Content_Verified.lua": "f3a72e2a1906ddf756ed478976bcf75fd26a087a451592eda3614e4cf6b18ddf",
-    "Core/Journal.lua": "d83ae816617f4f3e0477b44ba0b7f55951a8350f9d20377f25017760f24adedb"
+    "Data/Bosses.lua": "ab3ac864dff08e171142afde71d5b21fba9a2bfc2f5a4cb1056ca533c0f28d33",
+    "Data/QuestMaps.lua": "ec5bfd36a8fbdc07fec50e8856e70d77db48d919b70cd6933d32103c9a9c4b03",
+    "Data/QuestChains.lua": "a25bc5c21b08529fc2391721e9c75a7ae3df18e6ee9a32f924c9aa028b9901ca",
+    "Data/QuestRewards.lua": "1cf7e0b62edfaa18af2d428030c43a8c6eb2a9d8408f7e4db29001a988662c1f",
+    "Data/QuestShareability.lua": "1279f180aab3207cb9afe46320167aa3a86944bf80a3dfe82348ad1c97bc6b30",
+    "Data/QuestUpdates.lua": "848eceeb12619267f415feef23a1fe636616588b7c6e6ad20c37568e9e3c6356",
+    "Localization/Content_Verified.lua": "f2b48a0234a1de493bb8dde19691ba3562582ae0069516ad66d3fba7e7f50ff1",
+    "Core/Journal.lua": "b840e34efaf1c9a61ca77f88f2f972ec002dbdc8ef586714d32b20049dd1e4f0",
+    "Quintessence/fdj_quest_fr.json": "35df3291218f0bdc292c7f2803e615d8042cb1622016880c7972204fd2ae21d1"
   }
 }

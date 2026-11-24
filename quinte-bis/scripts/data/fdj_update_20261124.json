@@ -1,0 +1,4310 @@
+{
+  "REFERENCE_MAPS": {
+    "added": [
+      "BLACKMAW",
+      "SCHOLO",
+      "UBRS"
+    ],
+    "removed": [],
+    "changed": [
+      "ALCAZ",
+      "BFD",
+      "BRD",
+      "DROWNED",
+      "KROLDOK",
+      "RFK",
+      "SHAPER",
+      "ST",
+      "STOCKS",
+      "ULDA",
+      "ZF"
+    ]
+  },
+  "REFERENCE_QUEST_TURNINS": {
+    "added": [
+      1699,
+      1947,
+      3462,
+      3463,
+      3481,
+      4022,
+      6681,
+      7562,
+      78088,
+      78089,
+      78093,
+      79939,
+      79945,
+      79970,
+      80411,
+      80526,
+      81762,
+      81764,
+      81765,
+      81766,
+      81790,
+      8411,
+      86746,
+      86752,
+      86777,
+      86791,
+      86792,
+      86796,
+      86797,
+      86798,
+      86814,
+      87346,
+      92065,
+      92066,
+      92070,
+      93341,
+      95790,
+      95924,
+      95925,
+      96377,
+      96438,
+      96476,
+      97173
+    ],
+    "removed": [],
+    "changed": [
+      1702,
+      92069,
+      93404,
+      93594,
+      95198,
+      96246,
+      96381,
+      97327
+    ]
+  },
+  "REFERENCE_QUEST_PLACES": {
+    "added": [
+      1947,
+      3462,
+      3463,
+      3481,
+      4022,
+      6681,
+      7562,
+      78088,
+      78089,
+      78090,
+      78091,
+      78092,
+      78093,
+      79939,
+      79940,
+      79945,
+      79946,
+      79963,
+      79970,
+      80411,
+      80526,
+      81762,
+      81764,
+      81765,
+      81766,
+      81790,
+      82062,
+      8411,
+      8412,
+      8413,
+      86746,
+      86752,
+      86777,
+      86791,
+      86792,
+      86796,
+      86797,
+      86798,
+      86814,
+      87346,
+      93341,
+      95790,
+      96377,
+      96438,
+      96476,
+      97168,
+      97169
+    ],
+    "removed": [],
+    "changed": [
+      1100,
+      1101,
+      1221,
+      1448,
+      1449,
+      1475,
+      167,
+      168,
+      1699,
+      1701,
+      1702,
+      2198,
+      2398,
+      388,
+      4185,
+      4186,
+      6501,
+      707,
+      722,
+      7507,
+      7637,
+      7639,
+      7640,
+      7641,
+      7642,
+      7643,
+      7646,
+      7647,
+      7648,
+      8415,
+      92065,
+      92066,
+      92069,
+      92345,
+      92457,
+      92458,
+      93404,
+      93601,
+      95194,
+      95262,
+      95924,
+      95925,
+      96246,
+      96381,
+      97173,
+      97327
+    ]
+  },
+  "REFERENCE_QUEST_INFO": {
+    "added": [
+      1947,
+      3462,
+      3463,
+      3481,
+      4022,
+      6681,
+      7562,
+      78088,
+      78089,
+      78090,
+      78091,
+      78092,
+      78093,
+      79939,
+      79940,
+      79945,
+      79946,
+      79963,
+      79970,
+      80411,
+      80526,
+      81762,
+      81764,
+      81765,
+      81766,
+      81790,
+      82062,
+      8411,
+      8412,
+      8413,
+      86746,
+      86752,
+      86777,
+      86791,
+      86792,
+      86796,
+      86797,
+      86798,
+      86814,
+      87346,
+      93341,
+      95790,
+      96377,
+      96438,
+      96476,
+      97168,
+      97169
+    ],
+    "removed": [],
+    "changed": [
+      1050,
+      1053,
+      1101,
+      1139,
+      1142,
+      1144,
+      1198,
+      1199,
+      1200,
+      1221,
+      1446,
+      1486,
+      1487,
+      1491,
+      166,
+      17,
+      1701,
+      1702,
+      1740,
+      1951,
+      2040,
+      214,
+      2198,
+      2240,
+      276,
+      2768,
+      2769,
+      277,
+      2846,
+      2904,
+      2922,
+      2924,
+      2926,
+      2928,
+      2929,
+      2930,
+      2962,
+      3528,
+      3636,
+      373,
+      377,
+      386,
+      387,
+      388,
+      391,
+      4024,
+      4126,
+      4182,
+      4183,
+      4184,
+      4185,
+      4186,
+      4201,
+      4223,
+      4224,
+      4322,
+      4701,
+      4729,
+      4742,
+      4764,
+      4766,
+      4771,
+      4788,
+      4862,
+      4866,
+      4867,
+      5001,
+      5047,
+      5081,
+      5089,
+      5102,
+      5122,
+      5125,
+      5127,
+      5160,
+      5212,
+      5214,
+      5243,
+      5251,
+      5262,
+      5263,
+      5282,
+      5343,
+      5382,
+      5384,
+      5463,
+      5466,
+      5515,
+      5518,
+      5525,
+      5526,
+      5529,
+      5848,
+      6402,
+      6403,
+      6501,
+      6502,
+      6981,
+      7041,
+      707,
+      7441,
+      7461,
+      7463,
+      7482,
+      7483,
+      7484,
+      7485,
+      7488,
+      7494,
+      7498,
+      7499,
+      7500,
+      7501,
+      7502,
+      7503,
+      7504,
+      7506,
+      7507,
+      7604,
+      7629,
+      7631,
+      7647,
+      7703,
+      8232,
+      8236,
+      8253,
+      8257,
+      8418,
+      8422,
+      8425,
+      8945,
+      9053,
+      92065,
+      92066,
+      92069,
+      92345,
+      92415,
+      92456,
+      92489,
+      92753,
+      93394,
+      93404,
+      93594,
+      93601,
+      93604,
+      95189,
+      95194,
+      95195,
+      95198,
+      95250,
+      95262,
+      95646,
+      95795,
+      959,
+      95924,
+      95925,
+      96246,
+      96381,
+      96393,
+      96394,
+      96395,
+      96403,
+      971,
+      97173,
+      97327
+    ]
+  },
+  "REFERENCE_QUESTS": {
+    "added": [],
+    "removed": [],
+    "changed": [
+      "BLACKMAW",
+      "BRD",
+      "MARA",
+      "SCHOLO",
+      "SHAPER",
+      "SM_CATH",
+      "ST",
+      "ZF"
+    ]
+  },
+  "REFERENCE_PORTRAITS": {
+    "added": [
+      "Altar Bosses",
+      "Burning Felguard",
+      "Cinder",
+      "Death Knight Darkreaver",
+      "Ezra Grimm",
+      "Gasher",
+      "Hukku",
+      "Isalien",
+      "Jarien and Sothos",
+      "Kormok",
+      "Kroog",
+      "Loro",
+      "Mijan",
+      "Mor Grayhoof",
+      "Obsidian Sentinel",
+      "Sabella No-Eyes",
+      "Snowtalon",
+      "Theldren",
+      "Tunnelweb Matriarch",
+      "Zolo",
+      "Zul'Lor"
+    ],
+    "removed": [],
+    "changed": [
+      "\"Pyromancer\" Braxton",
+      "Amnennar the Coldbringer",
+      "Arcane Anomaly",
+      "Arcanic Enigma",
+      "Atrexis the Grave Knight",
+      "Bjork",
+      "Blackmaw Behemoth",
+      "Blazeroar",
+      "Bolt",
+      "Bonesnout the Unbroken",
+      "Bossman Toof",
+      "Captain Dreadrise",
+      "Deathless Marrow",
+      "Direhorn Matriarch",
+      "Durgen Dirgehammer",
+      "Elder Shaman Bloodmane",
+      "Faldrim Anvilmar",
+      "Fel Ancient",
+      "Gill",
+      "Gortek the Apprentice",
+      "Grubbis",
+      "Hydromancer Velratha",
+      "Impaan the Imprisoner",
+      "Izha'Rel and Tor'Rel",
+      "Katerina the Cleaner",
+      "Kirtonos the Herald",
+      "Lyn the Ignored",
+      "Malor the Zealous",
+      "Mana Devourer",
+      "Min'loth the Serpent",
+      "Moontouched Wanderer",
+      "Nanaya",
+      "Nar'gurk",
+      "Nekrum Gutchewer",
+      "Overlord Mugg",
+      "Overseer Wrex",
+      "Plaguemaw the Rotting",
+      "Plunder",
+      "Primeval Elemental",
+      "Pusillin",
+      "Rath'mael",
+      "Relic Guardian",
+      "Ruuzlu",
+      "Saltspine",
+      "Sandarr Dunereaver",
+      "Sergeant Bly",
+      "Shade of the Archmage",
+      "Shadetooth",
+      "Slavecrusher Grox",
+      "The Abandoned",
+      "The Baron",
+      "The Questioner",
+      "The Seven",
+      "Theka the Martyr",
+      "Thunderhoof",
+      "Tidemistress Ca'zass",
+      "Titanosaur",
+      "Twilight Commander Zarmok",
+      "Umbra",
+      "Unbound Spirit",
+      "Unstable Sentinel",
+      "Var'Taka",
+      "Varrox Bleakhoof",
+      "Venomridge",
+      "Viktor the Vile",
+      "Vitrix",
+      "War Handler Ashka",
+      "Witherfang",
+      "Withermaw",
+      "Zul'Alai"
+    ]
+  },
+  "REFERENCE_QUEST_PINS": {
+    "added": [],
+    "removed": [],
+    "changed": [
+      "ULDA"
+    ]
+  },
+  "REFERENCE_EQUIPMENT": {
+    "added": [
+      [
+        "BLACKMAW",
+        "Blackmaw Behemoth",
+        280065
+      ],
+      [
+        "BLACKMAW",
+        "Blackmaw Behemoth",
+        280066
+      ],
+      [
+        "BLACKMAW",
+        "Bonesnout the Unbroken",
+        280060
+      ],
+      [
+        "BLACKMAW",
+        "Bonesnout the Unbroken",
+        280061
+      ],
+      [
+        "BLACKMAW",
+        "Elder Shaman Bloodmane",
+        280069
+      ],
+      [
+        "BLACKMAW",
+        "Elder Shaman Bloodmane",
+        280070
+      ],
+      [
+        "BLACKMAW",
+        "Impaan the Imprisoner",
+        280056
+      ],
+      [
+        "BLACKMAW",
+        "Impaan the Imprisoner",
+        280058
+      ],
+      [
+        "BLACKMAW",
+        "Sabella No-Eyes",
+        280083
+      ],
+      [
+        "BLACKMAW",
+        "Sabella No-Eyes",
+        280084
+      ],
+      [
+        "BLACKMAW",
+        "Unbound Spirit",
+        280073
+      ],
+      [
+        "BLACKMAW",
+        "Varrox Bleakhoof",
+        280075
+      ],
+      [
+        "BRD",
+        "Grizzle",
+        277117
+      ],
+      [
+        "BRD",
+        "Phalanx",
+        276879
+      ],
+      [
+        "BRD",
+        "Plugger Spazzring",
+        276877
+      ],
+      [
+        "DALARAN",
+        "Unstable Sentinel",
+        273046
+      ],
+      [
+        "DME",
+        "Hydrospawn",
+        18305
+      ],
+      [
+        "DME",
+        "Hydrospawn",
+        18307
+      ],
+      [
+        "DME",
+        "Isalien",
+        22304
+      ],
+      [
+        "DME",
+        "Isalien",
+        22314
+      ],
+      [
+        "DME",
+        "Isalien",
+        22315
+      ],
+      [
+        "DME",
+        "Isalien",
+        22345
+      ],
+      [
+        "DME",
+        "Isalien",
+        22401
+      ],
+      [
+        "DME",
+        "Isalien",
+        22472
+      ],
+      [
+        "DME",
+        "Lethtendris",
+        18301
+      ],
+      [
+        "DME",
+        "Lethtendris",
+        18302
+      ],
+      [
+        "DME",
+        "Lethtendris",
+        18354
+      ],
+      [
+        "DME",
+        "Pusillin",
+        18320
+      ],
+      [
+        "DME",
+        "Zevrim Thornhoof",
+        18306
+      ],
+      [
+        "DME",
+        "Zevrim Thornhoof",
+        18308
+      ],
+      [
+        "DMN",
+        "Guard Fengus",
+        18450
+      ],
+      [
+        "DMN",
+        "Guard Fengus",
+        18451
+      ],
+      [
+        "DMN",
+        "Guard Fengus",
+        18458
+      ],
+      [
+        "DMN",
+        "Guard Fengus",
+        18459
+      ],
+      [
+        "DMN",
+        "Guard Fengus",
+        18460
+      ],
+      [
+        "DMN",
+        "Guard Fengus",
+        18462
+      ],
+      [
+        "DMN",
+        "Guard Fengus",
+        18463
+      ],
+      [
+        "DMN",
+        "Guard Fengus",
+        18464
+      ],
+      [
+        "DMN",
+        "Guard Mol'dar",
+        18450
+      ],
+      [
+        "DMN",
+        "Guard Mol'dar",
+        18451
+      ],
+      [
+        "DMN",
+        "Guard Mol'dar",
+        18458
+      ],
+      [
+        "DMN",
+        "Guard Mol'dar",
+        18459
+      ],
+      [
+        "DMN",
+        "Guard Mol'dar",
+        18460
+      ],
+      [
+        "DMN",
+        "Guard Mol'dar",
+        18462
+      ],
+      [
+        "DMN",
+        "Guard Mol'dar",
+        18463
+      ],
+      [
+        "DMN",
+        "Guard Mol'dar",
+        18464
+      ],
+      [
+        "DMN",
+        "Guard Slip'kik",
+        18450
+      ],
+      [
+        "DMN",
+        "Guard Slip'kik",
+        18451
+      ],
+      [
+        "DMN",
+        "Guard Slip'kik",
+        18458
+      ],
+      [
+        "DMN",
+        "Guard Slip'kik",
+        18459
+      ],
+      [
+        "DMN",
+        "Guard Slip'kik",
+        18460
+      ],
+      [
+        "DMN",
+        "Guard Slip'kik",
+        18462
+      ],
+      [
+        "DMN",
+        "Guard Slip'kik",
+        18463
+      ],
+      [
+        "DMN",
+        "Guard Slip'kik",
+        18464
+      ],
+      [
+        "DMW",
+        "Illyanna Ravenoak",
+        18347
+      ],
+      [
+        "DMW",
+        "Illyanna Ravenoak",
+        18349
+      ],
+      [
+        "DMW",
+        "Magister Kalendris",
+        18350
+      ],
+      [
+        "DMW",
+        "Magister Kalendris",
+        18351
+      ],
+      [
+        "DMW",
+        "Tsu'zee",
+        18345
+      ],
+      [
+        "DMW",
+        "Tsu'zee",
+        18346
+      ],
+      [
+        "KROLDOK",
+        "Kroog",
+        279857
+      ],
+      [
+        "KROLDOK",
+        "Kroog",
+        279863
+      ],
+      [
+        "LBRS",
+        "Burning Felguard",
+        13181
+      ],
+      [
+        "LBRS",
+        "Burning Felguard",
+        13182
+      ],
+      [
+        "LBRS",
+        "Mor Grayhoof",
+        22306
+      ],
+      [
+        "LBRS",
+        "Mor Grayhoof",
+        22322
+      ],
+      [
+        "LBRS",
+        "Mor Grayhoof",
+        22325
+      ],
+      [
+        "LBRS",
+        "Mor Grayhoof",
+        22398
+      ],
+      [
+        "LBRS",
+        "Overlord Wyrmthalak",
+        13143
+      ],
+      [
+        "LBRS",
+        "Quartermaster Zigris",
+        16673
+      ],
+      [
+        "LBRS",
+        "Quartermaster Zigris",
+        16680
+      ],
+      [
+        "LBRS",
+        "Quartermaster Zigris",
+        16683
+      ],
+      [
+        "LBRS",
+        "Quartermaster Zigris",
+        16696
+      ],
+      [
+        "LBRS",
+        "Quartermaster Zigris",
+        16703
+      ],
+      [
+        "LBRS",
+        "Quartermaster Zigris",
+        16713
+      ],
+      [
+        "LBRS",
+        "Quartermaster Zigris",
+        16716
+      ],
+      [
+        "LBRS",
+        "Quartermaster Zigris",
+        16735
+      ],
+      [
+        "MARA",
+        "Lord Vyletongue",
+        275864
+      ],
+      [
+        "SCHOLO",
+        "Darkmaster Gandling",
+        13937
+      ],
+      [
+        "SCHOLO",
+        "Darkmaster Gandling",
+        16667
+      ],
+      [
+        "SCHOLO",
+        "Darkmaster Gandling",
+        16727
+      ],
+      [
+        "SCHOLO",
+        "Death Knight Darkreaver",
+        18758
+      ],
+      [
+        "SCHOLO",
+        "Death Knight Darkreaver",
+        18759
+      ],
+      [
+        "SCHOLO",
+        "Death Knight Darkreaver",
+        18760
+      ],
+      [
+        "SCHOLO",
+        "Death Knight Darkreaver",
+        18761
+      ],
+      [
+        "SCHOLO",
+        "Kormok",
+        22303
+      ],
+      [
+        "SCHOLO",
+        "Kormok",
+        22326
+      ],
+      [
+        "SCHOLO",
+        "Kormok",
+        22331
+      ],
+      [
+        "SCHOLO",
+        "Kormok",
+        22332
+      ],
+      [
+        "SCHOLO",
+        "Kormok",
+        22333
+      ],
+      [
+        "SCHOLO",
+        "Marduk Blackpool",
+        276069
+      ],
+      [
+        "SCHOLO",
+        "Marduk Blackpool",
+        276071
+      ],
+      [
+        "SCHOLO",
+        "Ras Frostwhisper",
+        13314
+      ],
+      [
+        "SCHOLO",
+        "Ras Frostwhisper",
+        14503
+      ],
+      [
+        "SCHOLO",
+        "Vectus",
+        276072
+      ],
+      [
+        "SCHOLO",
+        "Vectus",
+        276073
+      ],
+      [
+        "SHAPER",
+        "Vitrix",
+        280026
+      ],
+      [
+        "SHAPER",
+        "Vitrix",
+        280027
+      ],
+      [
+        "SHAPER",
+        "Vitrix",
+        280029
+      ],
+      [
+        "SHAPER",
+        "Vitrix",
+        280032
+      ],
+      [
+        "ST",
+        "Altar Bosses",
+        10783
+      ],
+      [
+        "ST",
+        "Altar Bosses",
+        10784
+      ],
+      [
+        "ST",
+        "Altar Bosses",
+        10785
+      ],
+      [
+        "ST",
+        "Altar Bosses",
+        10786
+      ],
+      [
+        "ST",
+        "Altar Bosses",
+        10787
+      ],
+      [
+        "ST",
+        "Altar Bosses",
+        10788
+      ],
+      [
+        "ST",
+        "Gasher",
+        10783
+      ],
+      [
+        "ST",
+        "Gasher",
+        10784
+      ],
+      [
+        "ST",
+        "Gasher",
+        10785
+      ],
+      [
+        "ST",
+        "Gasher",
+        10786
+      ],
+      [
+        "ST",
+        "Gasher",
+        10787
+      ],
+      [
+        "ST",
+        "Gasher",
+        10788
+      ],
+      [
+        "ST",
+        "Hukku",
+        10783
+      ],
+      [
+        "ST",
+        "Hukku",
+        10784
+      ],
+      [
+        "ST",
+        "Hukku",
+        10785
+      ],
+      [
+        "ST",
+        "Hukku",
+        10786
+      ],
+      [
+        "ST",
+        "Hukku",
+        10787
+      ],
+      [
+        "ST",
+        "Hukku",
+        10788
+      ],
+      [
+        "ST",
+        "Loro",
+        10783
+      ],
+      [
+        "ST",
+        "Loro",
+        10784
+      ],
+      [
+        "ST",
+        "Loro",
+        10785
+      ],
+      [
+        "ST",
+        "Loro",
+        10786
+      ],
+      [
+        "ST",
+        "Loro",
+        10787
+      ],
+      [
+        "ST",
+        "Loro",
+        10788
+      ],
+      [
+        "ST",
+        "Mijan",
+        10783
+      ],
+      [
+        "ST",
+        "Mijan",
+        10784
+      ],
+      [
+        "ST",
+        "Mijan",
+        10785
+      ],
+      [
+        "ST",
+        "Mijan",
+        10786
+      ],
+      [
+        "ST",
+        "Mijan",
+        10787
+      ],
+      [
+        "ST",
+        "Mijan",
+        10788
+      ],
+      [
+        "ST",
+        "Shade of Eranikus",
+        10847
+      ],
+      [
+        "ST",
+        "Zolo",
+        10783
+      ],
+      [
+        "ST",
+        "Zolo",
+        10784
+      ],
+      [
+        "ST",
+        "Zolo",
+        10785
+      ],
+      [
+        "ST",
+        "Zolo",
+        10786
+      ],
+      [
+        "ST",
+        "Zolo",
+        10787
+      ],
+      [
+        "ST",
+        "Zolo",
+        10788
+      ],
+      [
+        "ST",
+        "Zul'Lor",
+        10783
+      ],
+      [
+        "ST",
+        "Zul'Lor",
+        10784
+      ],
+      [
+        "ST",
+        "Zul'Lor",
+        10785
+      ],
+      [
+        "ST",
+        "Zul'Lor",
+        10786
+      ],
+      [
+        "ST",
+        "Zul'Lor",
+        10787
+      ],
+      [
+        "ST",
+        "Zul'Lor",
+        10788
+      ],
+      [
+        "STRAT",
+        "Baron Rivendare",
+        13361
+      ],
+      [
+        "STRAT",
+        "Baron Rivendare",
+        13368
+      ],
+      [
+        "STRAT",
+        "Baron Rivendare",
+        13505
+      ],
+      [
+        "STRAT",
+        "Baron Rivendare",
+        16668
+      ],
+      [
+        "STRAT",
+        "Baron Rivendare",
+        16699
+      ],
+      [
+        "STRAT",
+        "Baron Rivendare",
+        16719
+      ],
+      [
+        "STRAT",
+        "Baron Rivendare",
+        16728
+      ],
+      [
+        "STRAT",
+        "Baron Rivendare",
+        16732
+      ],
+      [
+        "STRAT",
+        "Baroness Anastari",
+        13535
+      ],
+      [
+        "STRAT",
+        "Baroness Anastari",
+        13537
+      ],
+      [
+        "STRAT",
+        "Baroness Anastari",
+        13538
+      ],
+      [
+        "STRAT",
+        "Baroness Anastari",
+        13539
+      ],
+      [
+        "STRAT",
+        "Ezra Grimm",
+        276394
+      ],
+      [
+        "STRAT",
+        "Ezra Grimm",
+        276395
+      ],
+      [
+        "STRAT",
+        "Ezra Grimm",
+        276396
+      ],
+      [
+        "STRAT",
+        "Jarien and Sothos",
+        22301
+      ],
+      [
+        "STRAT",
+        "Jarien and Sothos",
+        22327
+      ],
+      [
+        "STRAT",
+        "Jarien and Sothos",
+        22328
+      ],
+      [
+        "STRAT",
+        "Jarien and Sothos",
+        22334
+      ],
+      [
+        "STRAT",
+        "Magistrate Barthilas",
+        23198
+      ],
+      [
+        "STRAT",
+        "Maleki the Pallid",
+        13525
+      ],
+      [
+        "STRAT",
+        "Maleki the Pallid",
+        13526
+      ],
+      [
+        "STRAT",
+        "Maleki the Pallid",
+        13527
+      ],
+      [
+        "STRAT",
+        "Maleki the Pallid",
+        13528
+      ],
+      [
+        "STRAT",
+        "Malor the Zealous",
+        276397
+      ],
+      [
+        "STRAT",
+        "Nerub'enkan",
+        13530
+      ],
+      [
+        "STRAT",
+        "Nerub'enkan",
+        13531
+      ],
+      [
+        "STRAT",
+        "Nerub'enkan",
+        13532
+      ],
+      [
+        "STRAT",
+        "Nerub'enkan",
+        13533
+      ],
+      [
+        "STRAT",
+        "Postmaster Malown",
+        13390
+      ],
+      [
+        "UBRS",
+        "General Drakkisath",
+        12592
+      ],
+      [
+        "UBRS",
+        "Warchief Rend Blackhand",
+        12590
+      ],
+      [
+        "ULDA",
+        "Ancient Stone Keeper",
+        274431
+      ],
+      [
+        "ULDA",
+        "Ironaya",
+        274484
+      ],
+      [
+        "ZF",
+        "Antu'sul",
+        9484
+      ],
+      [
+        "ZF",
+        "Hydromancer Velratha",
+        274651
+      ],
+      [
+        "ZF",
+        "Hydromancer Velratha",
+        274652
+      ],
+      [
+        "ZF",
+        "Ruuzlu",
+        9511
+      ]
+    ],
+    "removed": []
+  },
+  "summary": {
+    "unique_items_added": [
+      9484,
+      9511,
+      10783,
+      10784,
+      10785,
+      10786,
+      10787,
+      10788,
+      10847,
+      12590,
+      12592,
+      13143,
+      13181,
+      13182,
+      13314,
+      13361,
+      13368,
+      13390,
+      13505,
+      13525,
+      13526,
+      13527,
+      13528,
+      13530,
+      13531,
+      13532,
+      13533,
+      13535,
+      13537,
+      13538,
+      13539,
+      13937,
+      14503,
+      16667,
+      16668,
+      16673,
+      16680,
+      16683,
+      16696,
+      16699,
+      16703,
+      16713,
+      16719,
+      16727,
+      16728,
+      16732,
+      16735,
+      18301,
+      18302,
+      18305,
+      18306,
+      18307,
+      18308,
+      18320,
+      18345,
+      18346,
+      18347,
+      18349,
+      18350,
+      18351,
+      18354,
+      18450,
+      18451,
+      18458,
+      18459,
+      18460,
+      18462,
+      18463,
+      18464,
+      18758,
+      18759,
+      18760,
+      18761,
+      22301,
+      22303,
+      22304,
+      22306,
+      22314,
+      22315,
+      22322,
+      22325,
+      22326,
+      22327,
+      22328,
+      22331,
+      22332,
+      22333,
+      22334,
+      22345,
+      22398,
+      22401,
+      22472,
+      23198,
+      273046,
+      274431,
+      274484,
+      274651,
+      274652,
+      275864,
+      276069,
+      276071,
+      276072,
+      276073,
+      276394,
+      276395,
+      276396,
+      276397,
+      276877,
+      276879,
+      277117,
+      279857,
+      279863,
+      280056,
+      280058,
+      280060,
+      280061,
+      280065,
+      280066,
+      280069,
+      280070,
+      280073,
+      280075,
+      280083,
+      280084
+    ],
+    "unique_items_removed": []
+  },
+  "quests": {
+    "DMW": {
+      "added": [],
+      "removed": []
+    },
+    "DM": {
+      "added": [],
+      "removed": []
+    },
+    "SHAPER": {
+      "added": [
+        95790
+      ],
+      "removed": []
+    },
+    "SM_CATH": {
+      "added": [
+        79946
+      ],
+      "removed": []
+    },
+    "ULDA": {
+      "added": [],
+      "removed": []
+    },
+    "ZF": {
+      "added": [
+        80411
+      ],
+      "removed": []
+    },
+    "UBRS": {
+      "added": [],
+      "removed": []
+    },
+    "THANES": {
+      "added": [],
+      "removed": []
+    },
+    "BRD": {
+      "added": [
+        81790,
+        82062
+      ],
+      "removed": []
+    },
+    "STOCKS": {
+      "added": [],
+      "removed": []
+    },
+    "WC": {
+      "added": [],
+      "removed": []
+    },
+    "DMN": {
+      "added": [],
+      "removed": []
+    },
+    "MARA": {
+      "added": [
+        81790
+      ],
+      "removed": []
+    },
+    "DALARAN": {
+      "added": [],
+      "removed": []
+    },
+    "BFD": {
+      "added": [],
+      "removed": []
+    },
+    "LBRS": {
+      "added": [],
+      "removed": []
+    },
+    "SFK": {
+      "added": [],
+      "removed": []
+    },
+    "RFK": {
+      "added": [],
+      "removed": []
+    },
+    "LORDAERON": {
+      "added": [],
+      "removed": []
+    },
+    "SM_ARM": {
+      "added": [],
+      "removed": []
+    },
+    "EXCAV": {
+      "added": [],
+      "removed": []
+    },
+    "KROLDOK": {
+      "added": [],
+      "removed": []
+    },
+    "BLACKMAW": {
+      "added": [],
+      "removed": []
+    },
+    "DROWNED": {
+      "added": [],
+      "removed": []
+    },
+    "RFD": {
+      "added": [],
+      "removed": []
+    },
+    "DME": {
+      "added": [],
+      "removed": []
+    },
+    "SCHOLO": {
+      "added": [
+        97169
+      ],
+      "removed": []
+    },
+    "SM_GY": {
+      "added": [],
+      "removed": []
+    },
+    "SM_LIB": {
+      "added": [],
+      "removed": []
+    },
+    "ALCAZ": {
+      "added": [],
+      "removed": []
+    },
+    "ST": {
+      "added": [
+        8413
+      ],
+      "removed": []
+    },
+    "GNOMER": {
+      "added": [],
+      "removed": []
+    },
+    "STRAT": {
+      "added": [],
+      "removed": []
+    }
+  },
+  "source": "ForeverDungeonJournal 2.1.5 fourni le 2026-11-24",
+  "quest_field_changes": {
+    "1050": {
+      "xp": {
+        "before": 3550,
+        "after": 8900
+      }
+    },
+    "1053": {
+      "xp": {
+        "before": 4700,
+        "after": 15300
+      }
+    },
+    "1101": {
+      "xp": {
+        "before": 3350,
+        "after": 7950
+      }
+    },
+    "1139": {
+      "rewardChoice": {
+        "before": false,
+        "after": true
+      },
+      "rewardItems": {
+        "before": [
+          [
+            6723,
+            "Medal of Courage",
+            2
+          ]
+        ],
+        "after": [
+          [
+            6723,
+            "Medal of Courage",
+            2
+          ],
+          [
+            270095,
+            "Medal of Valor",
+            2
+          ]
+        ]
+      }
+    },
+    "1142": {
+      "xp": {
+        "before": 3050,
+        "after": 7250
+      }
+    },
+    "1144": {
+      "xp": {
+        "before": 3050,
+        "after": 7250
+      }
+    },
+    "1198": {
+      "xp": {
+        "before": 2400,
+        "after": 5700
+      }
+    },
+    "1199": {
+      "xp": {
+        "before": 2550,
+        "after": 6050
+      }
+    },
+    "1200": {
+      "xp": {
+        "before": 3300,
+        "after": 7850
+      }
+    },
+    "1221": {
+      "rewardChoice": {
+        "before": null,
+        "after": false
+      },
+      "rewardItems": {
+        "before": null,
+        "after": [
+          [
+            6755,
+            "A Small Container of Gems",
+            1
+          ]
+        ]
+      },
+      "xp": {
+        "before": 2100,
+        "after": 5000
+      }
+    },
+    "1446": {
+      "rewardItems": {
+        "before": [
+          [
+            11123,
+            "Rainstrider Leggings",
+            3
+          ],
+          [
+            11124,
+            "Helm of Exile",
+            3
+          ]
+        ],
+        "after": [
+          [
+            11123,
+            "Rainstrider Leggings",
+            3
+          ],
+          [
+            11124,
+            "Helm of Exile",
+            3
+          ],
+          [
+            270115,
+            "Leggings of Freedom and Sorrow",
+            3
+          ]
+        ]
+      }
+    },
+    "1486": {
+      "xp": {
+        "before": 1600,
+        "after": 3100
+      }
+    },
+    "1487": {
+      "xp": {
+        "before": 2050,
+        "after": 4000
+      }
+    },
+    "1491": {
+      "xp": {
+        "before": 1350,
+        "after": 2650
+      }
+    },
+    "166": {
+      "xp": {
+        "before": 2600,
+        "after": 6200
+      }
+    },
+    "17": {
+      "rewardItems": {
+        "before": [
+          [
+            9030,
+            "Restorative Potion",
+            1,
+            5
+          ]
+        ],
+        "after": [
+          [
+            250947,
+            "Greater Mender's Potion",
+            1,
+            5
+          ]
+        ]
+      }
+    },
+    "1701": {
+      "finish": {
+        "before": "Furen Longbeard, Dwarven District, Stormwind (58.0, 16.8)",
+        "after": "Furen Longbeard, Dwarven District, Stormwind (64.6, 37.2)"
+      },
+      "start": {
+        "before": "Furen Longbeard, Dwarven District, Stormwind (58.0, 16.8)",
+        "after": "Furen Longbeard, Dwarven District, Stormwind (64.6, 37.2)"
+      }
+    },
+    "1702": {
+      "finish": {
+        "before": "Furen Longbeard, Dwarven District, Stormwind (58.0, 16.8)",
+        "after": "Furen Longbeard, Dwarven District, Stormwind (64.6, 37.2)"
+      }
+    },
+    "1740": {
+      "xp": {
+        "before": 2550,
+        "after": 5100
+      }
+    },
+    "1951": {
+      "prereqs": {
+        "before": [
+          {
+            "id": 1949,
+            "title": "Secrets cachés"
+          },
+          {
+            "id": 1950,
+            "title": "Le mot de passe"
+          }
+        ],
+        "after": [
+          {
+            "id": 1947,
+            "title": "Voyager vers le Marais"
+          },
+          {
+            "id": 1949,
+            "title": "Secrets cachés"
+          },
+          {
+            "id": 1950,
+            "title": "Le mot de passe"
+          }
+        ]
+      }
+    },
+    "2040": {
+      "xp": {
+        "before": 1550,
+        "after": 3700
+      }
+    },
+    "214": {
+      "xp": {
+        "before": 1250,
+        "after": 2950
+      }
+    },
+    "2198": {
+      "start": {
+        "before": "Shattered Necklace (drops in Uldaman)",
+        "after": "Shattered Necklace (drops outside and in Uldaman)"
+      }
+    },
+    "2240": {
+      "rewardItems": {
+        "before": [
+          [
+            9626,
+            "Dwarven Charge",
+            2
+          ],
+          [
+            9627,
+            "Explorer's League Lodestar",
+            2
+          ]
+        ],
+        "after": [
+          [
+            9626,
+            "Dwarven Charge",
+            2
+          ],
+          [
+            9627,
+            "Explorer's League Lodestar",
+            2
+          ],
+          [
+            270078,
+            "Guardian Staff",
+            2
+          ]
+        ]
+      }
+    },
+    "276": {
+      "description": {
+        "before": "Deuxième étape requise avant Horreurs des hautes terres.",
+        "after": "Première étape requise avant Horreurs des hautes terres."
+      }
+    },
+    "2768": {
+      "rewardItems": {
+        "before": [
+          [
+            9533,
+            "Masons Fraternity Ring",
+            3
+          ],
+          [
+            9534,
+            "Engineer's Guild Headpiece",
+            3
+          ]
+        ],
+        "after": [
+          [
+            9533,
+            "Masons Fraternity Ring",
+            3
+          ],
+          [
+            9534,
+            "Engineer's Guild Headpiece",
+            3
+          ],
+          [
+            270099,
+            "Magister Cowl",
+            3
+          ]
+        ]
+      }
+    },
+    "2769": {
+      "xp": {
+        "before": 405,
+        "after": 410
+      }
+    },
+    "277": {
+      "description": {
+        "before": "Troisième étape requise avant Horreurs des hautes terres.",
+        "after": "Deuxième étape requise avant Horreurs des hautes terres."
+      }
+    },
+    "2846": {
+      "rewardItems": {
+        "before": [
+          [
+            9527,
+            "Spellshifter Rod",
+            3
+          ],
+          [
+            9531,
+            "Gemshale Pauldrons",
+            3
+          ]
+        ],
+        "after": [
+          [
+            9531,
+            "Gemshale Pauldrons",
+            2
+          ],
+          [
+            270098,
+            "Dank Shoulderpads",
+            2
+          ]
+        ]
+      }
+    },
+    "2904": {
+      "xp": {
+        "before": 2450,
+        "after": 5800
+      }
+    },
+    "2922": {
+      "xp": {
+        "before": 2650,
+        "after": 4750
+      }
+    },
+    "2924": {
+      "xp": {
+        "before": 3050,
+        "after": 5500
+      }
+    },
+    "2926": {
+      "xp": {
+        "before": 2200,
+        "after": 3950
+      }
+    },
+    "2928": {
+      "xp": {
+        "before": 2450,
+        "after": 4400
+      }
+    },
+    "2929": {
+      "xp": {
+        "before": 2750,
+        "after": 6200
+      }
+    },
+    "2930": {
+      "rewardChoice": {
+        "before": true,
+        "after": false
+      },
+      "xp": {
+        "before": 3650,
+        "after": 6550
+      }
+    },
+    "2962": {
+      "xp": {
+        "before": 2450,
+        "after": 4400
+      }
+    },
+    "3528": {
+      "rewardItems": {
+        "before": [
+          [
+            10749,
+            "Avenguard Helm",
+            3
+          ],
+          [
+            10750,
+            "Lifeforce Dirk",
+            3
+          ],
+          [
+            10751,
+            "Gemburst Circlet",
+            3
+          ]
+        ],
+        "after": [
+          [
+            10749,
+            "Avenguard Helm",
+            3
+          ],
+          [
+            10750,
+            "Lifeforce Dirk",
+            3
+          ],
+          [
+            10751,
+            "Gemburst Circlet",
+            3
+          ],
+          [
+            270117,
+            "Shapeshifter's Helm",
+            3
+          ]
+        ]
+      }
+    },
+    "3636": {
+      "rewardItems": {
+        "before": [
+          [
+            10824,
+            "Amberglow Talisman",
+            3
+          ],
+          [
+            270081,
+            "Purified Ring",
+            3
+          ],
+          [
+            10823,
+            "Vanquisher's Sword",
+            3
+          ]
+        ],
+        "after": [
+          [
+            10824,
+            "Amberglow Talisman",
+            3
+          ],
+          [
+            270081,
+            "Purified Ring",
+            3
+          ]
+        ]
+      }
+    },
+    "373": {
+      "xp": {
+        "before": 870,
+        "after": 2050
+      }
+    },
+    "377": {
+      "xp": {
+        "before": 2100,
+        "after": 4400
+      }
+    },
+    "386": {
+      "xp": {
+        "before": 2000,
+        "after": 4200
+      }
+    },
+    "387": {
+      "xp": {
+        "before": 2650,
+        "after": 5550
+      }
+    },
+    "388": {
+      "xp": {
+        "before": 2650,
+        "after": 5550
+      }
+    },
+    "391": {
+      "xp": {
+        "before": 2350,
+        "after": 4950
+      }
+    },
+    "4024": {
+      "note": {
+        "before": "Show Cyrus a Black Dragonflight Molt first (A Taste of Flame, or kill the drake he summons). Then kill Bael'Gar and use the Altered Black Dragonflight Molt on his remains to collect the Encased Fiery Essence.",
+        "after": "Kill Bael'Gar, then use the Altered Black Dragonflight Molt on his remains to collect the Encased Fiery Essence."
+      },
+      "prereqs": {
+        "before": {},
+        "after": [
+          {
+            "id": 3462,
+            "title": "Squire Maltrake"
+          },
+          {
+            "id": 3463,
+            "title": "Set Them Ablaze!"
+          },
+          {
+            "id": 3481,
+            "title": "Trinkets..."
+          },
+          {
+            "id": 4022,
+            "title": "A Taste of Flame"
+          }
+        ]
+      },
+      "rewardChoice": {
+        "before": null,
+        "after": true
+      },
+      "rewardItems": {
+        "before": null,
+        "after": [
+          [
+            12066,
+            "Shaleskin Cape",
+            2
+          ],
+          [
+            12082,
+            "Wyrmhide Spaulders",
+            2
+          ],
+          [
+            12083,
+            "Valconian Sash",
+            2
+          ]
+        ]
+      }
+    },
+    "4126": {
+      "rewardChoice": {
+        "before": null,
+        "after": true
+      },
+      "rewardItems": {
+        "before": null,
+        "after": [
+          [
+            11964,
+            "Swiftstrike Cudgel",
+            2
+          ],
+          [
+            12000,
+            "Limb Cleaver",
+            2
+          ],
+          [
+            270123,
+            "Ragnar's Favorite Hat",
+            2
+          ]
+        ]
+      }
+    },
+    "4182": {
+      "xp": {
+        "before": null,
+        "after": 5450
+      }
+    },
+    "4183": {
+      "xp": {
+        "before": null,
+        "after": 4100
+      }
+    },
+    "4184": {
+      "xp": {
+        "before": null,
+        "after": 4100
+      }
+    },
+    "4185": {
+      "xp": {
+        "before": null,
+        "after": 540
+      }
+    },
+    "4186": {
+      "xp": {
+        "before": null,
+        "after": 5450
+      }
+    },
+    "4201": {
+      "rewardItems": {
+        "before": [
+          [
+            11866,
+            "Nagmara's Whipping Belt",
+            3
+          ],
+          [
+            11962,
+            "Manacle Cuffs",
+            3
+          ]
+        ],
+        "after": [
+          [
+            11866,
+            "Nagmara's Whipping Belt",
+            3
+          ],
+          [
+            11962,
+            "Manacle Cuffs",
+            3
+          ],
+          [
+            270120,
+            "Boots of Requite",
+            3
+          ],
+          [
+            270121,
+            "Private Rocknot's Spare Bracers",
+            3
+          ]
+        ]
+      }
+    },
+    "4223": {
+      "xp": {
+        "before": null,
+        "after": 540
+      }
+    },
+    "4224": {
+      "xp": {
+        "before": null,
+        "after": 540
+      }
+    },
+    "4322": {
+      "rewardChoice": {
+        "before": null,
+        "after": true
+      },
+      "rewardItems": {
+        "before": null,
+        "after": [
+          [
+            12061,
+            "Blade of Reckoning",
+            3
+          ],
+          [
+            12062,
+            "Skilled Fighting Blade",
+            2
+          ]
+        ]
+      }
+    },
+    "4701": {
+      "xp": {
+        "before": 6400,
+        "after": 12500
+      }
+    },
+    "4729": {
+      "xp": {
+        "before": 6400,
+        "after": 12500
+      }
+    },
+    "4742": {
+      "xp": {
+        "before": 8300,
+        "after": 16200
+      }
+    },
+    "4764": {
+      "xp": {
+        "before": 1650,
+        "after": 4400
+      }
+    },
+    "4766": {
+      "xp": {
+        "before": 0,
+        "after": 660
+      }
+    },
+    "4771": {
+      "xp": {
+        "before": 9950,
+        "after": 23650
+      }
+    },
+    "4788": {
+      "xp": {
+        "before": 7750,
+        "after": 15100
+      }
+    },
+    "4862": {
+      "xp": {
+        "before": 6400,
+        "after": 12500
+      }
+    },
+    "4866": {
+      "xp": {
+        "before": 9950,
+        "after": 18900
+      }
+    },
+    "4867": {
+      "xp": {
+        "before": 9950,
+        "after": 18900
+      }
+    },
+    "5001": {
+      "xp": {
+        "before": 6400,
+        "after": 12500
+      }
+    },
+    "5047": {
+      "xp": {
+        "before": 6600,
+        "after": 17650
+      }
+    },
+    "5081": {
+      "xp": {
+        "before": 8300,
+        "after": 16200
+      }
+    },
+    "5089": {
+      "xp": {
+        "before": 0,
+        "after": 12850
+      }
+    },
+    "5102": {
+      "xp": {
+        "before": 9950,
+        "after": 26600
+      }
+    },
+    "5122": {
+      "note": {
+        "before": "Malor's Strongbox in the Scarlet Bastion holds the medallion. Give it to Aurius in the chapel before fighting the Baron.",
+        "after": "Le coffre de Malor, dans le bastion Écarlate, contient le médaillon. Donnez-le à Aurius dans la chapelle avant d’affronter le baron."
+      },
+      "noteFR": {
+        "before": null,
+        "after": "Le coffre de Malor, dans le bastion Écarlate, contient le médaillon. Donnez-le à Aurius dans la chapelle avant d’affronter le baron."
+      }
+    },
+    "5125": {
+      "xp": {
+        "before": 9950,
+        "after": 21900
+      }
+    },
+    "5127": {
+      "rewardItems": {
+        "before": [
+          [
+            12696,
+            "Plans: Demon Forged Breastplate",
+            3
+          ],
+          [
+            12849,
+            "Demon Kissed Sack",
+            2
+          ],
+          [
+            9224,
+            "Elixir of Demonslaying",
+            1
+          ]
+        ],
+        "after": [
+          [
+            12696,
+            "Plans: Demon Forged Breastplate",
+            3
+          ],
+          [
+            12849,
+            "Demon Kissed Sack",
+            2
+          ],
+          [
+            9224,
+            "Potion of Demonslaying",
+            1,
+            5
+          ]
+        ]
+      },
+      "xp": {
+        "before": 8300,
+        "after": 16600
+      }
+    },
+    "5160": {
+      "xp": {
+        "before": 6600,
+        "after": 17650
+      }
+    },
+    "5212": {
+      "xp": {
+        "before": 6600,
+        "after": 14500
+      }
+    },
+    "5214": {
+      "xp": {
+        "before": 8300,
+        "after": 17450
+      }
+    },
+    "5243": {
+      "xp": {
+        "before": 6600,
+        "after": 14500
+      }
+    },
+    "5251": {
+      "xp": {
+        "before": 8300,
+        "after": 17450
+      }
+    },
+    "5262": {
+      "xp": {
+        "before": 8300,
+        "after": 17450
+      }
+    },
+    "5263": {
+      "xp": {
+        "before": 8300,
+        "after": 18250
+      }
+    },
+    "5282": {
+      "prereqs": {
+        "before": {},
+        "after": [
+          {
+            "id": 5281,
+            "title": "Âmes tourmentées"
+          }
+        ]
+      },
+      "xp": {
+        "before": 8300,
+        "after": 17450
+      }
+    },
+    "5343": {
+      "xp": {
+        "before": 6600,
+        "after": 15700
+      }
+    },
+    "5382": {
+      "xp": {
+        "before": 6600,
+        "after": 15700
+      }
+    },
+    "5384": {
+      "xp": {
+        "before": 8300,
+        "after": 19700
+      }
+    },
+    "5463": {
+      "xp": {
+        "before": 6600,
+        "after": 14500
+      }
+    },
+    "5466": {
+      "rewardItems": {
+        "before": [
+          [
+            13982,
+            "Warblade of Caer Darrow",
+            3
+          ],
+          [
+            13986,
+            "Crown of Caer Darrow",
+            3
+          ],
+          [
+            13984,
+            "Darrowspike",
+            3
+          ],
+          [
+            14002,
+            "Darrowshire Strongguard",
+            3
+          ]
+        ],
+        "after": [
+          [
+            13982,
+            "Warblade of Caer Darrow",
+            3
+          ],
+          [
+            13986,
+            "Crown of Caer Darrow",
+            3
+          ],
+          [
+            13984,
+            "Darrowspike",
+            3
+          ]
+        ]
+      },
+      "xp": {
+        "before": 9950,
+        "after": 23650
+      }
+    },
+    "5515": {
+      "xp": {
+        "before": 6600,
+        "after": 15700
+      }
+    },
+    "5518": {
+      "xp": {
+        "before": 6600,
+        "after": 17650
+      }
+    },
+    "5525": {
+      "xp": {
+        "before": 6600,
+        "after": 17650
+      }
+    },
+    "5526": {
+      "xp": {
+        "before": 8300,
+        "after": 22200
+      }
+    },
+    "5529": {
+      "xp": {
+        "before": 6200,
+        "after": 14750
+      }
+    },
+    "5848": {
+      "xp": {
+        "before": 6600,
+        "after": 13850
+      }
+    },
+    "6402": {
+      "xp": {
+        "before": null,
+        "after": 660
+      }
+    },
+    "6403": {
+      "xp": {
+        "before": null,
+        "after": 9950
+      }
+    },
+    "6501": {
+      "xp": {
+        "before": null,
+        "after": 6600
+      }
+    },
+    "6502": {
+      "xp": {
+        "before": 8300,
+        "after": 22200
+      }
+    },
+    "6981": {
+      "xp": {
+        "before": 2650,
+        "after": 5150
+      }
+    },
+    "7041": {
+      "note": {
+        "before": "Fill the Coated Cerulean Vial at the orange crystal pool in the outer caves, then use it on Vylestem Vines inside (orange side) and kill the Noxxious Scions to heal 8 plants.",
+        "after": "Use the Filled Cerulean Vial on these plants, the Vylestem Vines. They can't be clicked or targeted, so look out for them in the orange wing."
+      }
+    },
+    "707": {
+      "xp": {
+        "before": 710,
+        "after": 700
+      }
+    },
+    "7441": {
+      "rewardItems": {
+        "before": [
+          [
+            18411,
+            "Spry Boots",
+            2
+          ],
+          [
+            18410,
+            "Sprinter's Sword",
+            2
+          ]
+        ],
+        "after": [
+          [
+            18411,
+            "Spry Boots",
+            2
+          ],
+          [
+            18410,
+            "Sprinter's Sword",
+            2
+          ],
+          [
+            270127,
+            "Incanter's Pantaloons",
+            2
+          ]
+        ]
+      },
+      "xp": {
+        "before": 7750,
+        "after": 20750
+      }
+    },
+    "7461": {
+      "xp": {
+        "before": 9950,
+        "after": 23650
+      }
+    },
+    "7463": {
+      "xp": {
+        "before": 6600,
+        "after": 13200
+      }
+    },
+    "7482": {
+      "xp": {
+        "before": 8300,
+        "after": 19700
+      }
+    },
+    "7483": {
+      "xp": {
+        "before": 0,
+        "after": 3300
+      }
+    },
+    "7484": {
+      "xp": {
+        "before": 0,
+        "after": 3300
+      }
+    },
+    "7485": {
+      "xp": {
+        "before": 0,
+        "after": 3300
+      }
+    },
+    "7488": {
+      "rewardChoice": {
+        "before": false,
+        "after": true
+      },
+      "rewardItems": {
+        "before": [
+          [
+            18491,
+            "Lorespinner",
+            3
+          ]
+        ],
+        "after": [
+          [
+            18491,
+            "Lorespinner",
+            3
+          ],
+          [
+            270124,
+            "Warpwood Bracers",
+            3
+          ],
+          [
+            270125,
+            "Satyrhide Armbands",
+            3
+          ]
+        ]
+      },
+      "xp": {
+        "before": 7550,
+        "after": 20200
+      }
+    },
+    "7494": {
+      "xp": {
+        "before": 0,
+        "after": 1500
+      }
+    },
+    "7498": {
+      "xp": {
+        "before": 6600,
+        "after": 15700
+      }
+    },
+    "7499": {
+      "xp": {
+        "before": 6600,
+        "after": 15700
+      }
+    },
+    "7500": {
+      "xp": {
+        "before": 6600,
+        "after": 15700
+      }
+    },
+    "7501": {
+      "xp": {
+        "before": 6600,
+        "after": 15700
+      }
+    },
+    "7502": {
+      "xp": {
+        "before": 6600,
+        "after": 15700
+      }
+    },
+    "7503": {
+      "xp": {
+        "before": 6600,
+        "after": 15700
+      }
+    },
+    "7504": {
+      "xp": {
+        "before": 6600,
+        "after": 15700
+      }
+    },
+    "7506": {
+      "xp": {
+        "before": 6600,
+        "after": 15700
+      }
+    },
+    "7507": {
+      "class": {
+        "before": null,
+        "after": 3
+      },
+      "finish": {
+        "before": "Lorekeeper Lydros, Athenaeum, Dire Maul",
+        "after": "Gardien du savoir Lydros, Athenaeum, Haches-Tripes"
+      },
+      "note": {
+        "before": "Warriors and Paladins. Lydros then gives The Forging of Quel'Serrar, which is finished in Onyxia's Lair.",
+        "after": "Guerriers et paladins. Lydros donne ensuite Le forgeage de Quel'Serrar, qui se termine dans le repaire d’Onyxia."
+      },
+      "noteFR": {
+        "before": null,
+        "after": "Guerriers et paladins. Lydros donne ensuite Le forgeage de Quel'Serrar, qui se termine dans le repaire d’Onyxia."
+      },
+      "start": {
+        "before": "Nostro's Compendium of Dragon Slaying (rare Dire Maul drop)",
+        "after": "Le guide de Dagharn du tueur de dragons (butin rare de Haches-Tripes)"
+      },
+      "xp": {
+        "before": 0,
+        "after": 19900
+      }
+    },
+    "7604": {
+      "xp": {
+        "before": 725,
+        "after": 6600
+      }
+    },
+    "7629": {
+      "prereqs": {
+        "before": [
+          {
+            "id": 7563,
+            "title": "Rage de sang"
+          },
+          {
+            "id": 7564,
+            "title": "Gorzeeki Wildeyes"
+          },
+          {
+            "id": 7623,
+            "title": "Le seigneur Banehollow"
+          },
+          {
+            "id": 7624,
+            "title": "Ulathek le traître"
+          },
+          {
+            "id": 7625,
+            "title": "Poussière d'étoile xorothienne"
+          }
+        ],
+        "after": [
+          {
+            "id": 7562,
+            "title": "Mor'zul Bloodbringer"
+          },
+          {
+            "id": 7563,
+            "title": "Rage de sang"
+          },
+          {
+            "id": 7564,
+            "title": "Gorzeeki Wildeyes"
+          },
+          {
+            "id": 7623,
+            "title": "Le seigneur Banehollow"
+          },
+          {
+            "id": 7624,
+            "title": "Ulathek le traître"
+          },
+          {
+            "id": 7625,
+            "title": "Poussière d'étoile xorothienne"
+          }
+        ]
+      },
+      "xp": {
+        "before": 6600,
+        "after": 13200
+      }
+    },
+    "7631": {
+      "xp": {
+        "before": 6600,
+        "after": 13200
+      }
+    },
+    "7647": {
+      "xp": {
+        "before": 9950,
+        "after": 19900
+      }
+    },
+    "7703": {
+      "xp": {
+        "before": 8300,
+        "after": 22200
+      }
+    },
+    "8232": {
+      "rewardChoice": {
+        "before": true,
+        "after": false
+      }
+    },
+    "8236": {
+      "rewardChoice": {
+        "before": true,
+        "after": false
+      }
+    },
+    "8253": {
+      "rewardChoice": {
+        "before": true,
+        "after": false
+      }
+    },
+    "8257": {
+      "rewardChoice": {
+        "before": true,
+        "after": false
+      }
+    },
+    "8418": {
+      "rewardChoice": {
+        "before": true,
+        "after": false
+      }
+    },
+    "8422": {
+      "prereqs": {
+        "before": [
+          {
+            "id": 8419,
+            "title": "La demande d'un diablotin"
+          },
+          {
+            "id": 8420,
+            "title": "Chaud et piquant"
+          },
+          {
+            "id": 8421,
+            "title": "L'anti-étoffe des héros"
+          }
+        ],
+        "after": [
+          {
+            "id": 8420,
+            "title": "Chaud et piquant"
+          },
+          {
+            "id": 8419,
+            "title": "La demande d'un diablotin"
+          },
+          {
+            "id": 8421,
+            "title": "L'anti-étoffe des héros"
+          }
+        ]
+      },
+      "rewardChoice": {
+        "before": true,
+        "after": false
+      }
+    },
+    "8425": {
+      "rewardChoice": {
+        "before": true,
+        "after": false
+      }
+    },
+    "8945": {
+      "xp": {
+        "before": 8300,
+        "after": 16600
+      }
+    },
+    "9053": {
+      "rewardChoice": {
+        "before": true,
+        "after": false
+      }
+    },
+    "92065": {
+      "finish": {
+        "before": "Gatekeeper Rageroar, Ursolan",
+        "after": "Gardien Rageroar, Ursolan, Azshara (42.4, 20.2)"
+      },
+      "note": {
+        "before": "Varrox est le dernier boss. Réputation neutre ou supérieure auprès des Grumegueules. Niveau requis à confirmer.",
+        "after": "Varrox est le dernier boss. Réputation neutre ou supérieure auprès des Grumegueules."
+      },
+      "noteFR": {
+        "before": "Varrox est le dernier boss. Réputation neutre ou supérieure auprès des Grumegueules. Niveau requis à confirmer.",
+        "after": "Varrox est le dernier boss. Réputation neutre ou supérieure auprès des Grumegueules."
+      },
+      "prereqs": {
+        "before": {},
+        "after": [
+          {
+            "id": 86746,
+            "title": "The Legashi Threat"
+          },
+          {
+            "id": 86752,
+            "title": "Report to Rageroar"
+          },
+          {
+            "id": 86791,
+            "title": "Missing Blackmaw Scouts"
+          },
+          {
+            "id": 86777,
+            "title": "Master Feardred"
+          },
+          {
+            "id": 86792,
+            "title": "Thinning Their Forces"
+          },
+          {
+            "id": 86796,
+            "title": "Later, Satyr"
+          },
+          {
+            "id": 86797,
+            "title": "Return to Rageroar"
+          },
+          {
+            "id": 86798,
+            "title": "Timbermaw Reinforcements"
+          },
+          {
+            "id": 87346,
+            "title": "Chieftain Bloodmaw"
+          },
+          {
+            "id": 86814,
+            "title": "Blackmaw Counter-Offensive"
+          }
+        ]
+      },
+      "rewardChoice": {
+        "before": false,
+        "after": true
+      },
+      "rewardItems": {
+        "before": {},
+        "after": [
+          [
+            260216,
+            "Ouroboros Ring",
+            3
+          ],
+          [
+            260217,
+            "Eagle's Head Signet",
+            3
+          ],
+          [
+            260218,
+            "Malefactor's End",
+            3
+          ],
+          [
+            260219,
+            "Engraved Band",
+            3
+          ]
+        ]
+      },
+      "start": {
+        "before": "Gardien Rageroar, Ursolan (donneur à confirmer)",
+        "after": "Gardien Rageroar, Ursolan, Azshara (42.4, 20.2)"
+      },
+      "xp": {
+        "before": 1450,
+        "after": 13200
+      }
+    },
+    "92066": {
+      "finish": {
+        "before": "Lorekeeper Nok, Ursolan",
+        "after": "Gardien du savoir Nok, Ursolan, Azshara (41.4, 20.0)"
+      },
+      "note": {
+        "before": "Réputation neutre ou supérieure auprès des Grumegueules. Niveau requis à confirmer.",
+        "after": "Réputation neutre ou supérieure auprès des Grumegueules."
+      },
+      "noteFR": {
+        "before": "Réputation neutre ou supérieure auprès des Grumegueules. Niveau requis à confirmer.",
+        "after": "Réputation neutre ou supérieure auprès des Grumegueules."
+      },
+      "rewardChoice": {
+        "before": false,
+        "after": true
+      },
+      "rewardItems": {
+        "before": {},
+        "after": [
+          [
+            279891,
+            "Guidance of Ursoc",
+            2
+          ],
+          [
+            279892,
+            "Wisdom of Ursol",
+            2
+          ]
+        ]
+      },
+      "start": {
+        "before": "Gardien du savoir Nok, Ursolan (donneur à confirmer)",
+        "after": "Gardien du savoir Nok, Ursolan, Azshara (41.4, 20.0)"
+      }
+    },
+    "92069": {
+      "finish": {
+        "before": "Ogtinc, Azshara (42.4, 42.6)",
+        "after": "Ogtinc, Azshara (42.4, 42.7)"
+      },
+      "start": {
+        "before": "Ogtinc, Azshara (42.4, 42.6) (probably)",
+        "after": "Ogtinc, Azshara (42.4, 42.7)"
+      }
+    },
+    "92345": {
+      "start": {
+        "before": "Southern Azshara (giver not known yet)",
+        "after": "Commander Truesong, Azshara (11.8, 78.3)"
+      }
+    },
+    "92415": {
+      "xp": {
+        "before": 2600,
+        "after": 6200
+      }
+    },
+    "92456": {
+      "xp": {
+        "before": 3950,
+        "after": 9400
+      }
+    },
+    "92489": {
+      "xp": {
+        "before": 3950,
+        "after": 9400
+      }
+    },
+    "92753": {
+      "xp": {
+        "before": 1350,
+        "after": 2700
+      }
+    },
+    "93394": {
+      "finish": {
+        "before": "Magister Kirandis, inside the temple of Shen'dralas (47.2, 75.8)",
+        "after": "Magister Kirandis, in the temple of Shen'dralas (47.2, 75.8)"
+      }
+    },
+    "93404": {
+      "finish": {
+        "before": "Woodwyrd, Forlorn Gardens, Shen'dralas (just east of Mithera, about 53, 76)",
+        "after": "Woodwyrd, Forlorn Gardens, Shen'dralas (69.9, 72.1)"
+      },
+      "prereqs": {
+        "before": [
+          {
+            "id": 92914,
+            "title": "D’étranges pylônes"
+          },
+          {
+            "id": 96010,
+            "title": "Fragments of the Pylons"
+          },
+          {
+            "id": 96018,
+            "title": "Powering the Pylons"
+          },
+          {
+            "id": 93016,
+            "title": "A Brief History Lesson"
+          },
+          {
+            "id": 93394,
+            "title": "Meeting the Magister"
+          },
+          {
+            "id": 93594,
+            "title": "Word of the Woods"
+          }
+        ],
+        "after": [
+          {
+            "id": 92914,
+            "title": "D’étranges pylônes"
+          },
+          {
+            "id": 96010,
+            "title": "Fragments of the Pylons"
+          },
+          {
+            "id": 96018,
+            "title": "Powering the Pylons"
+          },
+          {
+            "id": 93016,
+            "title": "A Brief History Lesson"
+          },
+          {
+            "id": 93394,
+            "title": "Meeting the Magister"
+          },
+          {
+            "id": 93341,
+            "title": "Forlorn Gardens"
+          },
+          {
+            "id": 93594,
+            "title": "Word of the Woods"
+          }
+        ]
+      },
+      "start": {
+        "before": "Woodwyrd, Forlorn Gardens, Shen'dralas (just east of Mithera, about 53, 76)",
+        "after": "Woodwyrd, Forlorn Gardens, Shen'dralas (69.9, 72.1)"
+      }
+    },
+    "93594": {
+      "finish": {
+        "before": "Woodwyrd, Forlorn Gardens, Shen'dralas (just east of Mithera, about 53, 76)",
+        "after": "Woodwyrd, Forlorn Gardens, Shen'dralas (69.9, 72.1)"
+      },
+      "note": {
+        "before": "Horde players get it from Mithera after her Forlorn Gardens quest (Wowhead lists that one for the Horde only; how the Alliance gets Word of the Woods is not confirmed yet).",
+        "after": "Mithera offers it once Forlorn Gardens is handed in."
+      }
+    },
+    "93601": {
+      "start": {
+        "before": "Woodwyrd, Forlorn Gardens, Shen'dralas (just east of Mithera, about 53, 76)",
+        "after": "Woodwyrd, Forlorn Gardens, Shen'dralas (69.9, 72.1)"
+      }
+    },
+    "93604": {
+      "prereqs": {
+        "before": [
+          {
+            "id": 92914,
+            "title": "D’étranges pylônes"
+          },
+          {
+            "id": 96010,
+            "title": "Fragments of the Pylons"
+          },
+          {
+            "id": 96018,
+            "title": "Powering the Pylons"
+          },
+          {
+            "id": 93016,
+            "title": "A Brief History Lesson"
+          },
+          {
+            "id": 93394,
+            "title": "Meeting the Magister"
+          },
+          {
+            "id": 93594,
+            "title": "Word of the Woods"
+          },
+          {
+            "id": 93404,
+            "title": "Pourriture et regrets"
+          },
+          {
+            "id": 93601,
+            "title": "Passing the Blame"
+          }
+        ],
+        "after": [
+          {
+            "id": 92914,
+            "title": "D’étranges pylônes"
+          },
+          {
+            "id": 96010,
+            "title": "Fragments of the Pylons"
+          },
+          {
+            "id": 96018,
+            "title": "Powering the Pylons"
+          },
+          {
+            "id": 93016,
+            "title": "A Brief History Lesson"
+          },
+          {
+            "id": 93394,
+            "title": "Meeting the Magister"
+          },
+          {
+            "id": 93341,
+            "title": "Forlorn Gardens"
+          },
+          {
+            "id": 93594,
+            "title": "Word of the Woods"
+          },
+          {
+            "id": 93404,
+            "title": "Pourriture et regrets"
+          },
+          {
+            "id": 93601,
+            "title": "Passing the Blame"
+          }
+        ]
+      }
+    },
+    "95189": {
+      "xp": {
+        "before": 2600,
+        "after": 6200
+      }
+    },
+    "95194": {
+      "start": {
+        "before": "Master Mathias Shaw, SI:7, Old Town, Stormwind City (75.8, 59.8)",
+        "after": "Master Mathias Shaw, SI:7, Old Town, Stormwind City (78.3, 70.7)"
+      }
+    },
+    "95195": {
+      "xp": {
+        "before": 2600,
+        "after": 6200
+      }
+    },
+    "95198": {
+      "finish": {
+        "before": "Sully McCleary, in the inn in Theramore, Dustwallow Marsh (66.2, 45.2)",
+        "after": "Sully McCleary, outside Theramore across the bridge, Dustwallow Marsh (63.4, 42.4)"
+      }
+    },
+    "95250": {
+      "xp": {
+        "before": 1650,
+        "after": 3900
+      }
+    },
+    "95262": {
+      "start": {
+        "before": "Sully McCleary, in the inn in Theramore, Dustwallow Marsh (66.2, 45.2)",
+        "after": "Sully McCleary, outside Theramore across the bridge, Dustwallow Marsh (63.4, 42.4)"
+      }
+    },
+    "95646": {
+      "prereqs": {
+        "before": [
+          {
+            "id": 463,
+            "title": "Le Gouverneur vert"
+          },
+          {
+            "id": 276,
+            "title": "Piétinements de pattes"
+          },
+          {
+            "id": 277,
+            "title": "Feu interdit"
+          },
+          {
+            "id": 275,
+            "title": "Fièvre sur le pays"
+          }
+        ],
+        "after": [
+          {
+            "id": 276,
+            "title": "Piétinements de pattes"
+          },
+          {
+            "id": 277,
+            "title": "Feu interdit"
+          },
+          {
+            "id": 275,
+            "title": "Fièvre sur le pays"
+          }
+        ]
+      }
+    },
+    "95795": {
+      "xp": {
+        "before": 3150,
+        "after": 6150
+      }
+    },
+    "959": {
+      "xp": {
+        "before": 1350,
+        "after": 2650
+      }
+    },
+    "95924": {
+      "finish": {
+        "before": "Destinataire non identifié",
+        "after": "Conservateur Thorius, hall des Explorateurs, Forgefer (71.5, 15.7)"
+      },
+      "note": {
+        "before": "Le donneur reste inconnu. Le texte demande 9 ravasaures cuir-de-fer, tandis que le compteur en demande 8.",
+        "after": "Le texte demande 9 ravasaures cuir-de-fer, tandis que le compteur en demande 8."
+      },
+      "noteFR": {
+        "before": "Le donneur reste inconnu. Le texte demande 9 ravasaures cuir-de-fer, tandis que le compteur en demande 8.",
+        "after": "Le texte demande 9 ravasaures cuir-de-fer, tandis que le compteur en demande 8."
+      },
+      "start": {
+        "before": "Donneur non identifié",
+        "after": "Conservateur Thorius, hall des Explorateurs, Forgefer (71.5, 15.7)"
+      }
+    },
+    "95925": {
+      "finish": {
+        "before": "Destinataire non identifié",
+        "after": "Conservateur Thorius, hall des Explorateurs, Forgefer (71.5, 15.7)"
+      },
+      "note": {
+        "before": "Le donneur reste inconnu. Utilisez le matériel de cartographie sur chaque lieu demandé.",
+        "after": "Utilisez le matériel de cartographie de la Ligue des explorateurs sur chaque lieu demandé."
+      },
+      "noteFR": {
+        "before": "Le donneur reste inconnu. Utilisez le matériel de cartographie sur chaque lieu demandé.",
+        "after": "Utilisez le matériel de cartographie de la Ligue des explorateurs sur chaque lieu demandé."
+      },
+      "start": {
+        "before": "Donneur non identifié",
+        "after": "Conservateur Thorius, hall des Explorateurs, Forgefer (71.5, 15.7)"
+      }
+    },
+    "96246": {
+      "finish": {
+        "before": "Ekkal, Ruins of Eldarath, Azshara (41.8, 38.8)",
+        "after": "Ekkal, Ruines d'Eldarath, Azshara (42.0, 38.9)"
+      },
+      "start": {
+        "before": "Ekkal, Ruins of Eldarath, Azshara (41.8, 38.8)",
+        "after": "Ekkal, Ruines d'Eldarath, Azshara (42.0, 38.9)"
+      }
+    },
+    "96381": {
+      "finish": {
+        "before": "Sully McCleary, in the inn in Theramore, Dustwallow Marsh (66.2, 45.2)",
+        "after": "Sully McCleary, outside Theramore across the bridge, Dustwallow Marsh (63.4, 42.4)"
+      },
+      "start": {
+        "before": "Sully McCleary, in the inn in Theramore, Dustwallow Marsh (66.2, 45.2)",
+        "after": "Sully McCleary, outside Theramore across the bridge, Dustwallow Marsh (63.4, 42.4)"
+      }
+    },
+    "96393": {
+      "xp": {
+        "before": 1450,
+        "after": 3200
+      }
+    },
+    "96394": {
+      "xp": {
+        "before": 1050,
+        "after": 2300
+      }
+    },
+    "96395": {
+      "xp": {
+        "before": 1050,
+        "after": 2300
+      }
+    },
+    "96403": {
+      "xp": {
+        "before": 1350,
+        "after": 2950
+      }
+    },
+    "971": {
+      "xp": {
+        "before": 2750,
+        "after": 6550
+      }
+    },
+    "97173": {
+      "finish": {
+        "before": "Not known yet",
+        "after": "Archmage Timear, Dalaran (15.4, 74.0)"
+      },
+      "start": {
+        "before": "Not known yet (probably a mage in Dalaran)",
+        "after": "Archmage Timear, Dalaran (15.4, 74.0)"
+      }
+    },
+    "97327": {
+      "finish": {
+        "before": "Ekkal, Ruins of Eldarath, Azshara (41.8, 38.8)",
+        "after": "Ekkal, Ruines d'Eldarath, Azshara (42.0, 38.9)"
+      },
+      "start": {
+        "before": "Ekkal, Ruins of Eldarath, Azshara (41.8, 38.8)",
+        "after": "Ekkal, Ruines d'Eldarath, Azshara (42.0, 38.9)"
+      },
+      "xp": {
+        "before": 1450,
+        "after": 13200
+      }
+    }
+  },
+  "new_quest_details": {
+    "1947": {
+      "objectiveFR": "Parlez à Tabetha.",
+      "objective": "Parlez à Tabetha.",
+      "start": "Votre maître des mages : Jennea Cannon à Hurlevent ou Bink à Forgefer",
+      "title": "Voyager vers le Marais",
+      "finish": "Tabetha, marécage d’Âprefange"
+    },
+    "3462": {
+      "objective": "Speak with Squire Maltrake.",
+      "start": "Velarok Windblade, Searing Gorge (39.0, 39.0)",
+      "title": "Squire Maltrake",
+      "xp": 470,
+      "finish": "Squire Maltrake, Searing Gorge (39.0, 39.0)"
+    },
+    "3463": {
+      "rewardChoice": true,
+      "note": "Elite quest.",
+      "objective": "Set the North, South, East, and West Sentry Towers on fire by using the Torch of Retribution inside each of the buildings.",
+      "title": "Set Them Ablaze!",
+      "start": "Squire Maltrake, Searing Gorge (39.0, 39.0)",
+      "rewardItems": [
+        [
+          10742,
+          "Dragonflight Leggings",
+          2
+        ],
+        [
+          10743,
+          "Drakefire Headguard",
+          2
+        ],
+        [
+          10744,
+          "Axe of the Ebon Drake",
+          2
+        ],
+        [
+          270114,
+          "Dragonscale Pants",
+          2
+        ]
+      ],
+      "xp": 7600,
+      "finish": "Squire Maltrake, Searing Gorge (39.0, 39.0)"
+    },
+    "3481": {
+      "rewardChoice": false,
+      "objective": "Open the chest.",
+      "title": "Trinkets...",
+      "start": "Hoard of the Black Dragonflight, Searing Gorge (39.0, 38.9)",
+      "rewardItems": [
+        [
+          10569,
+          "Hoard of the Black Dragonflight",
+          1
+        ]
+      ],
+      "xp": 470,
+      "finish": "Hoard of the Black Dragonflight, Searing Gorge (39.0, 38.9)"
+    },
+    "4022": {
+      "note": "No molt? Cyrus has another A Taste of Flame (elite): after accepting it, ask him how to prove your worth and kill the Frenzied Black Drake he summons for its molt. It opens the Blackrock Depths quest too.",
+      "objective": "Show Cyrus Therepentous the Black Dragonflight Molt you received from Velarok Windblade.",
+      "start": "Cyrus Therepentous, Burning Steppes (94.8, 31.6)",
+      "title": "A Taste of Flame",
+      "xp": 5450,
+      "finish": "Cyrus Therepentous, Burning Steppes (94.8, 31.6)"
+    },
+    "6681": {
+      "objectiveFR": "Apportez le Sceau de Ravenholdt à Fahrad, au manoir de Ravenholdt, caché dans les collines de Hautebrande.",
+      "description": "Obtenez la lettre qui lance cette quête. Horde : l’option d’un maître des voleurs « May I have it, please. » Alliance : Maître Mathias Shaw à Hurlevent.",
+      "objective": "Apportez le Sceau de Ravenholdt à Fahrad, au manoir de Ravenholdt, caché dans les collines de Hautebrande.",
+      "start": "Lettre élégante, d’un maître des voleurs",
+      "title": "Ravenholdt, le manoir",
+      "xp": 1950,
+      "finish": "Fahrad, Ravenholdt Manor, Alterac Mountains"
+    },
+    "7562": {
+      "objectiveFR": "Parlez à Mor'zul Bloodbringer dans les Steppes ardentes.",
+      "objective": "Parlez à Mor'zul Bloodbringer dans les Steppes ardentes.",
+      "start": "Votre maître des démons dans une capitale : Spackle Thornberry (Hurlevent), Jubahl Corpseseeker (Forgefer), Martha Strain (Fossoyeuse) ou Kurgul (Orgrimmar)",
+      "title": "Mor'zul Bloodbringer",
+      "finish": "Mor'zul Bloodbringer, Steppes ardentes"
+    },
+    "78088": {
+      "objectiveFR": "Prenez l’Orbe étrange au sommet de la tour d’Althalaxx, à Sombrivage, et apportez-le à Delgren le Purificateur, à Orneval.",
+      "objective": "Prenez l’Orbe étrange au sommet de la tour d’Althalaxx, à Sombrivage, et apportez-le à Delgren le Purificateur, à Orneval.",
+      "start": "Strange Orb, top of the Tower of Althalaxx, Darkshore",
+      "title": "Un étrange artefact",
+      "finish": "Delgren the Purifier, Maestra's Post, Ashenvale"
+    },
+    "78089": {
+      "objectiveFR": "Parlez à Katherine la Pure, à la cathédrale de la Lumière de Hurlevent.",
+      "objective": "Parlez à Katherine la Pure, à la cathédrale de la Lumière de Hurlevent.",
+      "start": "Delgren the Purifier, Ashenvale",
+      "title": "Conseil de Hurlevent",
+      "finish": "Katherine the Pure, Cathedral of Light, Stormwind"
+    },
+    "78090": {
+      "objectiveFR": "Parlez à Ursula Deline dans le quartier des Mages de Hurlevent.",
+      "objective": "Parlez à Ursula Deline dans le quartier des Mages de Hurlevent.",
+      "start": "Katherine the Pure, Cathedral of Light, Stormwind",
+      "title": "Un second avis",
+      "finish": "Ursula Deline, Mage Quarter, Stormwind"
+    },
+    "78091": {
+      "objectiveFR": "Récupérez 14 sels d’invocateur sur les orcs Rochenoire des Carmines et retournez voir Ursula Deline.",
+      "objective": "Récupérez 14 sels d’invocateur sur les orcs Rochenoire des Carmines et retournez voir Ursula Deline.",
+      "start": "Ursula Deline, Mage Quarter, Stormwind",
+      "title": "Mériter son sel",
+      "finish": "Ursula Deline, Mage Quarter, Stormwind"
+    },
+    "78092": {
+      "objectiveFR": "Récupérez 12 particules de Mannoroth sur les démons du canyon de la Chute-du-Démon, à Orneval, puis utilisez-y la Lance de Mannoroth pour détruire l’orbe.",
+      "objective": "Récupérez 12 particules de Mannoroth sur les démons du canyon de la Chute-du-Démon, à Orneval, puis utilisez-y la Lance de Mannoroth pour détruire l’orbe.",
+      "start": "Ursula Deline, Mage Quarter, Stormwind",
+      "title": "Il faut le détruire",
+      "finish": "Spear of Mannoroth, Demon Fall Canyon, Ashenvale"
+    },
+    "78093": {
+      "objectiveFR": "Apportez les fragments d’orbe à Delgren le Purificateur, à Orneval. Récompense : Cape de la tempête divine.",
+      "objective": "Apportez les fragments d’orbe à Delgren le Purificateur, à Orneval. Récompense : Cape de la tempête divine.",
+      "start": "Shattered Orb, Demon Fall Canyon, Ashenvale",
+      "title": "Retour auprès de Delgren",
+      "finish": "Delgren the Purifier, Ashenvale"
+    },
+    "79939": {
+      "objectiveFR": "Trouvez la lettre déchirée (selon un joueur, sur un invocateur de la Lame ardente) et retournez voir Katherine la Pure.",
+      "objective": "Trouvez la lettre déchirée (selon un joueur, sur un invocateur de la Lame ardente) et retournez voir Katherine la Pure.",
+      "start": "Broken Warhammer, Mannoroc Coven, Desolace",
+      "title": "Le marteau brisé",
+      "finish": "Katherine the Pure, Cathedral of Light, Stormwind"
+    },
+    "79940": {
+      "objectiveFR": "Écoutez ce que Katherine la Pure dit du marteau et d’Aeonas.",
+      "objective": "Écoutez ce que Katherine la Pure dit du marteau et d’Aeonas.",
+      "start": "Katherine the Pure, Cathedral of Light, Stormwind",
+      "title": "Un frère perdu",
+      "finish": "Katherine the Pure, Cathedral of Light, Stormwind"
+    },
+    "79945": {
+      "objectiveFR": "Selon les joueurs : parlez au maître de pêche près des quais de Port de Menethil, prenez la petite barque au sud des quais jusqu’à la cabane d’Aeonas sur la côte, examinez le croisé écarlate tombé, vainquez l’assassin élite de niveau 40 et prenez les ordres. Utilisez-les et retournez voir Katherine la Pure.",
+      "objective": "Selon les joueurs : parlez au maître de pêche près des quais de Port de Menethil, prenez la petite barque au sud des quais jusqu’à la cabane d’Aeonas sur la côte, examinez le croisé écarlate tombé, vainquez l’assassin élite de niveau 40 et prenez les ordres. Utilisez-les et retournez voir Katherine la Pure.",
+      "start": "Orders, looted from the assassin at Aeonas's hut, Wetlands coast",
+      "title": "Les ordres du grand croisé",
+      "finish": "Katherine the Pure, Cathedral of Light, Stormwind"
+    },
+    "79946": {
+      "note": "Aeonas est dans la salle du fond de la cathédrale. Écoutez jusqu’au bout ce que Katherine dit d’Aeonas avant de partir : selon les joueurs, l’ignorer peut bloquer l’étape suivante. La suite d’avant (selon les joueurs) : la chaîne de l’Orbe étrange de Sombrivage, puis les quêtes de Katherine à partir du niveau 35.\n\nEnsuite, d’Aeonas dans le donjon :",
+      "objective": "Trouvez Aeonas dans le Monastère écarlate.",
+      "class": 2,
+      "noteFR": "Aeonas est dans la salle du fond de la cathédrale. Écoutez jusqu’au bout ce que Katherine dit d’Aeonas avant de partir : selon les joueurs, l’ignorer peut bloquer l’étape suivante. La suite d’avant (selon les joueurs) : la chaîne de l’Orbe étrange de Sombrivage, puis les quêtes de Katherine à partir du niveau 35.\n\nEnsuite, d’Aeonas dans le donjon :",
+      "objectiveFR": "Trouvez Aeonas dans le Monastère écarlate.",
+      "title": "Un frère dans le besoin",
+      "start": "Katherine the Pure, Cathedral of Light, Stormwind",
+      "xp": 3150,
+      "prereqs": [
+        {
+          "id": 78088,
+          "title": "Un étrange artefact"
+        },
+        {
+          "id": 78089,
+          "title": "Conseil de Hurlevent"
+        },
+        {
+          "id": 78090,
+          "title": "Un second avis"
+        },
+        {
+          "id": 78091,
+          "title": "Mériter son sel"
+        },
+        {
+          "id": 78092,
+          "title": "Il faut le détruire"
+        },
+        {
+          "id": 78093,
+          "title": "Retour auprès de Delgren"
+        },
+        {
+          "id": 96438,
+          "title": "Bataille au convent de Mannoroc"
+        },
+        {
+          "id": 79939,
+          "title": "Le marteau brisé"
+        },
+        {
+          "id": 79940,
+          "title": "Un frère perdu"
+        },
+        {
+          "id": 79945,
+          "title": "Les ordres du grand croisé"
+        }
+      ],
+      "finish": "Aeonas, rear chamber of the Cathedral, inside the dungeon"
+    },
+    "79963": {
+      "note": "Suit Un frère dans le besoin, dans la cathédrale.\n\nEnsuite, à Hurlevent :",
+      "objective": "Soignez Aeonas (selon les joueurs : entièrement).",
+      "class": 2,
+      "noteFR": "Suit Un frère dans le besoin, dans la cathédrale.\n\nEnsuite, à Hurlevent :",
+      "objectiveFR": "Soignez Aeonas (selon les joueurs : entièrement).",
+      "title": "Par la grâce de la Lumière",
+      "start": "Aeonas, rear chamber of the Cathedral, inside the dungeon",
+      "prereqs": {},
+      "finish": "Aeonas, inside the dungeon"
+    },
+    "79970": {
+      "note": "Après Par la grâce de la Lumière. La suite continue à Hurlevent avec De bonnes nouvelles, jusqu’à Matériaux d’importance (Maraudon, Profondeurs de Rochenoire).",
+      "objective": "Rejoignez Aeonas à la cathédrale de la Lumière de Hurlevent.",
+      "class": 2,
+      "noteFR": "Après Par la grâce de la Lumière. La suite continue à Hurlevent avec De bonnes nouvelles, jusqu’à Matériaux d’importance (Maraudon, Profondeurs de Rochenoire).",
+      "rewardChoice": false,
+      "objectiveFR": "Rejoignez Aeonas à la cathédrale de la Lumière de Hurlevent.",
+      "title": "Aeonas le Défendu",
+      "xp": 2350,
+      "start": "Aeonas, inside the dungeon",
+      "rewardItems": [
+        [
+          277236,
+          "Pauldrons of Vindication",
+          3
+        ]
+      ],
+      "prereqs": {},
+      "finish": "Aeonas, Cathedral of Light, Stormwind"
+    },
+    "80411": {
+      "note": "Voleurs : terminez Ravenholdt, le manoir, La Corne de Xelthos et L’Œil de Bhossca. Au niveau 45, retournez dans une capitale pour recevoir la lettre de Fahrad. Au manoir de Ravenholdt, terminez Pas deux fois en parlant à Fahrad ; il propose ensuite Le talisman de Kazdor. Entrez seul dans Zul’Farrak.",
+      "objective": "Trouvez le talisman de Kazdor dans Zul’Farrak, puis apportez-le à Fahrad au manoir de Ravenholdt. Vous devez accomplir ce travail seul.",
+      "class": 8,
+      "noteFR": "Voleurs : terminez Ravenholdt, le manoir, La Corne de Xelthos et L’Œil de Bhossca. Au niveau 45, retournez dans une capitale pour recevoir la lettre de Fahrad. Au manoir de Ravenholdt, terminez Pas deux fois en parlant à Fahrad ; il propose ensuite Le talisman de Kazdor. Entrez seul dans Zul’Farrak.",
+      "objectiveFR": "Trouvez le talisman de Kazdor dans Zul’Farrak, puis apportez-le à Fahrad au manoir de Ravenholdt. Vous devez accomplir ce travail seul.",
+      "title": "Le talisman de Kazdor",
+      "start": "Fahrad, Ravenholdt Manor, Alterac Mountains",
+      "xp": 4700,
+      "prereqs": [
+        {
+          "id": 6681,
+          "title": "Ravenholdt, le manoir"
+        },
+        {
+          "id": 78261,
+          "title": "La Corne de Xelthos"
+        },
+        {
+          "id": 78307,
+          "title": "La Corne de Xelthos"
+        },
+        {
+          "id": 78676,
+          "title": "L’Œil de Bhossca"
+        },
+        {
+          "id": 78699,
+          "title": "L’Œil de Bhossca"
+        },
+        {
+          "id": 80526,
+          "title": "Pas deux fois"
+        }
+      ],
+      "finish": "Fahrad, Ravenholdt Manor, Alterac Mountains"
+    },
+    "80526": {
+      "objectiveFR": "Parlez à Fahrad quand vous êtes prêt à entendre son plan.",
+      "description": "Au niveau 45, une fois les travaux de C terminés, allez dans une capitale : la lettre de Fahrad dans la boîte aux lettres vous envoie au manoir de Ravenholdt. Acceptez la quête, parlez de nouveau à Fahrad et rendez-la-lui.",
+      "objective": "Parlez à Fahrad quand vous êtes prêt à entendre son plan.",
+      "start": "Fahrad, Ravenholdt Manor, Alterac Mountains",
+      "title": "Pas deux fois",
+      "xp": 470,
+      "finish": "Fahrad, Ravenholdt Manor, Alterac Mountains"
+    },
+    "81762": {
+      "objectiveFR": "Parlez à Katherine la Pure, à la cathédrale de la Lumière de Hurlevent.",
+      "objective": "Parlez à Katherine la Pure, à la cathédrale de la Lumière de Hurlevent.",
+      "start": "Aeonas the Vindicated, Cathedral of Light, Stormwind",
+      "title": "De bonnes nouvelles",
+      "xp": 2350,
+      "finish": "Katherine the Pure, Cathedral of Light, Stormwind"
+    },
+    "81764": {
+      "objectiveFR": "Rendez-vous à Theramore et trouvez le mystérieux marchand.",
+      "objective": "Rendez-vous à Theramore et trouvez le mystérieux marchand.",
+      "start": "Katherine the Pure, Cathedral of Light, Stormwind",
+      "title": "Le mystérieux marchand",
+      "xp": 4700,
+      "finish": "Elrick, Theramore Inn, Dustwallow Marsh (66.4, 45.4)"
+    },
+    "81765": {
+      "objectiveFR": "Parlez à Elrick pour en savoir plus.",
+      "objective": "Parlez à Elrick pour en savoir plus.",
+      "start": "Elrick, Theramore Inn, Dustwallow Marsh (66.4, 45.4)",
+      "title": "Elrick, paladin de la Main d’argent",
+      "xp": 5900,
+      "finish": "Innkeeper Janene, Theramore Inn, Dustwallow Marsh (66.6, 45.2)"
+    },
+    "81766": {
+      "objectiveFR": "Apportez la missive à Katherine la Pure, à la cathédrale de la Lumière de Hurlevent.",
+      "objective": "Apportez la missive à Katherine la Pure, à la cathédrale de la Lumière de Hurlevent.",
+      "start": "Missive ensanglantée, trouvée sur le corps du « paladin »",
+      "title": "La missive ensanglantée",
+      "xp": 5900,
+      "finish": "Katherine the Pure, Cathedral of Light, Stormwind"
+    },
+    "81790": {
+      "note": "Quête de paladin de l’Alliance. Pour la débloquer : La missive ensanglantée, puis À la recherche d’Aeonas (au Sanctuaire d’Émeraude, interagissez d’abord avec le cheval d’Aeonas, puis suivez sa piste), puis parlez à Aeonas et à Gregory à Gangrebois : Gregory propose Matériaux d’importance. Ses composants viennent de Gangrebois, de Maraudon, des Profondeurs de Rochenoire et des Contreforts de Hautebrande.",
+      "objective": "Utilisez les indices de la note de Gregory pour trouver où se trouvent les composants magiques nécessaires au rituel. Vous aurez besoin de l’aide d’alliés.",
+      "class": 2,
+      "noteFR": "Quête de paladin de l’Alliance. Pour la débloquer : La missive ensanglantée, puis À la recherche d’Aeonas (au Sanctuaire d’Émeraude, interagissez d’abord avec le cheval d’Aeonas, puis suivez sa piste), puis parlez à Aeonas et à Gregory à Gangrebois : Gregory propose Matériaux d’importance. Ses composants viennent de Gangrebois, de Maraudon, des Profondeurs de Rochenoire et des Contreforts de Hautebrande.",
+      "objectiveFR": "Utilisez les indices de la note de Gregory pour trouver où se trouvent les composants magiques nécessaires au rituel. Vous aurez besoin de l’aide d’alliés.",
+      "title": "Matériaux d’importance",
+      "start": "Gregory, near Bloodvenom Falls, Felwood (44.6, 52.0)",
+      "xp": 12750,
+      "prereqs": [
+        {
+          "id": 78088,
+          "title": "Un étrange artefact"
+        },
+        {
+          "id": 78089,
+          "title": "Conseil de Hurlevent"
+        },
+        {
+          "id": 78090,
+          "title": "Un second avis"
+        },
+        {
+          "id": 78091,
+          "title": "Mériter son sel"
+        },
+        {
+          "id": 78092,
+          "title": "Il faut le détruire"
+        },
+        {
+          "id": 78093,
+          "title": "Retour auprès de Delgren"
+        },
+        {
+          "id": 96438,
+          "title": "Bataille au convent de Mannoroc"
+        },
+        {
+          "id": 79939,
+          "title": "Le marteau brisé"
+        },
+        {
+          "id": 79940,
+          "title": "Un frère perdu"
+        },
+        {
+          "id": 79945,
+          "title": "Les ordres du grand croisé"
+        },
+        {
+          "id": 79946,
+          "title": "Un frère dans le besoin"
+        },
+        {
+          "id": 79963,
+          "title": "Par la grâce de la Lumière"
+        },
+        {
+          "id": 79970,
+          "title": "Aeonas le Défendu"
+        },
+        {
+          "id": 81762,
+          "title": "De bonnes nouvelles"
+        },
+        {
+          "id": 81764,
+          "title": "Le mystérieux marchand"
+        },
+        {
+          "id": 81765,
+          "title": "Elrick, paladin de la Main d’argent"
+        },
+        {
+          "id": 81766,
+          "title": "La missive ensanglantée"
+        },
+        {
+          "id": 96476,
+          "title": "À la recherche d’Aeonas"
+        }
+      ],
+      "finish": "Gregory, near Bloodvenom Falls, Felwood (44.6, 52.0)"
+    },
+    "82062": {
+      "note": "Depuis le pont à l’est du Cercle de la loi, vers le nord au-dessus de la lave, sautez du parapet près du petit brasero sur la plateforme contre le mur. Suivez le mur à gauche jusqu’à la corniche en dessous. La porte mène au-dessus du seigneur Incendius, sans retour possible. Quête non partageable. Titre de secours traduit localement.",
+      "objective": "Parlez au voyageur endurci.",
+      "noteFR": "Depuis le pont à l’est du Cercle de la loi, vers le nord au-dessus de la lave, sautez du parapet près du petit brasero sur la plateforme contre le mur. Suivez le mur à gauche jusqu’à la corniche en dessous. La porte mène au-dessus du seigneur Incendius, sans retour possible. Quête non partageable. Titre de secours traduit localement.",
+      "rewardChoice": false,
+      "objectiveFR": "Parlez au voyageur endurci.",
+      "title": "Et ils vécurent heureux",
+      "xp": 8400,
+      "start": "Voyageur endurci, corniche cachée au-dessus de la lave dans les Profondeurs de Rochenoire",
+      "rewardItems": [
+        [
+          221316,
+          "Premo's Poise-Demanding Uniform",
+          1
+        ],
+        [
+          216619,
+          "Student Fodder",
+          2,
+          3
+        ],
+        [
+          221315,
+          "Traveler's Symbols",
+          3
+        ]
+      ],
+      "prereqs": {},
+      "finish": "Voyageur endurci, Profondeurs de Rochenoire"
+    },
+    "8411": {
+      "objective": "Bring the elements earth, air, fire and water to Bath'rah the Windwatcher.",
+      "start": "Bath'rah the Windwatcher, Alterac Mountains",
+      "title": "Maîtriser les éléments",
+      "xp": 3800,
+      "finish": "Bath'rah the Windwatcher, Alterac Mountains"
+    },
+    "8412": {
+      "objectiveFR": "Apportez les différents morceaux du Totem des esprits à Bath’rah la Vigie des Vents.",
+      "objective": "Apportez les différents morceaux du Totem des esprits à Bath’rah la Vigie des Vents.",
+      "start": "Bath'rah the Windwatcher, Alterac Mountains",
+      "title": "Le totem des esprits",
+      "xp": 5100,
+      "finish": "Bath'rah the Windwatcher, Alterac Mountains"
+    },
+    "8413": {
+      "note": "Shaman class quest. Needs 2 amber, 2 blue and 2 green Voodoo Feathers from the six troll guardians: Gasher, Mijan, Zolo, Hukku, Zul'Lor and Loro.",
+      "objective": "Apporter les Plumes vaudou à Bath'rah la Vigie des vents.",
+      "class": 64,
+      "xp": 12400,
+      "rewardChoice": false,
+      "objectiveFR": "Apporter les Plumes vaudou à Bath'rah la Vigie des vents.",
+      "title": "Vaudou !",
+      "start": "Bath'rah the Windwatcher, Alterac Mountains",
+      "rewardItems": [
+        [
+          20369,
+          "Azurite Fists",
+          3
+        ],
+        [
+          20503,
+          "Enamored Water Spirit",
+          3
+        ],
+        [
+          20556,
+          "Wildstaff",
+          3
+        ]
+      ],
+      "prereqs": [
+        {
+          "id": 8411,
+          "title": "Maîtriser les éléments"
+        },
+        {
+          "id": 8412,
+          "title": "Le totem des esprits"
+        }
+      ],
+      "finish": "Bath'rah the Windwatcher, Alterac Mountains"
+    },
+    "86746": {
+      "objectiveFR": "Tuez 5 Legashi Satyrs, 5 Legashi Rogues et 5 Legashi Hellcallers pour Ekkal aux Ruines d'Eldarath.",
+      "objective": "Tuez 5 Legashi Satyrs, 5 Legashi Rogues et 5 Legashi Hellcallers pour Ekkal aux Ruines d'Eldarath.",
+      "start": "Ekkal, Ruines d'Eldarath, Azshara (42.0, 38.9)",
+      "title": "The Legashi Threat",
+      "xp": 5250,
+      "finish": "Ekkal, Ruines d'Eldarath, Azshara (42.0, 38.9)"
+    },
+    "86752": {
+      "objectiveFR": "Parlez à Gatekeeper Rageroar à Ursolan.",
+      "note": "Nécessite d'être Neutre avec le Repaire des Grumegueules.",
+      "objective": "Parlez à Gatekeeper Rageroar à Ursolan.",
+      "xp": 530,
+      "start": "Ekkal, Ruines d'Eldarath, Azshara (42.0, 38.9)",
+      "title": "Report to Rageroar",
+      "noteFR": "Nécessite d'être Neutre avec le Repaire des Grumegueules.",
+      "finish": "Gatekeeper Rageroar, Ursolan, Azshara (42.4, 20.2)"
+    },
+    "86777": {
+      "objectiveFR": "Tuez Master Feardred et apportez son amulette à Korsa.",
+      "objective": "Tuez Master Feardred et apportez son amulette à Korsa.",
+      "start": "Korsa, devant Legashi Stronghold, Azshara (63.0, 23.3)",
+      "title": "Master Feardred",
+      "xp": 5250,
+      "finish": "Korsa, devant Legashi Stronghold, Azshara (63.0, 23.3)"
+    },
+    "86791": {
+      "objectiveFR": "Retrouvez le groupe d'éclaireurs Blackmaw près des camps Legashi à l'est d'Ursolan.",
+      "objective": "Retrouvez le groupe d'éclaireurs Blackmaw près des camps Legashi à l'est d'Ursolan.",
+      "start": "Gatekeeper Rageroar, Ursolan, Azshara (42.4, 20.2)",
+      "title": "Missing Blackmaw Scouts",
+      "xp": 530,
+      "finish": "Korsa, devant Legashi Stronghold, Azshara (63.0, 23.3)"
+    },
+    "86792": {
+      "objectiveFR": "Tuez 6 Legashi Hellraisers, 4 Legashi Soulstealers et 2 Legashi Blackguards pour Korsa, devant Legashi Stronghold.",
+      "objective": "Tuez 6 Legashi Hellraisers, 4 Legashi Soulstealers et 2 Legashi Blackguards pour Korsa, devant Legashi Stronghold.",
+      "start": "Korsa, devant Legashi Stronghold, Azshara (63.0, 23.3)",
+      "title": "Thinning Their Forces",
+      "xp": 5450,
+      "finish": "Korsa, devant Legashi Stronghold, Azshara (63.0, 23.3)"
+    },
+    "86796": {
+      "objectiveFR": "Aidez Graal à s'évader de Legashi Stronghold, puis prévenez Korsa devant Legashi Stronghold.",
+      "objective": "Aidez Graal à s'évader de Legashi Stronghold, puis prévenez Korsa devant Legashi Stronghold.",
+      "start": "Graal, en cage dans Legashi Stronghold, Azshara (65.9, 14.4)",
+      "title": "Later, Satyr",
+      "xp": 5450,
+      "finish": "Korsa, devant Legashi Stronghold, Azshara (63.0, 23.3)"
+    },
+    "86797": {
+      "objectiveFR": "Retournez voir Gatekeeper Rageroar à Ursolan.",
+      "objective": "Retournez voir Gatekeeper Rageroar à Ursolan.",
+      "start": "Korsa, devant Legashi Stronghold, Azshara (63.0, 23.3)",
+      "title": "Return to Rageroar",
+      "xp": 525,
+      "finish": "Gatekeeper Rageroar, Ursolan, Azshara (42.4, 20.2)"
+    },
+    "86798": {
+      "objectiveFR": "Parlez à Gorn One Eye au Repaire des Grumegueules et demandez-lui des renforts.",
+      "objective": "Parlez à Gorn One Eye au Repaire des Grumegueules et demandez-lui des renforts.",
+      "start": "Gatekeeper Rageroar, Ursolan, Azshara (42.4, 20.2)",
+      "title": "Timbermaw Reinforcements",
+      "xp": 550,
+      "finish": "Gorn One Eye, Repaire des Grumegueules"
+    },
+    "86814": {
+      "objectiveFR": "Plantez le Timbermaw War Banner à Legashi Stronghold en Azshara. Tuez Prince Halanox, puis annoncez votre victoire à Gatekeeper Rageroar à Ursolan.",
+      "note": "Quête élite : venez en groupe pour Prince Halanox.",
+      "objective": "Plantez le Timbermaw War Banner à Legashi Stronghold en Azshara. Tuez Prince Halanox, puis annoncez votre victoire à Gatekeeper Rageroar à Ursolan.",
+      "xp": 7050,
+      "start": "Gorn One Eye, Repaire des Grumegueules",
+      "title": "Blackmaw Counter-Offensive",
+      "noteFR": "Quête élite : venez en groupe pour Prince Halanox.",
+      "finish": "Gatekeeper Rageroar, Ursolan, Azshara (42.4, 20.2)"
+    },
+    "87346": {
+      "objectiveFR": "Tuez Chieftain Bloodmaw et apportez sa masse à Gorn One Eye au Repaire des Grumegueules.",
+      "note": "Chieftain Bloodmaw se trouve à Gangrebois, au sud du Repaire des Grumegueules.",
+      "objective": "Tuez Chieftain Bloodmaw et apportez sa masse à Gorn One Eye au Repaire des Grumegueules.",
+      "xp": 5650,
+      "start": "Gorn One Eye, Repaire des Grumegueules",
+      "title": "Chieftain Bloodmaw",
+      "noteFR": "Chieftain Bloodmaw se trouve à Gangrebois, au sud du Repaire des Grumegueules.",
+      "finish": "Gorn One Eye, Repaire des Grumegueules"
+    },
+    "93341": {
+      "objective": "Investigate the Forlorn Gardens near Shen'dralas and then return to Mithera at the nearby temple.",
+      "start": "Mithera, by the Forlorn Gardens, Shen'dralas (52.8, 76.0)",
+      "title": "Forlorn Gardens",
+      "xp": 1800,
+      "finish": "Mithera, by the Forlorn Gardens, Shen'dralas (52.8, 76.0)"
+    },
+    "95790": {
+      "note": "Cliquez sur le journal au sol dans le donjon pour commencer cette quête. Titre de secours traduit localement.",
+      "objective": "Récupérez 15 pages de journal partiellement digérées dans Shaper’s Terrace.",
+      "noteFR": "Cliquez sur le journal au sol dans le donjon pour commencer cette quête. Titre de secours traduit localement.",
+      "rewardChoice": true,
+      "objectiveFR": "Récupérez 15 pages de journal partiellement digérées dans Shaper’s Terrace.",
+      "title": "Des recherches digestes",
+      "xp": 17650,
+      "start": "Journal partiellement digéré au sol dans Shaper’s Terrace, dans les plaines verdoyantes",
+      "rewardItems": [
+        [
+          279931,
+          "Lost Researcher's Hood",
+          3
+        ],
+        [
+          279901,
+          "Expeditionary Legplates",
+          3
+        ]
+      ],
+      "prereqs": {},
+      "finish": "Conservateur Thorius, hall des Explorateurs, Forgefer (71.5, 15.7)"
+    },
+    "96377": {
+      "prereqs": {},
+      "objective": "Montrez la boîte de documents à Renzik \"The Shiv\".",
+      "xp": 6550,
+      "rewardChoice": false,
+      "objectiveFR": "Montrez la boîte de documents à Renzik \"The Shiv\".",
+      "title": "State Secrets",
+      "start": "Renzik \"The Shiv\", à l'étage du SI:7, Vieille ville, Hurlevent (78.3, 71.1)",
+      "rewardItems": [
+        [
+          279450,
+          "Fractured Insignia",
+          1
+        ]
+      ],
+      "finish": "Renzik \"The Shiv\", à l'étage du SI:7, Vieille ville, Hurlevent (78.3, 71.1)"
+    },
+    "96438": {
+      "objectiveFR": "Examinez le marteau de guerre brisé au convent de Mannoroc, en Désolace.",
+      "objective": "Examinez le marteau de guerre brisé au convent de Mannoroc, en Désolace.",
+      "start": "Katherine the Pure, Cathedral of Light, Stormwind",
+      "title": "Bataille au convent de Mannoroc",
+      "finish": "Broken Warhammer, Mannoroc Coven, Desolace"
+    },
+    "96476": {
+      "objectiveFR": "Cherchez des traces d’Aeonas au Sanctuaire d’Émeraude, à Gangrebois.",
+      "description": "Au Sanctuaire d’Émeraude, interagissez d’abord avec le cheval d’Aeonas (destrier de la Main d’argent, 51.0, 81.8), puis suivez sa piste à Gangrebois jusqu’à lui (45.0, 52.0). Parlez ensuite à Aeonas et à Gregory : Gregory propose Matériaux d’importance.",
+      "objective": "Cherchez des traces d’Aeonas au Sanctuaire d’Émeraude, à Gangrebois.",
+      "start": "Katherine the Pure, Cathedral of Light, Stormwind",
+      "title": "À la recherche d’Aeonas",
+      "xp": 2650,
+      "finish": "Aeonas the Vindicated, Felwood (45.0, 52.0)"
+    },
+    "97168": {
+      "objectiveFR": "Si vous voulez aider Eldrun Stormbreaker à Forgefer, apportez-lui un Diamant d’Azeroth et un Diamant noir en parfait état.",
+      "objective": "Si vous voulez aider Eldrun Stormbreaker à Forgefer, apportez-lui un Diamant d’Azeroth et un Diamant noir en parfait état.",
+      "start": "Eldrun Stormbreaker, Ironforge",
+      "title": "Assistance matérielle",
+      "finish": "Eldrun Stormbreaker, Ironforge"
+    },
+    "97169": {
+      "note": "Shaman quest. Clear Rattlegore's basement, use the scryer and defeat Death Knight Darkreaver; return his head.",
+      "objective": "Servez-vous du Clairvoyant au centre du sous-sol du Grand ossuaire de la Scholomance. Cela attirera des esprits que vous devrez combattre. Les vaincre fera apparaître le Chevalier de la mort Ravassombre. Tuez-le.\n\nRamenez la Tête de Ravassombre à Eldrun Stormbreaker de la Caverne lugubre, à Forgefer.",
+      "class": 64,
+      "xp": 19900,
+      "rewardChoice": true,
+      "objectiveFR": "Servez-vous du Clairvoyant au centre du sous-sol du Grand ossuaire de la Scholomance. Cela attirera des esprits que vous devrez combattre. Les vaincre fera apparaître le Chevalier de la mort Ravassombre. Tuez-le.\n\nRamenez la Tête de Ravassombre à Eldrun Stormbreaker de la Caverne lugubre, à Forgefer.",
+      "title": "La menace de Ravassombre",
+      "start": "Eldrun Stormbreaker, Forlorn Cavern, Ironforge",
+      "rewardItems": [
+        [
+          20134,
+          "Skyfury Helm",
+          4
+        ],
+        [
+          20133,
+          "Skyfury Gauntlets",
+          4
+        ]
+      ],
+      "prereqs": [
+        {
+          "id": 97168,
+          "title": "Assistance matérielle"
+        }
+      ],
+      "finish": "Eldrun Stormbreaker, Forlorn Cavern, Ironforge"
+    }
+  }
+}

@@ -81,12 +81,23 @@ local function regional()
 end
 -- Royaume au format des noms de la liste de guilde et des messages (sans espaces : « Kirin Tor » → « KirinTor »).
 -- Le nom normalisé ne change pas de la session : gardé dès que le jeu le donne (il peut manquer avant la connexion).
-local realmCache
+-- Client Forever 1.60.1.71037 (novembre 2026) : GetRealmName et GetNormalizedRealmName renvoient une chaîne vide.
+-- Le conteneur donne alors le royaume d'avant, retrouvé dans ses données (Lib.SetRealm) : les clés
+-- « Prénom Nom-Royaume » ne changent pas. Sans lui, la clé devenait « Prénom Nom- », que les modules refusaient.
+local realmCache,realmKnown
+local function gameRealm()
+    local normalized=GetNormalizedRealmName and safe(GetNormalizedRealmName)
+    if type(normalized)=='string' and not secret(normalized) and normalized~='' then return normalized,true end
+    local name=GetRealmName and safe(GetRealmName)
+    if type(name)=='string' and not secret(name) then return (name:gsub('%s','')),false end
+    return '',false
+end
 local function realm()
     if realmCache then return realmCache end
-    local normalized=GetNormalizedRealmName and safe(GetNormalizedRealmName)
-    if type(normalized)=='string' and normalized~='' then realmCache=normalized;return normalized end
-    return (GetRealmName():gsub('%s',''))
+    local name,normalized=gameRealm()
+    if normalized then realmCache=name;return name end
+    if name~='' then return name end
+    return realmKnown or ''
 end
 -- Nom Forever sans royaume. L'expéditeur d'un message peut arriver en « Prénom Nom », « Prénom Nom-Royaume » ou
 -- « Prénom-Nom » (le jeu met parfois un tiret entre prénom et nom) : on retire notre royaume en fin de nom, puis ce
@@ -119,6 +130,14 @@ end
 Lib.CanonicalKey=key
 function Lib.Regional() return regional() end
 function Lib.Realm() return realm() end
+-- Royaume donné par le jeu seul (chaîne vide s'il le cache)
+function Lib.GameRealm() return (gameRealm()) end
+-- Royaume à utiliser quand le jeu n'en donne plus (sans espace ni tiret, comme ceux des clés)
+function Lib.SetRealm(value)
+    if type(value)~='string' or value=='' or #value>64 or value:find('[%s%-|%z\1-\31]') then return false end
+    if realmKnown~=value then realmKnown=value;keyCache,keyCount={},0 end
+    return true
+end
 -- Destinataire d'un chuchotement : Forever refuse « Prénom Nom-Royaume » (« aucun joueur nommé… »)
 -- (nom écrit comme la liste de guilde quand on la connaît : « Prénom-Nom » reçu → « Prénom Nom »)
 function Lib.WhisperTarget(name)

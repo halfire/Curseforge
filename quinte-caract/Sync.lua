@@ -32,7 +32,11 @@ end
 local function validate(value, recordKey, now)
     if not bounded(value, 28) or not Q.String(recordKey) then return nil end
     local clean = {}
-    for _, name in ipairs(stringFields) do if not field(clean, value, name, 'string') then return nil end end
+    for _, name in ipairs(stringFields) do
+        -- (royaume vide permis : clé « Prénom Nom- » d'un joueur dont le jeu cache le royaume, client Forever 71037)
+        if name == 'realm' and value.realm == '' then clean.realm = ''
+        elseif not field(clean, value, name, 'string') then return nil end
+    end
     for name, limits in pairs(numberFields) do
         if not field(clean, value, name, 'number', unpack(limits)) then return nil end
     end
@@ -44,7 +48,7 @@ local function validate(value, recordKey, now)
     if value.main ~= nil or value.family ~= nil or value.mainUpdated ~= nil then
         if not Q.String(value.main) or not Q.String(value.family, 64)
             or not value.family:match('^[%w:]+$') or not Q.Number(value.mainUpdated, 0, now + 300, true)
-            or not value.main:match('^.+%-.+$') or value.main:find('|', 1, true) then return nil end
+            or not value.main:match('^.+%-') or value.main:find('|', 1, true) then return nil end
         clean.main, clean.family, clean.mainUpdated = value.main, value.family, value.mainUpdated
     end
     if value.stats ~= nil then
@@ -421,3 +425,74 @@ Q.SyncAdapter = {Validate = validate, Manifest = manifest, Need = need, Export =
 local itemFrame = CreateFrame('Frame')
 pcall(itemFrame.RegisterEvent, itemFrame, 'ITEM_DATA_LOAD_RESULT')
 itemFrame:SetScript('OnEvent', function(_, _, item, success) if success and Q.Run then Q.Run('noms des objets', Q.FillItemNames, item) end end)
+
+-- ---------------------------------------------------------------------------------------------------------------------
+-- Fenêtre /quinte debug (conteneur 1.52.11, T252) : état de nos fiches, de la nôtre surtout (vérifiée ? annoncée ?), et
+-- fiches reçues en retard sur le niveau de la liste de guilde. Lecture seule.
+-- ---------------------------------------------------------------------------------------------------------------------
+function Q.DiagnosticLines()
+    local db, out = QuinteCaractDB, {}
+    local D = Quintessence.Diagnostic or {}
+    local when, ago = D.When or tostring, D.Ago or function() return '?' end
+    out[#out + 1] = 'Module ' .. tostring(Q.version) .. ' · prêt ' .. tostring(Q.ready) .. ' · collecte suspendue ' .. tostring(Q.disabled or false)
+        .. ' · relevés ' .. tostring(Q.scans) .. ' · changements ' .. tostring(Q.changes) .. ' · erreurs ' .. #(Q.errors or {})
+    if type(db) ~= 'table' or type(db.characters) ~= 'table' then out[#out + 1] = 'QuinteCaractDB absente ou illisible.'; return out end
+    local now, mine = Q.Now(), Q.Key()
+    local total, own, received, old = 0, 0, 0, 0
+    for _, c in pairs(db.characters) do
+        if type(c) == 'table' then
+            total = total + 1
+            if c.source == 'self' then own = own + 1 else
+                received = received + 1
+                if (tonumber(c.updated) or 0) < now - 3 * 86400 then old = old + 1 end
+            end
+        end
+    end
+    out[#out + 1] = 'Fiches : ' .. total .. ' (à moi ' .. own .. ', reçues ' .. received .. ', reçues il y a plus de 3 jours ' .. old .. ')'
+    local c, stored = existing(db, mine, true)
+    if not c then out[#out + 1] = 'Ma fiche (' .. tostring(mine) .. ') : absente'
+    else
+        local clean = validate(c, stored, now)
+        local fields = 0; for _ in pairs(c) do fields = fields + 1 end
+        out[#out + 1] = 'Ma fiche : niveau ' .. tostring(c.level) .. ' · relevée le ' .. when(c.updated) .. ' (il y a ' .. ago(c.updated, now) .. ') · source '
+            .. tostring(c.source) .. ' · ' .. fields .. ' champs · vérification ' .. (clean and 'OK' or 'REFUSÉE') .. (tooLow(c) and ' · niveau trop bas pour être partagée' or '')
+        if not clean then
+            -- Champ responsable : la vérification refaite sans chacun d'eux
+            for field in pairs(c) do
+                local copy = {}
+                for k, v in pairs(c) do if k ~= field then copy[k] = v end end
+                if validate(copy, stored, now) then out[#out + 1] = '  champ refusé : ' .. tostring(field) end
+            end
+        end
+        local announced, entries = false, 0
+        for _, batch in ipairs(manifest(db)) do
+            for _, row in ipairs(batch) do entries = entries + 1; if row.key == stored then announced = true end end
+        end
+        out[#out + 1] = 'Annoncée aux autres : ' .. (announced and 'oui' or 'NON') .. ' · fiches annoncées ' .. entries
+        local t = (db.partStamps or {})[stored]
+        if type(t) == 'table' and type(t.t) == 'table' then
+            local parts = {}
+            for _, part in ipairs(PART_ORDER) do parts[#parts + 1] = part .. ' ' .. ago(t.t[part], now) end
+            out[#out + 1] = 'Parties (âge) : ' .. table.concat(parts, ' · ')
+        end
+    end
+    -- Fiches reçues en retard sur la liste de guilde (niveau plus haut dans la liste)
+    local roster = Quintessence.sync and Quintessence.sync.roster or {}
+    local late = {}
+    for key, x in pairs(db.characters) do
+        if type(x) == 'table' and x.source ~= 'self' then
+            local r = roster[Lib.CanonicalKey(key)]
+            if type(r) == 'table' and type(r.level) == 'number' and type(x.level) == 'number' and r.level > x.level then
+                late[#late + 1] = { name = tostring(x.name or key), fiche = x.level, liste = r.level, at = x.updated, from = x.syncedFrom }
+            end
+        end
+    end
+    table.sort(late, function(a, b) return (a.at or 0) < (b.at or 0) end)
+    out[#out + 1] = 'Fiches en retard sur la liste de guilde : ' .. #late
+    for i = 1, math.min(#late, 25) do
+        local l = late[i]
+        out[#out + 1] = '  ' .. l.name .. ' : fiche ' .. l.fiche .. ', liste ' .. l.liste .. ' · fiche du ' .. when(l.at) .. ' · reçue de ' .. tostring(l.from or '?')
+    end
+    return out
+end
+if Quintessence.RegisterDiagnostic then Quintessence.RegisterDiagnostic('caract', 'Fiches (quinte-caract)', function() return Q.DiagnosticLines() end) end

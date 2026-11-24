@@ -1,0 +1,29 @@
+<!-- LFG Forever's key bindings: "Open LFG Forever", which opens or closes the
+     window like /lfg, and "Search", which presses the Search button.
+
+     NOT listed in QuinteLFG.toc: the client loads a file named Bindings.xml
+     from the addon's root by itself, and listing it as well registers the
+     binding twice. No Blizzard TOC lists its own Bindings.xml.
+
+     * name is the action, saved with the player's keys: renaming it unbinds
+       every player.
+     * category groups the row on Blizzard's Keybindings page; the page titles
+       the section with _G[category] (Keybindings.lua:220-226). The global, and
+       the rows' labels (BINDING_NAME_<name>), are set in core/slash.lua.
+     * No default key, by the author's decision: nothing can clash.
+     * Open's body runs in the global environment on the key press, so it
+       calls a global, also in core/slash.lua.
+     * Search has NO body. "CLICK <FrameName>:LeftButton" binds the key to a
+       button: the client clicks the frame of that name when the key is
+       pressed, and the click runs the Search button's own search. No script
+       calls Search, because a script that does is refused; the frame is made
+       in core/slash.lua.
+
+     .claude/rules/keybinding.md -->
+<Bindings>
+	<Binding name="QUINTELFG_TOGGLE" category="BINDING_HEADER_QUINTELFG">
+		if QuinteLFG_ToggleWindow then QuinteLFG_ToggleWindow() end
+	</Binding>
+	<Binding name="CLICK QuinteLFGSearchKeyButton:LeftButton" category="BINDING_HEADER_QUINTELFG">
+	</Binding>
+</Bindings>

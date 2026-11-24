@@ -68,6 +68,8 @@ end
 
 function Q.ProfessionKey(profession)
     local p = fold(profession or '')
+    -- Poisons : compétence de voleur (fenêtre de métier en Classic), pas un métier de la guilde
+    if p == 'poisons' or p == 'poison' then return 'poisons' end
     if p:find('alchim', 1, true) or p:find('alchem', 1, true) then return 'alchemy' end
     if p:find('enchant', 1, true) then return 'enchanting' end
     if p:find('forge', 1, true) or p:find('blacksmith', 1, true) then return 'blacksmithing' end
@@ -77,7 +79,46 @@ function Q.ProfessionKey(profession)
     if p:find('cuisin', 1, true) or p:find('cook', 1, true) then return 'cooking' end
     if p:find('secour', 1, true) or p:find('first aid', 1, true) or p == 'firstaid' then return 'firstaid' end
     if p:find('minag', 1, true) or p:find('mining', 1, true) or p:find('fonte', 1, true) or p:find('smelt', 1, true) then return 'mining' end
+    if p:find('herbor', 1, true) or p:find('herbal', 1, true) then return 'herbalism' end
+    if p:find('depec', 1, true) or p:find('skinning', 1, true) then return 'skinning' end
+    if p:find('peche', 1, true) or p:find('fishing', 1, true) then return 'fishing' end
     return 'other'
+end
+-- Nom rangé et affiché de chaque métier : celui du jeu en français (la guilde est française). Le jeu donne le nom dans
+-- la langue du client : un membre au client anglais envoyait « Cooking », et la fenêtre montrait « Cuisine » et
+-- « Cooking » côte à côte (parfois les deux sur la même fiche).
+local FRENCH_NAMES = {
+    alchemy = 'Alchimie', blacksmithing = 'Forge', enchanting = 'Enchantement', engineering = 'Ingénierie',
+    tailoring = 'Couture', leatherworking = 'Travail du cuir', cooking = 'Cuisine', firstaid = 'Secourisme',
+    mining = 'Minage', herbalism = 'Herboristerie', skinning = 'Dépeçage', fishing = 'Pêche',
+}
+--- Nom d'un métier tel qu'il est rangé (français), nil pour ce qui n'en est pas un (Poisons) ; autre nom inconnu : tel quel.
+function Q.ProfessionName(name)
+    if type(name) ~= 'string' or name == '' then return nil end
+    local key = Q.ProfessionKey(name)
+    if key == 'poisons' then return nil end
+    return FRENCH_NAMES[key] or name
+end
+--- Métiers d'une fiche sous leur nom rangé : « Cooking » et « Cuisine » réunis (le relevé le plus récent reste),
+--- Poisons retiré. Rend true si la fiche a changé.
+function Q.NormalizeProfessions(c)
+    if type(c) ~= 'table' or type(c.professions) ~= 'table' then return false end
+    local moves = {}
+    for name, p in pairs(c.professions) do
+        local wanted = Q.ProfessionName(name)
+        if wanted ~= name then moves[#moves + 1] = { from = name, to = wanted, value = p } end
+    end
+    table.sort(moves, function(a, b) return tostring(a.from) < tostring(b.from) end)
+    for _, m in ipairs(moves) do
+        c.professions[m.from] = nil
+        if m.to then
+            local kept = c.professions[m.to]
+            if type(kept) ~= 'table' or (type(m.value) == 'table' and (tonumber(m.value.updated) or 0) > (tonumber(kept.updated) or 0)) then
+                c.professions[m.to] = m.value
+            end
+        end
+    end
+    return #moves > 0
 end
 
 local function itemEquipLoc(itemID)

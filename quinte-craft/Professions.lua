@@ -94,6 +94,8 @@ local function equal(a,b)
 end
 Q.ReagentSignature = reagentSignature
 function Q.StoreProfession(name, profession)
+    -- (nom français rangé : « Cooking » d'un client anglais devient « Cuisine » ; Poisons n'est pas un métier)
+    name = Q.ProfessionName(name)
     if type(name) ~= 'string' or name == '' or #name > 100 or foreign() then return false end
     if type(profession.skill) ~= 'number' or type(profession.maxSkill) ~= 'number' then return false end
     sort(profession.recipes)
@@ -134,7 +136,7 @@ local function legacy(scanMode)
     end
     -- Legacy filtered/collapsed lists are partial. Preserve previously learned recipes.
     local c = QuinteCraftDB.characters[Q.Key()]
-    local previous = c and c.source == 'self' and c.professions[name]
+    local previous = c and c.source == 'self' and c.professions[Q.ProfessionName(name) or name]
     -- Les recettes visibles sont relues ensuite et remplacent celles du relevé précédent (composants à jour).
     local fresh = {}
     local currentCategory = nil

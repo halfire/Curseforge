@@ -40,10 +40,18 @@ end
 local function need(db, remote)
     if not list(remote, BATCH) then return {} end
     local known, wanted = records(db), {}
+    -- Fiche la plus récente de chaque personnage, toutes clés confondues : une copie sous « Prénom Nom- » (royaume
+    -- caché par le jeu) n'est pas redemandée quand on a déjà plus récent sous « Prénom Nom-Royaume », ni la sienne
+    local newest = {}
+    for key, c in pairs(known) do
+        local id = Quintessence.CanonicalKey(key:sub(3))
+        newest[id] = math.max(newest[id] or 0, c.updated or 0)
+    end
     for _, row in ipairs(remote) do
         if type(row) ~= 'table' or type(row.k) ~= 'string' or #row.k > 70 or not Q.integer(row.u, 0, Q.Now() + 300) then return {} end
-        local mine = known[row.k]
-        if row.k ~= 'c:' .. Q.Key() and (not mine or (mine.updated or 0) < row.u) then wanted[#wanted + 1] = row.k end
+        local mine, name = known[row.k], row.k:sub(3)
+        if row.k:sub(1, 2) == 'c:' and not Quintessence.SameName(name, Q.Key()) and (not mine or (mine.updated or 0) < row.u)
+            and (newest[Quintessence.CanonicalKey(name)] or 0) < row.u then wanted[#wanted + 1] = row.k end
     end
     return #wanted > 0 and { { keys = wanted } } or {}
 end

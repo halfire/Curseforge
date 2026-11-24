@@ -10,7 +10,7 @@ local SEEN_MAX, BOSS_WINDOW = 60, 180
 local lastBoss
 
 local function plain(text) return tostring(text or ''):lower():gsub('[%s%p]', '') end
-local function readable(v) return type(v) == 'string' and v ~= '' and not (issecretvalue and issecretvalue(v)) end
+local function readable(v) return not (issecretvalue and issecretvalue(v)) and type(v) == 'string' and v ~= '' end
 
 -- Clé par nom d'instance ; ailes du Monastère et de Hache-Tripes par le mot qui les distingue
 local WINGS = {

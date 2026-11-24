@@ -193,3 +193,40 @@ function B.Init()
         Q.Run('alerte vendetta', B.Check, event == 'PLAYER_TARGET_CHANGED' and 'target' or 'mouseover')
     end)
 end
+
+-- Fenêtre /quinte debug (conteneur 1.52.11, T252) : journal PvP, partage aux officiers, tableau du site et sa taille
+-- réelle en messages (un gros tableau passe devant la synchro des fiches chez l'officier qui l'envoie). Lecture seule.
+function B.DiagnosticLines()
+    local out = {}
+    local D = Quintessence.Diagnostic or {}
+    local when = D.When or tostring
+    out[#out + 1] = 'Module ' .. tostring(Q.version) .. ' · édition CurseForge ' .. tostring(Q.SOSOnly and Q.SOSOnly() or false) .. ' · erreurs ' .. #(Q.debug and Q.debug.errors or {})
+    local P = Q.PvP
+    local store = P and P.Store and P.Store()
+    if store then
+        local d = store.diagnostics or {}
+        out[#out + 1] = 'Journal PvP : ' .. (P.ready and 'actif' or 'en attente') .. ' · ' .. #(store.events or {}) .. ' événements · ' .. #(store.matches or {})
+            .. ' BG · coups fatals masqués ' .. tostring(d.hiddenKills or 0) .. ' · doublons ' .. tostring(d.duplicateKills or 0)
+    end
+    if P and P.Share and P.Share.Status then out[#out + 1] = 'Partage aux officiers : ' .. tostring(P.Share.Status()) end
+    if P and P.Share and P.Share.ReceivedReport and P.Share.IsOfficer and P.Share.IsOfficer() then
+        for _, line in ipairs(P.Share.ReceivedReport()) do out[#out + 1] = '  ' .. tostring(line) end
+    end
+    local b = db()
+    if not b then out[#out + 1] = 'Tableau PvP : aucun'; return out end
+    local ranks = 0
+    for _, list in pairs(type(b.ranking) == 'table' and b.ranking or {}) do if type(list) == 'table' then ranks = ranks + #list end end
+    local size = '?'
+    local Ser = LibStub and LibStub('LibSerialize', true)
+    local Def = LibStub and LibStub('LibDeflate', true)
+    if Ser and Def then
+        local ok, raw = pcall(Ser.Serialize, Ser, { v = 3, k = 'X', d = { c = 'qmap', d = payload() } })
+        local encoded = ok and Def:EncodeForWoWAddonChannel(Def:CompressDeflate(raw, { level = 5 }))
+        if encoded then size = math.ceil(#encoded / 232) .. ' message(s) (' .. math.floor(#raw / 1024) .. ' Ko non compressés)' end
+    end
+    out[#out + 1] = 'Tableau PvP du ' .. when(b.generated) .. ' · ' .. #(b.vendettas or {}) .. ' vendettas · ' .. ranks .. ' lignes de classement · taille ' .. size
+    local n = 0; for _ in pairs(answered) do n = n + 1 end
+    out[#out + 1] = 'Tableau envoyé à ' .. n .. ' membre(s) qui l’ont demandé depuis la connexion'
+    return out
+end
+if Quintessence.RegisterDiagnostic then Quintessence.RegisterDiagnostic('map', 'SOS et PvP (quinte-map)', function() return B.DiagnosticLines() end) end

@@ -1,6 +1,6 @@
 local addonName, Q = ...
 -- Nom réel du dossier installé (ex. « Quinte-Caract » cloné depuis GitHub) : ADDON_LOADED le renvoie tel quel.
-Q.name, Q.version = addonName or 'quinte-caract', '0.20.1'
+Q.name, Q.version = addonName or 'quinte-caract', '0.20.4'
 Q.api, Q.errors, Q.pendingItems = {}, {}, {}
 Q.scans, Q.changes, Q.slow = 0, 0, {}
 
@@ -55,6 +55,15 @@ end
 function Q.Now() return (time or GetServerTime)() end
 -- Clé du personnage : celle du conteneur (nom complet « Prénom Nom » sur WoW Forever)
 function Q.Key() return Quintessence.Key() end
+-- Royaume de la fiche : celui du jeu, sinon celui que le conteneur a retrouvé ; « » si le jeu le cache et que rien
+-- ne permet de le retrouver (nouvelle installation), nil s'il est illisible
+function Q.Realm()
+    local game = Q.Read('GetRealmName', GetRealmName)
+    if Q.String(game, 100) then return game end
+    local realm = (Quintessence.RealmName or Quintessence.Realm)()
+    if realm == '' then return '' end
+    return Q.String(realm, 100)
+end
 function Q.Safe(value) return (tostring(value or '?'):gsub('|', '||')) end
 function Q.Print(value)
     if DEFAULT_CHAT_FRAME and DEFAULT_CHAT_FRAME.AddMessage then

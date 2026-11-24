@@ -432,6 +432,56 @@ function Sh.Start()
     end
 end
 --- Texte d'état (onglet Log PvP, /qmap debug).
+--- /qmap recus (0.15.1, T231) : ce que cet officier a reçu, membre par membre (kills, morts, BG, dernier envoi),
+--- et les compteurs de la session. Lecture seule : rien n'est envoyé ni modifié.
+local function ago(at)
+    local d = math.max(0, now() - (tonumber(at) or 0))
+    if d < 3600 then return math.floor(d / 60) .. ' min' end
+    if d < 86400 then return math.floor(d / 3600) .. ' h' end
+    return math.floor(d / 86400) .. ' j'
+end
+function Sh.ReceivedReport()
+    local lines = {}
+    if not isOfficer() then
+        lines[1] = 'Réservé aux officiers (rangs 0 et 1) : un membre envoie son journal, il ne reçoit rien.'
+        return lines
+    end
+    local g = guild()
+    lines[1] = string.format('Session : %d relevé(s) reçu(s), %d refusé(s) · %d officier(s) en ligne en plus de toi.',
+        stats.received, stats.refused, #officersOnline())
+    if not g then lines[2] = 'Aucun relevé reçu depuis l’installation : aucun membre ne t’a encore envoyé son journal.'; return lines end
+    local per, order = {}, {}
+    local function row(guid)
+        if not per[guid] then
+            local rep = g.reporters[guid] or {}
+            per[guid] = { name = rep.name or guid, at = rep.at, kill = 0, group_kill = 0, death = 0, honor_credit = 0, bg = 0, last = 0 }
+            order[#order + 1] = guid
+        end
+        return per[guid]
+    end
+    for _, r in ipairs(g.events) do
+        local guid = type(r) == 'table' and type(r.reporter) == 'table' and r.reporter.guid
+        if guid then
+            local x = row(guid)
+            if x[r.kind] then x[r.kind] = x[r.kind] + 1 end
+            x.last = math.max(x.last, r.at or 0)
+        end
+    end
+    for _, m in ipairs(g.matches) do
+        local guid = type(m) == 'table' and type(m.reporter) == 'table' and m.reporter.guid
+        if guid then local x = row(guid); x.bg = x.bg + 1; x.last = math.max(x.last, m.at or 0) end
+    end
+    for guid in pairs(g.reporters) do row(guid) end
+    table.sort(order, function(a, b) return (per[a].at or 0) > (per[b].at or 0) end)
+    lines[2] = string.format('Total gardé : %d événement(s), %d relevé(s) BG, %d membre(s).', #g.events, #g.matches, #order)
+    for _, guid in ipairs(order) do
+        local x = per[guid]
+        lines[#lines + 1] = string.format('%s : %d kill(s), %d kill(s) de groupe, %d mort(s), %d crédit(s) d’honneur, %d BG · dernier envoi il y a %s, dernier fait il y a %s',
+            P.Secret(x.name) and '?' or tostring(x.name), x.kill, x.group_kill, x.death, x.honor_credit, x.bg,
+            x.at and ago(x.at) or '?', x.last > 0 and ago(x.last) or '?')
+    end
+    return lines
+end
 function Sh.Status()
     local store, c = P.Store(), P.Character()
     if not (store and c) then return 'journal en attente.' end

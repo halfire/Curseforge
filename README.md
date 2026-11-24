@@ -12,6 +12,10 @@ T83 : projet CurseForge 1786751, variable GitHub CF_PROJECT_ID. Le workflow acce
 
 Déploiement vérifié le 12 novembre 2026 : [Pack CurseForge #44](https://github.com/halfire/Curseforge/actions/runs/43320808953) réussi (commit 178c476). Release 1.44.3 reçue par le projet 1786751, fichier 9582601, client Forever 1.60.1. Statut initial CurseForge « Processing » ; approbation de modération distincte. Les futurs changements de pack.json Release sur main déclenchent le même envoi.
 
+Édition 1.52.13 (T255, 24 novembre 2026) : synchro des fiches et du craft réparée sur le client Forever 71037, qui cache
+le royaume ; fiche et craft en double réunis, un seul nom par métier, Poisons retiré ; fenêtre `/quinte debug`. Mêmes huit
+addons membres.
+
 Édition 1.52.2 (T230, 19 novembre 2026) : Ride the Bus (quinte-ride 0.7.1) ajouté à la demande du GM ; l’uploader accepte les huit addons membres.
 
 Correctif de publication 1.52.1 (T229, 18 novembre 2026) : l’uploader accepte les sept addons membres, dont quinte-ban 0.6.0. Test de construction sur le manifeste réel ; exclusions des fichiers officiers conservées.
